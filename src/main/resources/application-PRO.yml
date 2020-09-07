@@ -1,0 +1,95 @@
+# apollo配置
+#app:
+#  id: coreSystem
+#apollo:
+#  meta: http://meta-tapollo01cn.svc.monix.tech:8080
+kafka-canal:
+  consumer:
+    properties:
+      bootstrap-servers: 10.164.193.200:9092,10.164.193.201:9092,10.164.193.202:9092
+      group-id: core-system-event
+      enable-auto-commit: false
+      auto-commit-interval-ms: 1000
+      session-timeout-ms: 15000
+      auto-offset-reset: earliest
+      max-poll-records: 60
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+  container:
+    topics:
+      - lm-loan
+      - lm-pm-shd
+      - lm-setlmt-log
+    ackMode: MANUAL
+datasource:
+  hikari:
+    - pool-name: haier
+      driver-class-name: oracle.jdbc.OracleDriver
+      jdbc-url: jdbc:oracle:thin:@10.164.193.22:1521:rtdwdb
+      username: qry_abakus
+      password: 9eXpjKCx7bY2wuv1
+      validation-timeout: 8000
+      maximum-pool-size: 200
+      # 该数据源所包含的数据库
+      all-dbs: [glloans_haierdb]
+    - pool-name: master # 核心系统表
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://sql-phaiercash01cn.svc.haiercash.com:3306/abakus_core
+      password: X1Hj7IpkRcsRo0Z7bWm3w2wpNYi7M
+      username: app_abakus_core_rw
+      connection-test-query: SELECT 1
+      validation-timeout: 18800
+      maximum-pool-size: 100
+      all-dbs: [abakus-core]
+rocket-mq:
+  # 生产者配置
+  producer:
+    is-on-off: true
+    producer-group: core-system-event
+    namesrv-addr:
+    max-message-size: 10240
+    send-message-timeout: 1000
+    retry-times-when-send-failed: 3
+  # 消费者配置
+  consumer:
+    is-on-off: true
+    consumer-group: core-system-event
+    namesrv-addr:
+    topics:
+      - topic: abakus-coresystem-prod
+        tags: [core-event]
+    consume-thread-min: 15
+    consume-thread-max: 40
+    consume-message-batch-max-size: 1
+  # 阿里云方式配置
+  ons-factory:
+    consumer:
+      ConsumeThreadNums: 6
+      GROUP_ID: GID_core_system_event_prod
+      AccessKey: LTAI4G5Xpp2GfzFQZR2tCcSH
+      SecretKey: xxB8F2JMIUg6pJuSslCfJB4kmfqokl
+      NAMESRV_ADDR: http://MQ_INST_1346094110230574_BXNoHaKU.cn-qingdao.mq-internal.aliyuncs.com:8080
+    producer:
+      GROUP_ID: GID_core_system_event_prod
+      SendMsgTimeoutMillis: 3000
+      AccessKey: LTAI4G5Xpp2GfzFQZR2tCcSH
+      SecretKey: xxB8F2JMIUg6pJuSslCfJB4kmfqokl
+      NAMESRV_ADDR: http://MQ_INST_1346094110230574_BXNoHaKU.cn-qingdao.mq-internal.aliyuncs.com:8080
+
+spring:
+  data:
+    mongodb:
+      uri: mongodb://app_abakus_core_rw:X1Hj7IpkRcsRo0Z7bWm3w2wpNYi7M@dds-m5e6203ba8efe0341.mongodb.rds.aliyuncs.com:3717,dds-m5e6203ba8efe0342.mongodb.rds.aliyuncs.com:3717/abakus_core?replicaSet=mgset-34994683
+
+redis:
+  config:
+    host: rds-phaiercash01cn.svc.haiercash.com
+    port: 6379
+    password: mMgABZhDyPGbUsyRgm9IgGEYg
+    database-index: 1
+    max-active: 8
+    max-wait: 20000
+    max-idle: 8
+    min-idle: 1
+    timeout: 50000
+    ssl: false
