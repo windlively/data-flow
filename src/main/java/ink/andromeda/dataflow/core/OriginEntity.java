@@ -17,7 +17,7 @@ public class SourceEntity {
 
     private String schema;
 
-    private String table;
+    private String name;
 
     private String opType;
 
@@ -29,8 +29,8 @@ public class SourceEntity {
         this.schema = schema == null ? null : schema.toLowerCase();
     }
 
-    public void setTable(String table){
-        this.table = table == null ? null : table.toLowerCase();
+    public void setName(String name){
+        this.name = name == null ? null : name.toLowerCase();
     }
 
 }

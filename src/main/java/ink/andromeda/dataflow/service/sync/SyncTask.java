@@ -9,7 +9,7 @@ import ink.andromeda.dataflow.service.event.ProductizationEventService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ink.andromeda.dataflow.entity.SourceEntity;
-import ink.andromeda.dataflow.entity.CoreEntity;
+import ink.andromeda.dataflow.entity.TransferEntity;
 import ink.andromeda.dataflow.service.ApplicationEventService;
 import org.slf4j.MDC;
 
@@ -35,20 +35,20 @@ public class SyncTask implements Callable<SyncResult> {
     public SyncResult call() {
         boolean success;
         String msg;
-        CoreEntity coreEntity;
+        TransferEntity transferEntity;
         try {
-            CoreResult<CoreEntity> convertCoreResult = converter.convertAndStore(sourceEntity);
-            coreEntity = convertCoreResult.getData();
-            if (coreEntity == null) {
+            CoreResult<TransferEntity> convertCoreResult = converter.convertAndStore(sourceEntity);
+            transferEntity = convertCoreResult.getData();
+            if (transferEntity == null) {
                 return SyncResult.builder().success(false).msg(convertCoreResult.getMsg()).build();
             }
             if (productizationEventService != null) {
                 // 数据同步成功
                 applicationEventService.next(AppEventSubject.SYNC_SUCCESS, sourceEntity);
-                final CoreEntity finalCoreEntity = coreEntity;
+                final TransferEntity finalTransferEntity = transferEntity;
                 ThreadPoolService.CS_EVENT_TASK_GROUP().submit(() -> {
                     try {
-                        List<EventMessage> list = productizationEventService.inferEvent(sourceEntity, finalCoreEntity);
+                        List<EventMessage> list = productizationEventService.inferEvent(sourceEntity, finalTransferEntity);
                         if (list.stream().anyMatch(EventMessage::isSuccess)) {
                             applicationEventService.next(AppEventSubject.EVENT_MATCHED, sourceEntity);
                         }

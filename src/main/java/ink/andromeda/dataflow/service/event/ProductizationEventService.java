@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import ink.andromeda.dataflow.datasource.dao.CommonDao;
 import ink.andromeda.dataflow.entity.CanalType;
 import ink.andromeda.dataflow.entity.SourceEntity;
-import ink.andromeda.dataflow.entity.CoreEntity;
+import ink.andromeda.dataflow.entity.TransferEntity;
 import net.abakus.coresystem.entity.po.ProdLinkRelationConf;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.MDC;
@@ -68,10 +68,10 @@ public class ProductizationEventService implements EventService {
 
     }
 
-    public List<EventMessage> inferEvent(SourceEntity sourceEntity, CoreEntity coreEntity) {
+    public List<EventMessage> inferEvent(SourceEntity sourceEntity, TransferEntity transferEntity) {
         List<EventMessage> eventMessageResults = new ArrayList<>();
         String schemaName = sourceEntity.getSchema();
-        String tableName = sourceEntity.getTable();
+        String tableName = sourceEntity.getName();
         JSONObject configs = getConfig(schemaName, tableName);
         if (configs == null) {
             eventMessageResults.add(EventMessage.builder()
@@ -84,13 +84,13 @@ public class ProductizationEventService implements EventService {
             String eventName = config.getString("event_name");
             EventMessage eventMessage = EventMessage.builder()
                     .eventSourceSchema(sourceEntity.getSchema())
-                    .eventSourceTable(sourceEntity.getTable())
+                    .eventSourceTable(sourceEntity.getName())
                     .eventName(eventName)
                     .description(eventName)
                     .eventSourceType(sourceEntity.getOpType())
                     .build();
             eventMessageResults.add(eventMessage);
-            if (matchEvent(sourceEntity, coreEntity, config)) {
+            if (matchEvent(sourceEntity, transferEntity, config)) {
                 log.info("match event, event name: {}", config.getString("event_name"));
                 eventMessage.setMsg("success");
                 eventMessage.setSuccess(true);
@@ -169,19 +169,19 @@ public class ProductizationEventService implements EventService {
 
     private final static String LINK_TABLE_DATA_SQL = "SELECT * FROM %s.%s WHERE %s = %s";
 
-    private boolean matchEvent(SourceEntity sourceEntity, CoreEntity coreEntity, JSONObject config) {
+    private boolean matchEvent(SourceEntity sourceEntity, TransferEntity transferEntity, JSONObject config) {
         StandardEvaluationContext evaluationContext = expressionService.evaluationContext();
         Map<String, Object> rootObject = new HashMap<>();
         evaluationContext.setRootObject(rootObject);
 
         String currentSchema = sourceEntity.getSchema();
-        String currentTable = sourceEntity.getTable();
+        String currentTable = sourceEntity.getName();
 
         Map<String, Map<String, Object>> currentSchemaData = new HashMap<>();
         Map<String, Object> currentTableData = sourceEntity.getData();
         currentSchemaData.put(currentTable, currentTableData);
         rootObject.put(currentSchema, currentSchemaData);
-        rootObject.put("CE", coreEntity.getEntity());
+        rootObject.put("CE", transferEntity.getData());
         JSONArray linkTables;
         if ((linkTables = config.getJSONArray("link_tables")) != null && !linkTables.isEmpty()) {
             linkTables.forEach(t -> {

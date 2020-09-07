@@ -10,7 +10,7 @@ import ink.andromeda.dataflow.service.ExpressionService;
 import lombok.extern.slf4j.Slf4j;
 import ink.andromeda.dataflow.entity.CanalType;
 import ink.andromeda.dataflow.entity.SourceEntity;
-import ink.andromeda.dataflow.entity.CoreEntity;
+import ink.andromeda.dataflow.entity.TransferEntity;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.MDC;
@@ -57,10 +57,10 @@ public class DefaultEventService implements EventService{
 
     }
 
-    public List<EventMessage> inferEvent(SourceEntity sourceEntity, CoreEntity coreEntity) {
+    public List<EventMessage> inferEvent(SourceEntity sourceEntity, TransferEntity transferEntity) {
         List<EventMessage> eventMessageResults = new ArrayList<>();
         String schemaName = sourceEntity.getSchema();
-        String tableName = sourceEntity.getTable();
+        String tableName = sourceEntity.getName();
         JSONObject configs = getConfig(schemaName, tableName);
         if (configs == null) {
             eventMessageResults.add(EventMessage.builder()
@@ -73,16 +73,16 @@ public class DefaultEventService implements EventService{
         for (JSONObject config : eventList) {
             String eventKey = config.getString("event_key");
             EventMessage eventMessage = EventMessage.builder()
-                    .data(coreEntity.getEntity())
+                    .data(transferEntity.getData())
                     .eventSourceSchema(sourceEntity.getSchema())
-                    .eventSourceTable(sourceEntity.getTable())
+                    .eventSourceTable(sourceEntity.getName())
                     .eventName(config.getString("event_key"))
                     .description(config.getString("event_name"))
                     .eventSourceType(sourceEntity.getOpType())
                     .build();
             eventMessageResults.add(eventMessage);
-            if (coreEntity.getName().equals(config.getString("core_table"))
-                && matchEvent(sourceEntity, coreEntity, config)) {
+            if (transferEntity.getSource().equals(config.getString("core_table"))
+                && matchEvent(sourceEntity, transferEntity, config)) {
                 log.info("match event, event key: {}, event name: {}", config.getString("event_key"), config.getString("event_name"));
                 eventMessage.setMsg("success");
                 eventMessage.setSuccess(true);
@@ -124,7 +124,7 @@ public class DefaultEventService implements EventService{
         return eventMessageResults;
     }
 
-    private boolean matchEvent(SourceEntity sourceEntity, CoreEntity coreEntity, JSONObject config) {
+    private boolean matchEvent(SourceEntity sourceEntity, TransferEntity transferEntity, JSONObject config) {
         StandardEvaluationContext evaluationContext = expressionService.evaluationContext();
         Map<String, Object> rootObject = new HashMap<>();
         evaluationContext.setRootObject(rootObject);
@@ -132,7 +132,7 @@ public class DefaultEventService implements EventService{
         // canal bean 传入的bean
         rootObject.put("BE", sourceEntity.getData());
         // core bean 转换后的bean
-        rootObject.put("CE", coreEntity.getEntity());
+        rootObject.put("CE", transferEntity.getData());
         rootObject.put("BEFORE", sourceEntity.getBefore());
 
         evaluationContext.setVariable("CANAL_TYPE", sourceEntity.getOpType());
@@ -189,7 +189,7 @@ public class DefaultEventService implements EventService{
         String matchCondition = joinCondition(sourceEntity.getOpType(), config);
         boolean match = Optional.ofNullable(expressionService.executeExpression(matchCondition, evaluationContext, boolean.class))
                 .orElseGet(() -> {
-                    log.warn("表达式计算异常, 结果为null, condition: {}, business entity: {}, core entity: {}", matchCondition, sourceEntity, coreEntity);
+                    log.warn("表达式计算异常, 结果为null, condition: {}, business entity: {}, core entity: {}", matchCondition, sourceEntity, transferEntity);
                     return false;
                 });
         String eventName = config.getString("event_name");

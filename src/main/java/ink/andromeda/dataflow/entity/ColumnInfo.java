@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import static net.abakus.coresystem.util.CommonUtils.tableColumnTypeToJavaType;
+import static ink.andromeda.dataflow.util.CommonUtils.tableColumnTypeToJavaType;
 
 @ToString
 @Data

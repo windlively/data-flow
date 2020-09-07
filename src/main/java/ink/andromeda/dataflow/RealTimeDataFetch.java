@@ -122,7 +122,7 @@ public class RealTimeDataFetch implements BatchAcknowledgingMessageListener<Long
                                 .data(message.getAfter())
                                 .opType(convertOpType(message.getOpType()))
                                 .schema(schemaName)
-                                .table(tableName)
+                                .name(tableName)
                                 .build();
                         applicationEventService.next(AppEventSubject.REC_BUS_BEAN, sourceEntity);
                         MDC.clear();

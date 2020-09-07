@@ -227,14 +227,14 @@ public class CoreTableConverter {
      * 将BusinessBean转换为CoreEntity
      */
     @NonNull
-    public CoreResult<CoreEntity> convertToCoreEntity(SourceEntity sourceEntity) {
+    public CoreResult<TransferEntity> convertToCoreEntity(SourceEntity sourceEntity) {
 
-        if (directForward) return CoreResult.<CoreEntity>builder()
+        if (directForward) return CoreResult.<TransferEntity>builder()
                 .success(true)
-                .data(CoreEntity.builder()
+                .data(TransferEntity.builder()
                         .opType(sourceEntity.getOpType())
-                        .entity(sourceEntity.getData())
-                        .name(sourceEntity.getTable())
+                        .data(sourceEntity.getData())
+                        .source(sourceEntity.getName())
                         .build())
                 .msg("direct forward")
                 .build();
@@ -252,21 +252,21 @@ public class CoreTableConverter {
                 sourceEntity.getBefore().forEach(evaluationContext::setVariable);
                 sql = expressionService.executeExpression(sql, evaluationContext, String.class, true);
                 coreTableDao.commonDelete(sql);
-                return CoreResult.<CoreEntity>builder()
+                return CoreResult.<TransferEntity>builder()
                         .msg("delete operation.")
                         .build();
             }
         }
         Map<String, Object> contextRoot = new HashMap<>();
-        CoreEntity coreEntity = new CoreEntity();
-        coreEntity.setOpType(sourceEntity.getOpType());
-        coreEntity.setName(destTable);
+        TransferEntity transferEntity = new TransferEntity();
+        transferEntity.setOpType(sourceEntity.getOpType());
+        transferEntity.setSource(destTable);
         Map<String, Object> entity = new HashMap<>();
-        coreEntity.setEntity(entity);
+        transferEntity.setData(entity);
         List<ColumnInfo> columnInfos = expressionService.getColumnInfo(destTable);
         if (columnInfos == null || columnInfos.isEmpty()) {
             log.error("could not found column info for core table: {}", destTable);
-            return CoreResult.<CoreEntity>builder()
+            return CoreResult.<TransferEntity>builder()
                     .msg("could not found column info for core table: " + destTable)
                     .build();
         }
@@ -286,10 +286,10 @@ public class CoreTableConverter {
         evaluationContext.setVariable("CANAL_TYPE", sourceEntity.getOpType());
         // 表达式执行的环境变量配置
         if (evalContextConfig != null) {
-             evalContextConfig.forEach(item -> {
-                 @SuppressWarnings("unchecked") List<String> onOpTypes = (List<String>) item.get("on_op_types");
+            evalContextConfig.forEach(item -> {
+                @SuppressWarnings("unchecked") List<String> onOpTypes = (List<String>) item.get("on_op_types");
                 if (onOpTypes != null && !onOpTypes.isEmpty()
-                    && onOpTypes.stream().noneMatch(t -> sourceEntity.getOpType().equalsIgnoreCase(t.trim())))
+                        && onOpTypes.stream().noneMatch(t -> sourceEntity.getOpType().equalsIgnoreCase(t.trim())))
                     return;
                 String name = (String) item.get("name");
                 if ("CE".equals(name)) {
@@ -339,7 +339,7 @@ public class CoreTableConverter {
             boolean match = expressionService.executeExpression(filter, evaluationContext, boolean.class);
             if (!match) {
                 log.info("business bean: {} is filtered by [{}]", sourceEntity, filter);
-                return CoreResult.<CoreEntity>builder()
+                return CoreResult.<TransferEntity>builder()
                         .msg(String.format("filtered by [%s])", filter))
                         .build();
             }
@@ -351,17 +351,17 @@ public class CoreTableConverter {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> deleteConfig = (Map<String, Object>) dbUpdate.get("delete");
                 @SuppressWarnings({"unchecked"})
-                String[] deleteQualifiedField = ((List<String>)deleteConfig.get("qualified_field")).toArray(new String[0]);
-                autoConfigurableCoreTableDao.delete(coreEntity, deleteQualifiedField);
+                String[] deleteQualifiedField = ((List<String>) deleteConfig.get("qualified_field")).toArray(new String[0]);
+                autoConfigurableCoreTableDao.delete(transferEntity, deleteQualifiedField);
             }
-            return CoreResult.<CoreEntity>builder()
+            return CoreResult.<TransferEntity>builder()
                     .msg("delete operation.")
                     .build();
         }
 
-        CoreResult<CoreEntity> coreResult = CoreResult.<CoreEntity>builder()
+        CoreResult<TransferEntity> coreResult = CoreResult.<TransferEntity>builder()
                 .msg("success")
-                .data(coreEntity)
+                .data(transferEntity)
                 .success(true)
                 .build();
 
@@ -376,7 +376,7 @@ public class CoreTableConverter {
     }
 
     @Transactional
-    public int updateOrInsertByCoreEntity(CoreEntity coreEntity) {
+    public int updateOrInsertByCoreEntity(TransferEntity transferEntity) {
 
         if (directForward) return 1;
 
@@ -397,12 +397,12 @@ public class CoreTableConverter {
                 String updateSql = (String) update.get("sql");
                 String selectSql = (String) select.get("sql");
                 StandardEvaluationContext context = expressionService.evaluationContext();
-                context.setRootObject(coreEntity.getEntity());
+                context.setRootObject(transferEntity.getData());
                 Map<String, Object> originalData;
 
                 boolean autoId = (boolean) insert.getOrDefault("auto_id", false);
                 @SuppressWarnings({"unchecked"})
-                String[] updateQualifiedField = ((List<String>)update.get("qualified_field")).toArray(new String[0]);
+                String[] updateQualifiedField = ((List<String>) update.get("qualified_field")).toArray(new String[0]);
 
                 // 从核心库中查询旧数据
                 if (!StringUtils.isEmpty(selectSql)) {
@@ -410,18 +410,18 @@ public class CoreTableConverter {
                     originalData = coreTableDao.commonSelect(selectSql);
                 } else {
                     @SuppressWarnings("unchecked")
-                    String[] selectQualifiedField = ((List<String>)select.get("qualified_field")).toArray(new String[0]);
-                    originalData = autoConfigurableCoreTableDao.findOriginal(coreEntity, false, selectQualifiedField);
+                    String[] selectQualifiedField = ((List<String>) select.get("qualified_field")).toArray(new String[0]);
+                    originalData = autoConfigurableCoreTableDao.findOriginal(transferEntity, false, selectQualifiedField);
                 }
 
                 // 如果未查询到旧数据, 则进行插入操作
                 if (originalData == null) {
-                    log.debug("插入: {}", CommonUtils.toJSONString(coreEntity));
+                    log.debug("插入: {}", CommonUtils.toJSONString(transferEntity));
                     if (!StringUtils.isEmpty(insertSql)) {
                         insertSql = expressionService.executeExpression(insertSql, context, String.class, true);
                         return coreTableDao.commonInsert(insertSql);
                     }
-                    return autoConfigurableCoreTableDao.insert(coreEntity);
+                    return autoConfigurableCoreTableDao.insert(transferEntity);
                 }
 
                 // 查询到旧数据, 进行更新操作
@@ -429,8 +429,12 @@ public class CoreTableConverter {
                     updateSql = expressionService.executeExpression(updateSql, context, String.class, true);
                     return coreTableDao.commonUpdate(updateSql);
                 }
-                CoreEntity original = new CoreEntity(coreEntity.getName(), coreEntity.getOpType(), originalData);
-                return autoConfigurableCoreTableDao.update(coreEntity, original, true, updateQualifiedField);
+                TransferEntity original = TransferEntity.builder()
+                        .data(originalData)
+                        .opType(transferEntity.getOpType())
+                        .source(transferEntity.getSource())
+                        .build();
+                return autoConfigurableCoreTableDao.update(transferEntity, original, true, updateQualifiedField);
             }
             case "custom": {
                 // TODO 自定义数据入库方式
@@ -443,12 +447,12 @@ public class CoreTableConverter {
     /**
      * 转换并存储
      */
-    public CoreResult<CoreEntity> convertAndStore(SourceEntity sourceEntity) {
-        CoreResult<CoreEntity> coreResult = convertToCoreEntity(sourceEntity);
-        CoreEntity coreEntity = coreResult.getData();
-        if (coreEntity != null) {
-            if (updateOrInsertByCoreEntity(coreEntity) > 0)
-                log.info("convert result, table: {}, msg: {}, data: {}", coreEntity.getName(), coreResult.getMsg(), CommonUtils.toJSONString(coreEntity));
+    public CoreResult<TransferEntity> convertAndStore(SourceEntity sourceEntity) {
+        CoreResult<TransferEntity> coreResult = convertToCoreEntity(sourceEntity);
+        TransferEntity transferEntity = coreResult.getData();
+        if (transferEntity != null) {
+            if (updateOrInsertByCoreEntity(transferEntity) > 0)
+                log.info("convert result, table: {}, msg: {}, data: {}", transferEntity.getSource(), coreResult.getMsg(), CommonUtils.toJSONString(transferEntity));
             else
                 log.info("store failed");
         } else {

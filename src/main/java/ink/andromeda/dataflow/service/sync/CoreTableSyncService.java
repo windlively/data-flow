@@ -88,7 +88,7 @@ public class CoreTableSyncService {
 
     public void coreTableSync(SourceEntity sourceEntity, boolean pushEvent) {
         String schemaName = sourceEntity.getSchema();
-        String tableName = sourceEntity.getTable();
+        String tableName = sourceEntity.getName();
         getConverter(schemaName, tableName).forEach((id, converter) -> {
             ThreadPoolService.CS_SYNC_TASK_GROUP()
                     .submit(new SyncTask(converter, sourceEntity, pushEvent ? productizationEventService : null, applicationEventService));
@@ -100,7 +100,7 @@ public class CoreTableSyncService {
             return;
         businessEntities.forEach(businessEntity -> {
             MDC.put("traceId", randomId());
-            getConverter(businessEntity.getSchema(), businessEntity.getTable())
+            getConverter(businessEntity.getSchema(), businessEntity.getName())
                     .forEach((id, converter) -> {
                         new SyncTask(converter, businessEntity, pushEvent ? productizationEventService : null, applicationEventService).call();
                     });
@@ -112,7 +112,7 @@ public class CoreTableSyncService {
         coreTableSync(SourceEntity.builder()
                 .data(data)
                 .before(new HashMap<>(0))
-                .table(table)
+                .name(table)
                 .schema(schema)
                 .opType("UPDATE")
                 .build(), pushEvent);
@@ -121,7 +121,7 @@ public class CoreTableSyncService {
     public void coreTableSync(List<Map<String, Object>> data, String schema, String table, boolean pushEvent) {
         coreTableSync(data.stream().map(s -> SourceEntity.builder()
                 .schema(schema)
-                .table(table)
+                .name(table)
                 .data(s)
                 .before(new HashMap<>(0))
                 .opType("UPDATE")

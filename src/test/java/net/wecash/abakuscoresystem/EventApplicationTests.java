@@ -43,7 +43,7 @@ public class EventApplicationTests {
                 )
                 .opType("INSERT")
                 .schema("abak")
-                .table("lm_loan")
+                .name("lm_loan")
                 .build(),true);
         while (true);
     }
@@ -61,7 +61,7 @@ public class EventApplicationTests {
                 )
                 .opType("INSERT")
                 .schema("abakus")
-                .table("lm_pm_shd")
+                .name("lm_pm_shd")
                 .build(), "0000000", "No123456", "1", true);
     }
 

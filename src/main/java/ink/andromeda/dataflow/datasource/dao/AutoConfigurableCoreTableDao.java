@@ -4,7 +4,7 @@ package ink.andromeda.dataflow.datasource.dao;
 import ink.andromeda.dataflow.util.CommonUtils;
 import lombok.extern.slf4j.Slf4j;
 import ink.andromeda.dataflow.util.SqlGenerator;
-import ink.andromeda.dataflow.entity.CoreEntity;
+import ink.andromeda.dataflow.entity.TransferEntity;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
 
@@ -27,8 +27,8 @@ public class AutoConfigurableCoreTableDao {
         this.coreTableDao = coreTableDao;
     }
 
-    public Map<String, Object> findOriginal(CoreEntity entity, boolean ignoreNull, String... qualifiedField){
-        String SQL = genSelect(entity.getEntity(),entity.getName(), ignoreNull, qualifiedField);
+    public Map<String, Object> findOriginal(TransferEntity entity, boolean ignoreNull, String... qualifiedField){
+        String SQL = genSelect(entity.getData(),entity.getSource(), ignoreNull, qualifiedField);
         log.debug(SQL);
         Map<String, Object> result;
         try {
@@ -45,22 +45,22 @@ public class AutoConfigurableCoreTableDao {
         return result;
     }
 
-    public int update(CoreEntity newEntity, CoreEntity oldEntity, boolean selective, String... qualifiedField){
+    public int update(TransferEntity newEntity, TransferEntity oldEntity, boolean selective, String... qualifiedField){
         if(selective)
-            oldEntity.getEntity().forEach(newEntity.getEntity()::putIfAbsent);
-        String SQL = genUpdate(newEntity.getEntity(), newEntity.getName(), qualifiedField);
+            oldEntity.getData().forEach(newEntity.getData()::putIfAbsent);
+        String SQL = genUpdate(newEntity.getData(), newEntity.getSource(), qualifiedField);
         log.info("update, SQL: {}", SQL);
         return coreTableDao.commonUpdate(SQL);
     }
 
-    public int insert(CoreEntity entity){
-        String SQL = SqlGenerator.genInsert(entity.getEntity(), entity.getName(), true);
+    public int insert(TransferEntity entity){
+        String SQL = SqlGenerator.genInsert(entity.getData(), entity.getSource(), true);
         log.info("insert, SQL: {}", SQL);
         return coreTableDao.commonInsert(SQL);
     }
 
-    public int delete(CoreEntity entity, String... qualifiedField){
-        String SQL = genDelete(entity.getEntity(), entity.getName(), qualifiedField);
+    public int delete(TransferEntity entity, String... qualifiedField){
+        String SQL = genDelete(entity.getData(), entity.getSource(), qualifiedField);
         log.info("delete, SQL {}", SQL);
         return coreTableDao.commonDelete(SQL);
     }

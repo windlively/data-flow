@@ -117,7 +117,7 @@ public class CanalUtils {
             SourceEntity sourceEntity = SourceEntity.builder()
                     .data(data)
                     .schema(metaInfo.getSchemaName())
-                    .table(metaInfo.getTableName())
+                    .name(metaInfo.getTableName())
                     .opType(metaInfo.getEventType())
                     .before(before)
                     .build();

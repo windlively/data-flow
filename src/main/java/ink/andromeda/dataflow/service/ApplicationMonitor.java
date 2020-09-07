@@ -64,9 +64,9 @@ public class ApplicationMonitor {
                 map.forEach((k, v) -> totalCountMap.get(type.name()).put(k, Long.parseLong(v)));
             }
         }
-        applicationEventService.subscribe(AppEventSubject.SYNC_SUCCESS, "statistics", msg -> incrCount(CountType.FIN_SYNC, ((SourceEntity) msg).getSchema() + "-" + ((SourceEntity) msg).getTable()));
-        applicationEventService.subscribe(AppEventSubject.EVENT_MATCHED, "statistics", msg -> incrCount(CountType.FIN_EVENT, ((SourceEntity) msg).getSchema() + "-" + ((SourceEntity) msg).getTable()));
-        applicationEventService.subscribe(AppEventSubject.REC_BUS_BEAN, "statistics", msg -> incrCount(CountType.REC_TOL, ((SourceEntity) msg).getSchema() + "-" + ((SourceEntity) msg).getTable()));
+        applicationEventService.subscribe(AppEventSubject.SYNC_SUCCESS, "statistics", msg -> incrCount(CountType.FIN_SYNC, ((SourceEntity) msg).getSchema() + "-" + ((SourceEntity) msg).getName()));
+        applicationEventService.subscribe(AppEventSubject.EVENT_MATCHED, "statistics", msg -> incrCount(CountType.FIN_EVENT, ((SourceEntity) msg).getSchema() + "-" + ((SourceEntity) msg).getName()));
+        applicationEventService.subscribe(AppEventSubject.REC_BUS_BEAN, "statistics", msg -> incrCount(CountType.REC_TOL, ((SourceEntity) msg).getSchema() + "-" + ((SourceEntity) msg).getName()));
         try {
             InetAddress addr = InetAddress.getLocalHost();
             localIp = addr.getHostAddress();

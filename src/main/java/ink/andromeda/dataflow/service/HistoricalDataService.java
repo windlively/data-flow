@@ -12,7 +12,7 @@ import ink.andromeda.dataflow.service.sync.CoreTableSyncService;
 import lombok.extern.slf4j.Slf4j;
 import ink.andromeda.dataflow.configuration.RedisConfiguration;
 import ink.andromeda.dataflow.entity.SourceEntity;
-import ink.andromeda.dataflow.entity.CoreEntity;
+import ink.andromeda.dataflow.entity.TransferEntity;
 import org.bson.Document;
 import org.slf4j.MDC;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -338,7 +338,7 @@ public class HistoricalDataService {
         sourceDataList.forEach(sourceData -> {
             SourceEntity sourceEntity = SourceEntity.builder()
                     .opType("MANUAL")
-                    .table(sourceTable)
+                    .name(sourceTable)
                     .schema(sourceSchema)
                     .data(sourceData)
                     .build();
@@ -364,19 +364,19 @@ public class HistoricalDataService {
      */
     public void coreTableHistoricalDataSync(SourceEntity sourceEntity, String originalId, String orderNo, String batchNo, boolean pushEvent) {
         String schemaName = sourceEntity.getSchema();
-        String tableName = sourceEntity.getTable();
+        String tableName = sourceEntity.getName();
         if (originalId == null)
             originalId = "-1";
         String finalOriginalId = originalId;
         coreTableSyncService.getConverter(schemaName, tableName).forEach((id, converter) -> {
-            CoreEntity coreEntity = null;
+            TransferEntity transferEntity = null;
             // 数据同步
             boolean syncSuccess = false;
             String syncErrorMsg = null;
             try {
-                CoreResult<CoreEntity> convertCoreResult = converter.convertAndStore(sourceEntity);
-                coreEntity = convertCoreResult.getData();
-                if (coreEntity == null) {
+                CoreResult<TransferEntity> convertCoreResult = converter.convertAndStore(sourceEntity);
+                transferEntity = convertCoreResult.getData();
+                if (transferEntity == null) {
                     syncErrorMsg = convertCoreResult.getMsg();
                     return;
                 }
@@ -402,7 +402,7 @@ public class HistoricalDataService {
             // 事件同步
             if (syncSuccess && pushEvent) {
                 try {
-                    List<EventMessage> list = productizationEventService.inferEvent(sourceEntity, coreEntity);
+                    List<EventMessage> list = productizationEventService.inferEvent(sourceEntity, transferEntity);
 //                    list.forEach(e -> applicationEventService.next(HIS_EVENT_FIN, EventResult.builder()
 //                            .success(e.isSuccess())
 //                            .batchNo(batchNo)
@@ -451,7 +451,7 @@ public class HistoricalDataService {
                 .data(data)
                 .before(new JSONObject())
                 .opType("MANUAL")
-                .table("lm_loan")
+                .name("lm_loan")
                 .schema("abak")
                 .build());
         String loanNo = data.getString("LOAN_NO");
@@ -461,7 +461,7 @@ public class HistoricalDataService {
                         SourceEntity.builder()
                                 .opType("MANUAL")
                                 .schema("abak")
-                                .table("lm_pm_shd")
+                                .name("lm_pm_shd")
                                 .before(new JSONObject())
                                 .data(s)
                                 .build()
@@ -473,7 +473,7 @@ public class HistoricalDataService {
                         SourceEntity.builder()
                                 .opType("MANUAL")
                                 .schema("abak")
-                                .table("lm_setlmt_log")
+                                .name("lm_setlmt_log")
                                 .before(new JSONObject())
                                 .data(s)
                                 .build()
@@ -485,7 +485,7 @@ public class HistoricalDataService {
                         SourceEntity.builder()
                                 .opType("MANUAL")
                                 .schema("abak")
-                                .table("lm_pm_log")
+                                .name("lm_pm_log")
                                 .before(new JSONObject())
                                 .data(s)
                                 .build()

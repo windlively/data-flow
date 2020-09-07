@@ -11,12 +11,16 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class CoreEntity {
+public class TransferEntity {
+
+    private String source;
+
+    private String schema;
 
     private String name;
 
     private String opType;
 
-    private Map<String, Object> entity;
+    private Map<String, Object> data;
 
 }
