@@ -1,13 +1,13 @@
 package ink.andromeda.dataflow.core;
 
-import ink.andromeda.dataflow.entity.SourceEntity;
-import ink.andromeda.dataflow.util.CommonUtils;
+import ink.andromeda.dataflow.util.GeneralUtils;
+import org.springframework.lang.NonNull;
 
-public class JSONStringToSourceEntityConverter implements ToSourceEntityConverter<String>{
+public class JSONStringToOriginEntityConverter implements ToOriginEntityConverter<String> {
     
     @Override
-    public SourceEntity convert(String source) {
-        return CommonUtils.Gson().fromJson(source, SourceEntity.class);
+    public OriginEntity convert(@NonNull String source) {
+        return GeneralUtils.GSON().fromJson(source, OriginEntity.class);
     }
 
 }

@@ -1,11 +1,12 @@
 package ink.andromeda.dataflow.entity;
 
+import com.google.gson.annotations.SerializedName;
 import lombok.Data;
 
 import java.util.Date;
 import java.util.Map;
 
-import static ink.andromeda.dataflow.util.CommonUtils.toJSONString;
+import static ink.andromeda.dataflow.util.GeneralUtils.toJSONString;
 
 @Data
 public class OGGMessage {

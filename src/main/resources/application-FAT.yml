@@ -21,25 +21,14 @@ kafka-canal:
     ackMode: MANUAL
 datasource:
   hikari:
-    - pool-name: glloans_haierdb
-      driver-class-name: com.mysql.cj.jdbc.Driver
-      jdbc-url: jdbc:mysql://10.164.204.101:3306/glloans_haierdb
-      password: glloans_123
-      username: glloans_haier
-      connection-test-query: SELECT 1
-      validation-timeout: 18800
-      maximum-pool-size: 100
-      # 该数据源所包含的数据库
-      all-dbs: [glloans_haierdb]
     - pool-name: master
       driver-class-name: com.mysql.cj.jdbc.Driver
-      jdbc-url: jdbc:mysql://10.164.204.101:3306/glloans_haierdb
-      password: glloans_123
-      username: glloans_haier
+      jdbc-url: jdbc:mysql://rm-m5eh40d45bvk8or0v.mysql.rds.aliyuncs.com:3306/abakus_core
+      password: P2Wvt1gC8o9WruQse9LiRq5ngmk34dM
+      username: app_abakus_core_rw
       connection-test-query: SELECT 1
       validation-timeout: 18800
-      maximum-pool-size: 100
-      all-dbs: [glloans_haierdb]
+      all-dbs: [abakus-core]
 rocket-mq:
   # 生产者配置
   producer:
@@ -88,3 +77,4 @@ redis:
     min-idle: 1
     timeout: 50000
     ssl: false
+

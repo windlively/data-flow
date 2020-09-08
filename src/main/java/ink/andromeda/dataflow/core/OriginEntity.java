@@ -1,4 +1,4 @@
-package ink.andromeda.dataflow.entity;
+package ink.andromeda.dataflow.core;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +11,7 @@ import java.util.Map;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class SourceEntity {
+public class OriginEntity {
 
     private String source;
 

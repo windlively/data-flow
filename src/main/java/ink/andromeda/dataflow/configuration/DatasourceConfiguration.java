@@ -1,9 +1,9 @@
 package ink.andromeda.dataflow.configuration;
 
 import com.zaxxer.hikari.HikariDataSource;
+import ink.andromeda.dataflow.datasource.DataSourceConfig;
+import ink.andromeda.dataflow.datasource.DynamicDataSource;
 import lombok.extern.slf4j.Slf4j;
-import net.abakus.coresystem.dynamicdatasource.DynamicDataSource;
-import net.abakus.coresystem.entity.config.DatasourceConfig;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.annotation.MapperScan;
@@ -22,8 +22,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-import static net.abakus.coresystem.util.CommonUtils.setBeanProperties;
-import static net.abakus.coresystem.util.CommonUtils.testDataSource;
+import static ink.andromeda.dataflow.util.GeneralUtils.setBeanProperties;
+import static ink.andromeda.dataflow.util.GeneralUtils.testDataSource;
 
 @MapperScans({
         @MapperScan("net.abakus.coresystem.data.datasource.mapper"),
@@ -114,8 +114,8 @@ public class DatasourceConfiguration {
 
     @Bean
     @ConfigurationProperties("datasource")
-    public DatasourceConfig datasourceConfig(){
-        return new DatasourceConfig();
+    public DataSourceConfig datasourceConfig(){
+        return new DataSourceConfig();
     }
 
 

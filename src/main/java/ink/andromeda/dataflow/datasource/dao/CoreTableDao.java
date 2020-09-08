@@ -1,6 +1,5 @@
 package ink.andromeda.dataflow.datasource.dao;
 
-import com.alibaba.fastjson.JSONObject;
 import ink.andromeda.dataflow.datasource.mapper.CoreTableMapper;
 import ink.andromeda.dataflow.entity.HistoryDataConsumeInfo;
 import ink.andromeda.dataflow.entity.ColumnInfo;

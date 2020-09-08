@@ -10,7 +10,7 @@ import lombok.Data;
 @AllArgsConstructor
 @Data
 @Builder
-public class CoreResult<E> {
+public class MethodResult<E> {
 
     private String msg;
 

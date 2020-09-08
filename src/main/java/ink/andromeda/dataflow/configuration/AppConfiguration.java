@@ -1,10 +1,9 @@
 package ink.andromeda.dataflow.configuration;
 
 import ink.andromeda.dataflow.interceptor.HttpInterceptor;
-import ink.andromeda.dataflow.ws.BatchSyncLogServer;
-import net.abakus.coresystem.redis.RedisClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -15,21 +14,17 @@ import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 
-import javax.annotation.PostConstruct;
-
 @Configuration
 @EnableScheduling
 public class AppConfiguration implements WebMvcConfigurer {
 
-    private final RedisClient redisClient;
+    private final RedisTemplate<String, String> strRedisTemplate;
 
-    public AppConfiguration(RedisClient redisClient) {
-        this.redisClient = redisClient;
-    }
 
-    @PostConstruct
-    private void init() {
-        BatchSyncLogServer.setRedisClient(redisClient);
+    public AppConfiguration(RedisTemplate<String, String> strRedisTemplate) {
+
+        this.strRedisTemplate = strRedisTemplate;
+
     }
 
     @Bean

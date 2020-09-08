@@ -1,6 +1,5 @@
 package ink.andromeda.dataflow.configuration;
 
-import com.alibaba.otter.canal.protocol.Message;
 import lombok.extern.slf4j.Slf4j;
 import ink.andromeda.dataflow.entity.config.KafkaConfig;
 import org.apache.kafka.clients.consumer.OffsetCommitCallback;
@@ -27,9 +26,8 @@ import java.util.Map;
 @Slf4j
 public class KafkaConfiguration {
 
-    public KafkaConfiguration(@Qualifier("realTimeDataFetch") BatchMessageListener<Long, String> messageListener,
-                              @Qualifier("realTimeDataFetchCommitCallback") OffsetCommitCallback offsetCommitCallback) {
-        this.messageListener = messageListener;
+    public KafkaConfiguration(@Qualifier("realTimeDataFetchCommitCallback") OffsetCommitCallback offsetCommitCallback) {
+        // this.messageListener = messageListener;
         this.offsetCommitCallback = offsetCommitCallback;
     }
 
@@ -46,7 +44,7 @@ public class KafkaConfiguration {
     }
 
     @Bean
-    ConsumerFactory<Long, Message> consumerFactory(){
+    ConsumerFactory<Long, Object> consumerFactory(){
         Map<String, Object> consumerProperties = new HashMap<>();
         KafkaConfig.ConsumerConfig config = canalKafkaConsumerConfig();
         config.getProperties().forEach((k,v) -> consumerProperties.put(k.replace('-','.'), v));
@@ -54,7 +52,7 @@ public class KafkaConfiguration {
         return new DefaultKafkaConsumerFactory<>(consumerProperties);
     }
 
-    private final BatchMessageListener<Long, String> messageListener;
+    private BatchMessageListener<Long, String> messageListener;
 
     private final OffsetCommitCallback offsetCommitCallback;
 
@@ -69,13 +67,13 @@ public class KafkaConfiguration {
     }
 
     @Bean
-    KafkaMessageListenerContainer<Long,Message> messageListenerContainer(){
+    KafkaMessageListenerContainer<Long,Object> messageListenerContainer(){
         return new KafkaMessageListenerContainer<>(consumerFactory(), containerProperties());
     }
 
     @Bean
-    ConcurrentKafkaListenerContainerFactory<Long,Message> kafkaListenerContainerFactory(){
-        ConcurrentKafkaListenerContainerFactory<Long,Message> containerFactory = new ConcurrentKafkaListenerContainerFactory<>();
+    ConcurrentKafkaListenerContainerFactory<Long,Object> kafkaListenerContainerFactory(){
+        ConcurrentKafkaListenerContainerFactory<Long,Object> containerFactory = new ConcurrentKafkaListenerContainerFactory<>();
         containerFactory.setConsumerFactory(consumerFactory());
         return containerFactory;
     }

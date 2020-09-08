@@ -1,13 +1,7 @@
 package ink.andromeda.dataflow.util;
 
-
-import com.alibaba.fastjson.JSONObject;
-
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -51,16 +45,5 @@ public class Functions {
 
     public static void main(String[] args) {
 //        Stream.of(Functions.class.getMethods()).filter(m -> Modifier.isStatic(m.getModifiers())).forEach(m -> System.out.println(m.getName()));
-        JSONObject o1 = new JSONObject().fluentPut("a", 22)
-                .fluentPut("b", 23)
-                .fluentPut("c", 24)
-                .fluentPut("d", "33")
-                .fluentPut("e", 34);
-        JSONObject o2 = new JSONObject().fluentPut("a", 22)
-                .fluentPut("b", 2)
-                .fluentPut("c", 4)
-                .fluentPut("d", "43")
-                .fluentPut("e", 34);
-        System.out.println(matchFieldChange(o1,o2, "b", "d"));
     }
 }

@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import static ink.andromeda.dataflow.util.CommonUtils.tableColumnTypeToJavaType;
+import static ink.andromeda.dataflow.util.GeneralUtils.jdbcTypeToJavaType;
 
 @ToString
 @Data
@@ -21,6 +21,6 @@ public class ColumnInfo {
 
     public void setDataType(String dataType) {
         this.dataType = dataType;
-        this.javaType = tableColumnTypeToJavaType(dataType);
+        this.javaType = jdbcTypeToJavaType(dataType);
     }
 }

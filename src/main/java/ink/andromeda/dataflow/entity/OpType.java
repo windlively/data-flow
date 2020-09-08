@@ -1,6 +1,6 @@
 package ink.andromeda.dataflow.entity;
 
-public class CanalType {
+public class OpType {
 
     public final static String DELETE = "DELETE";
 

@@ -1,56 +1,52 @@
 package ink.andromeda.dataflow.util;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+
+import com.google.gson.reflect.TypeToken;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 import java.util.stream.Stream;
+
+import static ink.andromeda.dataflow.util.GeneralUtils.GSON;
 
 /**
  * JSON配置文件检查器
- * 根据模板文件检查配置, 如果 {@link #validate(JSONObject)} 返回集合为空则代表配置正确, 否则返回错误信息
  */
 @Slf4j
 public class JSONConfigValidator {
 
     // 模板文件
     @Setter
-    private JSONObject template;
+    private Map<String, Object> template;
 
-    public JSONConfigValidator(JSONObject template) {
+    public JSONConfigValidator(Map<String, Object> template) {
         this.template = template;
     }
 
-    public List<String> validate(JSONObject config) {
+    public List<String> validate(Map<String, Object> config) {
         List<String> list = new ArrayList<>();
-        config = JSON.parseObject(config.toJSONString());
         validate(config, "", template, list);
         return list;
     }
 
-    private void validate(JSONObject config, String keyPrefix, JSONObject templateFields, @NonNull List<String> errorList) {
+    private void validate(Map<String, Object> config, String keyPrefix, Map<String, Object> templateFields, @NonNull List<String> errorList) {
         templateFields.forEach((k, v) -> {
-            JSONObject desc = (JSONObject) JSON.toJSON(v);
+            Map<String, Object> desc = (Map<String, Object>) v;
             Object configItem = config.get(k);
             String currentKeyPrefix = StringUtils.isEmpty(keyPrefix) ? k : (keyPrefix + "->" + k);
-            boolean required = desc.getBooleanValue("required");
+            boolean required = (boolean) desc.getOrDefault("required", false);
             if (configItem == null) {
                 if (required)
                     errorList.add(String.format("'%s' is required!", currentKeyPrefix));
                 return;
             }
-            String tType = desc.getString("type");
+            String tType = (String) desc.get("type");
             String[] types = tType.split("\\|");
             Class<?> javaType = null;
             for (String t : types) {
@@ -65,19 +61,20 @@ public class JSONConfigValidator {
                 errorList.add(String.format("'%s' value '%s' type is '%s', not belong [%s]", currentKeyPrefix, configItem, configItem.getClass().getSimpleName(), tType));
                 return;
             }
-            JSONObject fieldsRegular;
+            Map<String, Object> fieldsRegular;
             if (javaType.equals(Map.class)
-                && validateOptionalFields(desc, currentKeyPrefix, (JSONObject) configItem, errorList)
-                && (((fieldsRegular = desc.get("fields_ref") == null ? desc.getJSONObject("fields") : findObject(template, desc.getString("fields_ref"))) != null)
+                && validateOptionalFields(desc, currentKeyPrefix, (Map<String, Object>) configItem, errorList)
+                && (((fieldsRegular = desc.get("fields_ref") == null ? (Map<String, Object>) desc.get("fields") : findObject(template, (String) desc.get("fields_ref"))) != null)
                     || desc.get("reg_key") != null)) {
-                validateRegKey(errorList, desc, (JSONObject) configItem, currentKeyPrefix, fieldsRegular);
+                validateRegKey(errorList, desc, (Map<String, Object>) configItem, currentKeyPrefix, fieldsRegular);
                 if (fieldsRegular != null)
-                    validate((JSONObject) configItem, currentKeyPrefix, fieldsRegular, errorList);
+                    validate((Map<String, Object>) configItem, currentKeyPrefix, fieldsRegular, errorList);
                 return;
             }
             if (javaType.equals(List.class)) {
-                JSONObject lTemplate = desc.getJSONObject("item");
-                String lType = lTemplate.getString("type");
+                @SuppressWarnings("unchecked")
+                Map<String, Object> lTemplate = (Map<String, Object>) desc.get("item");
+                String lType = (String) lTemplate.get("type");
                 String[] lTypes = lType.split("\\|");
                 int index = 0;
                 //noinspection unchecked
@@ -96,34 +93,39 @@ public class JSONConfigValidator {
                         errorList.add(String.format("'%s' value '%s' type is '%s', not belong [%s]", lCurrentKeyPrefix, i, i.getClass().getSimpleName(), lType));
                         continue;
                     }
-                    JSONObject lFieldsRegular;
+                    Map<String, Object> lFieldsRegular;
                     if (lJavaType.equals(Map.class)
-                        && validateOptionalFields(lTemplate, lCurrentKeyPrefix, (JSONObject) i, errorList)
-                        && (((lFieldsRegular = lTemplate.get("fields_ref") == null ? lTemplate.getJSONObject("fields") : findObject(template, lTemplate.getString("fields_ref"))) != null)
+                        && validateOptionalFields(lTemplate, lCurrentKeyPrefix, (Map<String, Object>) i, errorList)
+                        && (((lFieldsRegular = lTemplate.get("fields_ref") == null ? (Map<String, Object>) lTemplate.get("fields") : findObject(template, (String) lTemplate.get("fields_ref"))) != null)
                             || lTemplate.get("reg_key") != null)) {
-                        validateRegKey(errorList, lTemplate, (JSONObject) i, lCurrentKeyPrefix, lFieldsRegular);
+                        validateRegKey(errorList, lTemplate, (Map<String, Object>) i, lCurrentKeyPrefix, lFieldsRegular);
                         if (lFieldsRegular != null)
-                            validate((JSONObject) JSON.toJSON(i), lCurrentKeyPrefix, lFieldsRegular, errorList);
+                            validate((Map<String, Object>) i, lCurrentKeyPrefix, lFieldsRegular, errorList);
                         continue;
                     }
                     if (lJavaType.equals(List.class))
-                        validate((JSONObject) JSON.toJSON(i), lCurrentKeyPrefix, lTemplate.getJSONObject("item"), errorList);
+                        validate((Map<String, Object>) i, lCurrentKeyPrefix, (Map<String, Object>) lTemplate.get("item"), errorList);
                 }
             }
         });
     }
 
-    private void validateRegKey(@NonNull List<String> errorList, JSONObject curTemplate, JSONObject item, String currentKeyPrefix, @Nullable JSONObject fieldsRegular) {
+    private void validateRegKey(@NonNull List<String> errorList, Map<String, Object> curTemplate, Map<String, Object> item, String currentKeyPrefix, @Nullable Map<String, Object> fieldsRegular) {
         if (curTemplate.get("reg_key") != null) {
-            curTemplate.getJSONObject("reg_key").forEach((regKey, v1) ->
-                    item.keySet().stream().filter(ck -> (fieldsRegular == null || !fieldsRegular.containsKey(ck)) && ck.matches(regKey)).forEach(ck ->
-                            validate(item, currentKeyPrefix, new JSONObject().fluentPut(ck, v1), errorList)));
+            //noinspection unchecked
+            ((Map<String, Object>) curTemplate.get("reg_key")).forEach((regKey, v1) ->
+                    item.keySet().stream().filter(ck -> (fieldsRegular == null || !fieldsRegular.containsKey(ck)) && ck.matches(regKey)).forEach(ck -> {
+                                Map<String, Object> map = new HashMap<>();
+                                map.put(ck, v1);
+                                validate(item, currentKeyPrefix, map, errorList);
+                            }
+                    ));
         }
     }
 
-    private boolean validateOptionalFields(JSONObject template, String keyPrefix, JSONObject config, List<String> errorList) {
-        if (template.getString("fields_option") != null) {
-            String[] fieldsOption = template.getString("fields_option").split("\\|");
+    private boolean validateOptionalFields(Map<String, Object> template, String keyPrefix, Map<String, Object> config, List<String> errorList) {
+        if (template.get("fields_option") != null) {
+            String[] fieldsOption = ((String) template.get("fields_option")).split("\\|");
             boolean flag = false;
             for (String option : fieldsOption) {
                 String[] fs = option.split(",");
@@ -134,18 +136,19 @@ public class JSONConfigValidator {
                 }
             }
             if (!flag) {
-                errorList.add(String.format("'%s' value field must match at least one option in [%s]", keyPrefix, template.getString("fields_option")));
+                errorList.add(String.format("'%s' value field must match at least one option in [%s]", keyPrefix, template.get("fields_option")));
                 return false;
             }
         }
         return true;
     }
 
-    private static JSONObject findObject(JSONObject object, String path) {
+    private static Map<String, Object> findObject(Map<String, Object> object, String path) {
         String[] keys = path.split("\\.");
-        JSONObject result = object;
+        Map<String, Object> result = object;
         for (String key : keys) {
-            result = result.getJSONObject(key);
+            //noinspection unchecked
+            result = (Map<String, Object>) result.get(key);
         }
         return result;
     }
@@ -173,11 +176,7 @@ public class JSONConfigValidator {
 
 
     public static void main(String[] args) {
-        JSONObject config = (JSONObject) ((JSONArray) readFile("数据同步.json")).get(0);
-        JSONObject template = (JSONObject) readFile("sync_config_template.json");
-        JSONConfigValidator checker = new JSONConfigValidator(template);
 
-        System.out.println(checker.validate(config));
     }
 
     private static Object readFile(String path) {
@@ -189,7 +188,8 @@ public class JSONConfigValidator {
             while (scanner.hasNextLine()) {
                 stringBuilder.append(scanner.nextLine());
             }
-            return JSON.parse(stringBuilder.toString());
+            return GSON().fromJson(stringBuilder.toString(), new TypeToken<Map<String, Object>>() {
+            }.getType());
         } catch (IOException e) {
             e.printStackTrace();
         }

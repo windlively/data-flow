@@ -1,4 +1,4 @@
-package ink.andromeda.dataflow.entity;
+package ink.andromeda.dataflow.core;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

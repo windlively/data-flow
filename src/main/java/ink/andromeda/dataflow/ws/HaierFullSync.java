@@ -1,7 +1,7 @@
 package ink.andromeda.dataflow.ws;
 
+import ink.andromeda.dataflow.redis.RedisClient;
 import lombok.extern.slf4j.Slf4j;
-import net.abakus.coresystem.redis.RedisClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static net.abakus.coresystem.util.CommonUtils.toJSONString;
+import static ink.andromeda.dataflow.util.GeneralUtils.toJSONString;
 
 @Component
 @ServerEndpoint("/ws/haier-full-sync")
@@ -26,7 +26,6 @@ public class HaierFullSync {
 
     private Session session;
 
-    @Autowired
     private RedisClient redisClient;
 
     private static final ConcurrentHashMap<String, Session> clients = new ConcurrentHashMap<>();

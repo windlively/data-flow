@@ -1,6 +1,5 @@
 package ink.andromeda.dataflow.configuration;
 
-import com.alibaba.fastjson.JSONObject;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
@@ -12,10 +11,7 @@ import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 public class CustomBeanDefinitionRegistryPostProcessor implements BeanDefinitionRegistryPostProcessor {
@@ -31,9 +27,9 @@ public class CustomBeanDefinitionRegistryPostProcessor implements BeanDefinition
         ) {
             Yaml yaml = new Yaml();
             Map<String, Object> val = yaml.load(inputStream);
-            JSONObject jsonObject = new JSONObject(val);
+            Map<String, Object> jsonObject = new HashMap<>(val);
             //noinspection unchecked
-            jsonObject.getJSONObject("datasource").getJSONArray("hikari").forEach(item-> datasourceConfig.add((Map<String, String>) item));
+            ((List)((Map<String, Object>)jsonObject.get("datasource")).get("hikari")).forEach(item-> datasourceConfig.add((Map<String, String>) item));
         } catch (IOException e) {
             log.error(e.getMessage(), e);
             e.printStackTrace();

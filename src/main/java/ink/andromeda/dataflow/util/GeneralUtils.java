@@ -1,6 +1,7 @@
 package ink.andromeda.dataflow.util;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
@@ -24,7 +25,7 @@ import java.util.stream.Stream;
 import static org.springframework.util.ReflectionUtils.*;
 
 @Slf4j
-public class CommonUtils {
+public class GeneralUtils {
 
     // Spring的类型转换服务
     private final static ThreadLocal<DefaultConversionService> conversionService = ThreadLocal.withInitial(() -> {
@@ -35,9 +36,12 @@ public class CommonUtils {
         return defaultConversionService;
     });
 
-    private final static ThreadLocal<Gson> gson = ThreadLocal.withInitial(Gson::new);
+    private final static ThreadLocal<Gson> gson = ThreadLocal.withInitial(() -> new GsonBuilder()
+            .setDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
+            .setPrettyPrinting()
+            .create());
 
-    public static Gson Gson() {
+    public static Gson GSON() {
         return gson.get();
     }
 
@@ -176,7 +180,7 @@ public class CommonUtils {
     }
 
     public static String toJSONString(Object object) {
-        return Gson().toJson(object);
+        return GSON().toJson(object);
     }
 
     /**
@@ -364,7 +368,7 @@ public class CommonUtils {
     }
 
     // 数据库类型对应的Java类型
-    public static Class<?> tableColumnTypeToJavaType(String columnType) {
+    public static Class<?> jdbcTypeToJavaType(String columnType) {
         switch (columnType) {
             case "varchar":
             case "text":

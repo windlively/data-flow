@@ -1,7 +1,7 @@
 <configuration debug="false" scan="false" scanPeriod="10 seconds">
     <!---->
     <property name="appName" value="abakus-core-system-event"/>
-    <property name="log.root" value="/data/logs"/>
+    <property name="log.root" value="/Users/baijh/logs"/>
     <!-- 引入 服务名, 做 日志文件路径 和 文件名 -->
     <property name="encoding" value="UTF-8"/>
     <property name="normal-pattern"
@@ -32,15 +32,15 @@
         </encoder>
     </appender>
 
-    <appender name="WeLog" class="net.abakus.coresystem.log.WeKafkaAppender">
-        <topic>haiercash_log_topic</topic>
-        <brokerList>
-            log-kfk4t-01.svc.haiercash.com:9092
-        </brokerList>
-        <department>coresystem</department>
-        <environment>FAT</environment>
-        <type>coresystem-event</type>
-    </appender>
+<!--    <appender name="WeLog" class="net.abakus.coresystem.log.WeKafkaAppender">-->
+<!--        <topic>haiercash_log_topic</topic>-->
+<!--        <brokerList>-->
+<!--            log-kfk4t-01.svc.haiercash.com:9092-->
+<!--        </brokerList>-->
+<!--        <department>coresystem</department>-->
+<!--        <environment>FAT</environment>-->
+<!--        <type>coresystem-event</type>-->
+<!--    </appender>-->
 
 
     <!-- 引入 WeLogAppender -->

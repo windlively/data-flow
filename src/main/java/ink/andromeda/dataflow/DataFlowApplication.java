@@ -16,19 +16,19 @@ import java.util.Properties;
         RabbitAutoConfiguration.class
 })
 @EnableSwagger2
-public class CoreSystemEventApplication {
+public class DataFlowApplication {
 
     public static void main(String[] args) {
         String env = System.getProperty("env");
         if (!Lists.newArrayList("FAT", "UAT", "PRO").contains(env)) {
             log.warn("no env arg found, set default to FAT");
-            env = "PRO";
+            env = "FAT";
         }
 
         Properties properties = new Properties();
         properties.setProperty("spring.profiles.active", env);
 
-        SpringApplication app = new SpringApplication(CoreSystemEventApplication.class);
+        SpringApplication app = new SpringApplication(DataFlowApplication.class);
         app.setDefaultProperties(properties);
         app.run(args);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {

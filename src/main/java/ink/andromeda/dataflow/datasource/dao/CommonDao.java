@@ -1,9 +1,9 @@
 package ink.andromeda.dataflow.datasource.dao;
 
-import com.alibaba.fastjson.JSONObject;
+
+import ink.andromeda.dataflow.datasource.DynamicDataSource;
+import ink.andromeda.dataflow.util.GeneralUtils;
 import lombok.extern.slf4j.Slf4j;
-import net.abakus.coresystem.dynamicdatasource.DynamicDataSource;
-import net.abakus.coresystem.util.CommonUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 
@@ -11,10 +11,7 @@ import javax.sql.DataSource;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import static org.springframework.util.ReflectionUtils.*;
 
@@ -49,7 +46,7 @@ public class CommonDao {
             ResultSetMetaData metaData = resultSet.getMetaData();
             switch (resultType) {
                 case "map": {
-                    Map<String, Object> result = new JSONObject();
+                    Map<String, Object> result = new HashMap<>();
                     if (resultSet.next()) {
                         for (int i = 1; i <= metaData.getColumnCount(); i++)
                             result.put(metaData.getColumnName(i), resultSet.getObject(i));
@@ -61,9 +58,9 @@ public class CommonDao {
                     return result;
                 }
                 case "list": {
-                    List<JSONObject> result = new ArrayList<>();
+                    List<Map<String, Object>> result = new ArrayList<>();
                     while (resultSet.next()) {
-                        JSONObject item = new JSONObject();
+                        Map<String, Object> item = new HashMap<>();
                         for (int i = 1; i <= metaData.getColumnCount(); i++)
                             item.put(metaData.getColumnName(i), resultSet.getObject(i));
                         result.add(item);
@@ -100,11 +97,11 @@ public class CommonDao {
         }
         for (int i = 1; i <= metaData.getColumnCount(); i++) {
             String columnName = metaData.getColumnName(i);
-            String fieldName = CommonUtils.upCaseToCamelCase(columnName, false);
+            String fieldName = GeneralUtils.upCaseToCamelCase(columnName, false);
             Field field = findField(clazz, fieldName);
             assert field != null;
             makeAccessible(field);
-            setField(field, result, CommonUtils.conversionService().convert(resultSet.getObject(i), field.getType()));
+            setField(field, result, GeneralUtils.conversionService().convert(resultSet.getObject(i), field.getType()));
         }
         return result;
     }
