@@ -1,8 +1,9 @@
-package ink.andromeda.dataflow.converter;
+package ink.andromeda.dataflow.util.converter;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.lang.NonNull;
 
 import java.util.Date;
 
@@ -14,8 +15,8 @@ public class StringToJavaDateConverter implements Converter<String, Date> {
     public static String[] dateFormatters = {"yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd HH:mm:ss.SSS","yyyy/MM/dd HH:mm:ss", "yyyy/MM/dd HH:mm:ss.SSS"};
 
     @Override
-    public Date convert(String source) {
-        if(source == null || source.equals("")) return null;
+    public Date convert(@NonNull String source) {
+        if(source.equals("")) return null;
         Date date = null;
         try{
             date = DateTime.parse(source).toDate();

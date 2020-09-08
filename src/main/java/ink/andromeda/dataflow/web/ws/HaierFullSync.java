@@ -1,4 +1,4 @@
-package ink.andromeda.dataflow.ws;
+package ink.andromeda.dataflow.web.ws;
 
 import ink.andromeda.dataflow.redis.RedisClient;
 import lombok.extern.slf4j.Slf4j;

@@ -32,16 +32,7 @@ public class DataFlowApplication {
         app.setDefaultProperties(properties);
         app.run(args);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            /*
-                CS_SYNC_TASK_GROUP().shutdown();
-                CS_EVENT_TASK_GROUP().shutdown();
-                try {
-                    CS_SYNC_TASK_GROUP().awaitTermination(10, TimeUnit.SECONDS);
-                    CS_EVENT_TASK_GROUP().awaitTermination(10, TimeUnit.SECONDS);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            */
+
         }));
     }
 }

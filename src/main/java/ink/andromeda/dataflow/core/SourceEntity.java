@@ -11,7 +11,7 @@ import java.util.Map;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class OriginEntity {
+public class SourceEntity {
 
     private String source;
 

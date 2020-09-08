@@ -1,6 +1,6 @@
 package ink.andromeda.dataflow.entity;
 
-import ink.andromeda.dataflow.core.OriginEntity;
+import ink.andromeda.dataflow.core.SourceEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,6 +18,6 @@ public class SyncTaskResult {
 
     private int successCount;
 
-    private OriginEntity sourceEntity;
+    private SourceEntity sourceEntity;
 
 }

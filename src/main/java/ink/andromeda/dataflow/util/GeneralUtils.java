@@ -39,6 +39,7 @@ public class GeneralUtils {
     private final static ThreadLocal<Gson> gson = ThreadLocal.withInitial(() -> new GsonBuilder()
             .setDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
             .setPrettyPrinting()
+            .disableHtmlEscaping()
             .create());
 
     public static Gson GSON() {
