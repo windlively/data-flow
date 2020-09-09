@@ -22,8 +22,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-import static ink.andromeda.dataflow.util.GeneralUtils.setBeanProperties;
-import static ink.andromeda.dataflow.util.GeneralUtils.testDataSource;
+import static ink.andromeda.dataflow.util.GeneralTools.setBeanProperties;
+import static ink.andromeda.dataflow.util.GeneralTools.testDataSource;
 
 @MapperScans({
         @MapperScan("net.abakus.coresystem.data.datasource.mapper"),

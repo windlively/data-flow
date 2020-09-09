@@ -4,8 +4,8 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 
 import java.util.Map;
 
-public interface ConfigurationResolver {
+public interface ConfigurationResolver<R> {
 
-    <T> void resolve(StandardEvaluationContext context, T object, Map<String, Object> config);
+    <T> R resolve(StandardEvaluationContext context, T object, Map<String, Object> config);
 
 }

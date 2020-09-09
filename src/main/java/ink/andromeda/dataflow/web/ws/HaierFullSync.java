@@ -2,7 +2,6 @@ package ink.andromeda.dataflow.web.ws;
 
 import ink.andromeda.dataflow.redis.RedisClient;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -17,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static ink.andromeda.dataflow.util.GeneralUtils.toJSONString;
+import static ink.andromeda.dataflow.util.GeneralTools.toJSONString;
 
 @Component
 @ServerEndpoint("/ws/haier-full-sync")

@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import lombok.Data;
 
-import static ink.andromeda.dataflow.util.GeneralUtils.GSON;
+import static ink.andromeda.dataflow.util.GeneralTools.GSON;
 
 @Data
 public class RedisConfig {

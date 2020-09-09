@@ -2,7 +2,7 @@ package ink.andromeda.dataflow.datasource.dao;
 
 
 import ink.andromeda.dataflow.datasource.DynamicDataSource;
-import ink.andromeda.dataflow.util.GeneralUtils;
+import ink.andromeda.dataflow.util.GeneralTools;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
@@ -97,11 +97,11 @@ public class CommonDao {
         }
         for (int i = 1; i <= metaData.getColumnCount(); i++) {
             String columnName = metaData.getColumnName(i);
-            String fieldName = GeneralUtils.upCaseToCamelCase(columnName, false);
+            String fieldName = GeneralTools.upCaseToCamelCase(columnName, false);
             Field field = findField(clazz, fieldName);
             assert field != null;
             makeAccessible(field);
-            setField(field, result, GeneralUtils.conversionService().convert(resultSet.getObject(i), field.getType()));
+            setField(field, result, GeneralTools.conversionService().convert(resultSet.getObject(i), field.getType()));
         }
         return result;
     }

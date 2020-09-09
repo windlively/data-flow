@@ -2,7 +2,7 @@ package ink.andromeda.dataflow.datasource.dao;
 
 
 import ink.andromeda.dataflow.core.TransferEntity;
-import ink.andromeda.dataflow.util.GeneralUtils;
+import ink.andromeda.dataflow.util.GeneralTools;
 import lombok.extern.slf4j.Slf4j;
 import ink.andromeda.dataflow.util.SqlGenerator;
 import org.springframework.core.convert.ConversionService;
@@ -21,7 +21,7 @@ public class AutoConfigurableCoreTableDao {
 
     private final CoreTableDao coreTableDao;
 
-    private final ConversionService conversionService = GeneralUtils.conversionService();
+    private final ConversionService conversionService = GeneralTools.conversionService();
 
     public AutoConfigurableCoreTableDao(CoreTableDao coreTableDao) {
         this.coreTableDao = coreTableDao;

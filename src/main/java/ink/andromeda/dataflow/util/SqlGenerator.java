@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static ink.andromeda.dataflow.util.GeneralUtils.javaValToSqlVal;
+import static ink.andromeda.dataflow.util.GeneralTools.javaValToSqlVal;
 
 /**
  * 通过核心库表实体类生成SQL语句的工具类

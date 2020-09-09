@@ -25,7 +25,7 @@ import java.util.stream.Stream;
 import static org.springframework.util.ReflectionUtils.*;
 
 @Slf4j
-public class GeneralUtils {
+public class GeneralTools {
 
     // Spring的类型转换服务
     private final static ThreadLocal<DefaultConversionService> conversionService = ThreadLocal.withInitial(() -> {

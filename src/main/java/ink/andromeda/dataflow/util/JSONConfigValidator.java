@@ -13,7 +13,7 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Stream;
 
-import static ink.andromeda.dataflow.util.GeneralUtils.GSON;
+import static ink.andromeda.dataflow.util.GeneralTools.GSON;
 
 /**
  * JSON配置文件检查器

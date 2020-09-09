@@ -11,15 +11,13 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
 import org.slf4j.MDC;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 
-import static ink.andromeda.dataflow.util.GeneralUtils.toJSONString;
+import static ink.andromeda.dataflow.util.GeneralTools.toJSONString;
 
 
 @Data

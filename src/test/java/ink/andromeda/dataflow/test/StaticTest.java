@@ -1,18 +1,14 @@
 package test.ink.andromeda.dataflow.test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.JsonElement;
-import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.reflect.TypeToken;
 import org.junit.Test;
 
-import java.lang.reflect.Type;
 import java.util.Map;
 
-import static ink.andromeda.dataflow.util.GeneralUtils.GSON;
+import static ink.andromeda.dataflow.util.GeneralTools.GSON;
 
 public class StaticTest {
 
@@ -77,7 +73,6 @@ public class StaticTest {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             JsonNode node = objectMapper.readTree(json);
-            Map<String, Object> m = objectMapper.readValue(json, new TypeReference<>() {});
             System.out.println(node.toString());
         } catch (JsonProcessingException e) {
             e.printStackTrace();

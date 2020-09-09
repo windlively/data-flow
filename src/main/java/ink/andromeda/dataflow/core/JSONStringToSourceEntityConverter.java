@@ -1,6 +1,6 @@
 package ink.andromeda.dataflow.core;
 
-import ink.andromeda.dataflow.util.GeneralUtils;
+import ink.andromeda.dataflow.util.GeneralTools;
 
 import javax.annotation.Nonnull;
 
@@ -8,7 +8,7 @@ public class JSONStringToSourceEntityConverter implements SourceEntityConverter<
     
     @Override
     public SourceEntity convert(@Nonnull String source) {
-        return GeneralUtils.GSON().fromJson(source, SourceEntity.class);
+        return GeneralTools.GSON().fromJson(source, SourceEntity.class);
     }
 
 }

@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import static ink.andromeda.dataflow.util.GeneralUtils.jdbcTypeToJavaType;
+import static ink.andromeda.dataflow.util.GeneralTools.jdbcTypeToJavaType;
 
 @ToString
 @Data
