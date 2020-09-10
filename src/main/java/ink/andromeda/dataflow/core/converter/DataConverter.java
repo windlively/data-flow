@@ -21,4 +21,10 @@ public interface DataConverter {
         return 0;
     }
 
+    default TransferEntity convertAndExport(SourceEntity sourceEntity, TransferEntity transferEntity){
+        TransferEntity next = convert(sourceEntity, transferEntity);
+        int i = export(sourceEntity, next);
+        return next;
+    }
+
 }

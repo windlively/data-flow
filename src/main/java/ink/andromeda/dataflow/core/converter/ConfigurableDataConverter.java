@@ -1,6 +1,5 @@
 package ink.andromeda.dataflow.core.converter;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ink.andromeda.dataflow.core.SourceEntity;
 import ink.andromeda.dataflow.core.TransferEntity;
