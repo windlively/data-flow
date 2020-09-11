@@ -5,9 +5,9 @@ import ink.andromeda.dataflow.core.TransferEntity;
 
 public interface DataConverter {
 
-    TransferEntity convert(SourceEntity sourceEntity, TransferEntity transferEntity);
+    TransferEntity convert(SourceEntity sourceEntity, TransferEntity transferEntity) throws Exception;
 
-    default TransferEntity convert(SourceEntity sourceEntity){
+    default TransferEntity convert(SourceEntity sourceEntity) throws Exception {
         return convert(sourceEntity, TransferEntity.builder()
                 .data(sourceEntity.getData())
                 .name(sourceEntity.getName())
@@ -15,13 +15,15 @@ public interface DataConverter {
                 .schema(sourceEntity.getSchema())
                 .source(sourceEntity.getSource())
                 .build());
-    };
+    }
 
-    default int export(SourceEntity sourceEntity, TransferEntity transferEntity){
+    ;
+
+    default int export(SourceEntity sourceEntity, TransferEntity transferEntity) throws Exception {
         return 0;
     }
 
-    default TransferEntity convertAndExport(SourceEntity sourceEntity, TransferEntity transferEntity){
+    default TransferEntity convertAndExport(SourceEntity sourceEntity, TransferEntity transferEntity) throws Exception {
         TransferEntity next = convert(sourceEntity, transferEntity);
         int i = export(sourceEntity, next);
         return next;
