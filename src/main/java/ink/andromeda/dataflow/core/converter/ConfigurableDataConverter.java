@@ -1,5 +1,6 @@
 package ink.andromeda.dataflow.core.converter;
 
+import ink.andromeda.dataflow.core.Registry;
 import ink.andromeda.dataflow.core.SpringELExpressionService;
 import ink.andromeda.dataflow.core.SourceEntity;
 import ink.andromeda.dataflow.core.TransferEntity;
@@ -17,24 +18,29 @@ import java.util.Map;
 @Slf4j
 public class ConfigurableDataConverter implements DataConverter {
 
-    private final SpringELExpressionService expressionService;
+    private final Registry<SpringELConfigurationResolver> convertResolverRegistry;
 
-    private final ConfigurableDataConvertResolverRegistry resolverRegistry;
+    private final Registry<SpringELConfigurationResolver> exportResolverRegistry;
+
+    private final SpringELExpressionService expressionService;
 
     @Setter
     @Getter
     private Map<String, Object> config;
 
-    public ConfigurableDataConverter(ConfigurableDataConvertResolverRegistry resolverRegistry,
+    public ConfigurableDataConverter(Registry<SpringELConfigurationResolver> convertResolverRegistry,
+                                     Registry<SpringELConfigurationResolver> exportResolverRegistry,
                                      SpringELExpressionService expressionService) {
-        this.resolverRegistry = resolverRegistry;
+        this.convertResolverRegistry = convertResolverRegistry;
+        this.exportResolverRegistry = exportResolverRegistry;
+
         this.expressionService = expressionService;
     }
 
     @Override
     @Nullable
     public TransferEntity convert(SourceEntity sourceEntity, TransferEntity transferEntity) {
-        for (SpringELConfigurationResolver resolver : resolverRegistry.getConvertConfigResolver()) {
+        for (SpringELConfigurationResolver resolver : convertResolverRegistry.get()) {
             try {
                 resolver.resolve(sourceEntity, transferEntity, config.get(resolver.getName()),
                         expressionService.evaluationContext(), expressionService.expressionParser());
@@ -47,7 +53,7 @@ public class ConfigurableDataConverter implements DataConverter {
 
     @Override
     public int export(SourceEntity sourceEntity, TransferEntity transferEntity) {
-        for (SpringELConfigurationResolver resolver : resolverRegistry.getExportConfigResolver()) {
+        for (SpringELConfigurationResolver resolver : exportResolverRegistry.get()) {
             try {
                 resolver.resolve(sourceEntity, transferEntity, config.get(resolver.getName()),
                         expressionService.evaluationContext(), expressionService.expressionParser());
