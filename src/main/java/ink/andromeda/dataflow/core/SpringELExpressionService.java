@@ -28,7 +28,6 @@ import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Service
 @Slf4j
 public class SpringELExpressionService implements ExpressionService{
 
