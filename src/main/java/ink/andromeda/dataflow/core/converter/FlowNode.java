@@ -3,7 +3,11 @@ package ink.andromeda.dataflow.core.converter;
 import ink.andromeda.dataflow.core.SourceEntity;
 import ink.andromeda.dataflow.core.TransferEntity;
 
-public interface DataConverter {
+public interface FlowNode {
+
+    default String getName() {
+        return "flow node";
+    }
 
     TransferEntity convert(SourceEntity sourceEntity, TransferEntity transferEntity) throws Exception;
 
@@ -16,8 +20,6 @@ public interface DataConverter {
                 .source(sourceEntity.getSource())
                 .build());
     }
-
-    ;
 
     default int export(SourceEntity sourceEntity, TransferEntity transferEntity) throws Exception {
         return 0;

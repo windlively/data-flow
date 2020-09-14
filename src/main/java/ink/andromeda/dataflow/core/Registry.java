@@ -31,5 +31,5 @@ public interface Registry<T> {
         throw new UnsupportedOperationException();
     }
 
-    void effect();
+    default void effect() {};
 }

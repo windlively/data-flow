@@ -1,8 +1,8 @@
 package ink.andromeda.dataflow.core.converter;
 
 import ink.andromeda.dataflow.core.Registry;
-import ink.andromeda.dataflow.core.SpringELExpressionService;
 import ink.andromeda.dataflow.core.SourceEntity;
+import ink.andromeda.dataflow.core.SpringELExpressionService;
 import ink.andromeda.dataflow.core.TransferEntity;
 import ink.andromeda.dataflow.core.converter.configuarion.SpringELConfigurationResolver;
 import lombok.Getter;
@@ -16,7 +16,7 @@ import java.util.Map;
  * 配置化的转换器
  */
 @Slf4j
-public class ConfigurableDataConverter implements DataConverter {
+public class ConfigurableFlowNode implements FlowNode {
 
     private final Registry<SpringELConfigurationResolver> convertResolverRegistry;
 
@@ -28,9 +28,9 @@ public class ConfigurableDataConverter implements DataConverter {
     @Getter
     private Map<String, Object> config;
 
-    public ConfigurableDataConverter(Registry<SpringELConfigurationResolver> convertResolverRegistry,
-                                     Registry<SpringELConfigurationResolver> exportResolverRegistry,
-                                     SpringELExpressionService expressionService) {
+    public ConfigurableFlowNode(Registry<SpringELConfigurationResolver> convertResolverRegistry,
+                                Registry<SpringELConfigurationResolver> exportResolverRegistry,
+                                SpringELExpressionService expressionService) {
         this.convertResolverRegistry = convertResolverRegistry;
         this.exportResolverRegistry = exportResolverRegistry;
 
@@ -39,27 +39,19 @@ public class ConfigurableDataConverter implements DataConverter {
 
     @Override
     @Nullable
-    public TransferEntity convert(SourceEntity sourceEntity, TransferEntity transferEntity) {
+    public TransferEntity convert(SourceEntity sourceEntity, TransferEntity transferEntity) throws Exception {
         for (SpringELConfigurationResolver resolver : convertResolverRegistry.get()) {
-            try {
-                resolver.resolve(sourceEntity, transferEntity, config.get(resolver.getName()),
-                        expressionService.evaluationContext(), expressionService.expressionParser());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            resolver.resolve(sourceEntity, transferEntity, config.get(resolver.getName()),
+                    expressionService.evaluationContext(), expressionService.expressionParser());
         }
         return transferEntity;
     }
 
     @Override
-    public int export(SourceEntity sourceEntity, TransferEntity transferEntity) {
+    public int export(SourceEntity sourceEntity, TransferEntity transferEntity) throws Exception {
         for (SpringELConfigurationResolver resolver : exportResolverRegistry.get()) {
-            try {
-                resolver.resolve(sourceEntity, transferEntity, config.get(resolver.getName()),
-                        expressionService.evaluationContext(), expressionService.expressionParser());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            resolver.resolve(sourceEntity, transferEntity, config.get(resolver.getName()),
+                    expressionService.evaluationContext(), expressionService.expressionParser());
         }
         return 1;
     }

@@ -15,21 +15,21 @@ public class SimpleRegistry<T> implements Registry<T> {
 
     @Override
     public Registry<T> addLast(@NonNull T bean) {
-        Assert.notNull(bean, "input object is null");
+        check(bean);
         internalRegisteredList.add(bean);
         return this;
     }
 
     @Override
     public Registry<T> addFirst(@NonNull T bean) {
-        Assert.notNull(bean, "input object is null");
+        check(bean);
         internalRegisteredList.addFirst(bean);
         return this;
     }
 
     @Override
     public Registry<T> addTo(int index, @NonNull T bean) {
-        Assert.notNull(bean, "input object is null");
+        check(bean);
         internalRegisteredList.add(index, bean);
         return this;
     }
@@ -48,5 +48,10 @@ public class SimpleRegistry<T> implements Registry<T> {
     @Override
     public synchronized void effect() {
         registeredList = Collections.unmodifiableList(new ArrayList<>(internalRegisteredList));
+    }
+
+    private void check(T item){
+        Assert.notNull(item, "input object must be non null");
+        Assert.isTrue(!internalRegisteredList.contains(item), "input object '" + item +"' has exist");
     }
 }

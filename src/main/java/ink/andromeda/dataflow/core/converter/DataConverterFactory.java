@@ -2,9 +2,9 @@ package ink.andromeda.dataflow.core.converter;
 
 public interface DataConverterFactory<I> {
 
-    DataConverter buildConverter(I buildSource);
+    FlowNode buildConverter(I buildSource);
 
-    default DataConverter buildConverter(){
+    default FlowNode buildConverter(){
         throw new UnsupportedOperationException();
     };
 }

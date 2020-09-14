@@ -1,17 +1,21 @@
 package ink.andromeda.dataflow.core;
 
+import com.google.common.collect.Maps;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class SourceEntity {
+public class SourceEntity implements Cloneable, Serializable {
 
     private String source;
 
@@ -33,4 +37,19 @@ public class SourceEntity {
         this.name = name == null ? null : name.toLowerCase();
     }
 
+    public void setData(Map<String, Object> data) {
+        this.data = Collections.unmodifiableMap(data);
+    }
+
+    @Override
+    public Object clone(){
+        return builder()
+                .source(source)
+                .schema(schema)
+                .name(name)
+                .opType(opType)
+                .data(new HashMap<>(data))
+                .before(new HashMap<>(before))
+                .build();
+    }
 }

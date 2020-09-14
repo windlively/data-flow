@@ -44,8 +44,8 @@ public class ConfigurableDataConvertResolverRegistry {
     }
     
     public void updateResolverList(){
-        convertConfigResolver = List.copyOf(internalConvertConfigResolver);
-        exportConfigResolver = List.copyOf(internalExportConfigResolver);
+        convertConfigResolver = Collections.unmodifiableList(internalConvertConfigResolver);
+        exportConfigResolver = Collections.unmodifiableList(internalExportConfigResolver);
     }
     
     private void addResolver(SpringELConfigurationResolver resolver, LinkedList<SpringELConfigurationResolver> list){
