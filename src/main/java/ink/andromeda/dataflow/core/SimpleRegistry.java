@@ -3,9 +3,11 @@ package ink.andromeda.dataflow.core;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 public class SimpleRegistry<T> implements Registry<T> {
 

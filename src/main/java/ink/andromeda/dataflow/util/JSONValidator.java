@@ -1,49 +1,84 @@
 package ink.andromeda.dataflow.util;
 
 
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
- * JSON配置文件检查器
+ * JSON Object数据检查器<br>
  */
 @Slf4j
 public class JSONValidator {
 
-    // 模板文件
-    @Setter
+    // 模板(规则)
     private Map<String, Object> template;
 
+    private static final String WRAPPER_FIELD_NAME = "root";
+
+    public void setTemplate(Map<String, Object> template) {
+        Map<String, Object> map = new HashMap<>(1);
+        // 将校验规则外包一层
+        map.put(WRAPPER_FIELD_NAME, template);
+        this.template = map;
+    }
+
     public JSONValidator(Map<String, Object> template) {
-        this.template = template;
+        setTemplate(template);
     }
 
     /**
-     * JSON格式校验
+     * JSON Object格式校验
      *
-     * @param config 需要校验的JSON内容
+     * @param config 待校验的JSON数据
      * @return 错误信息列表, key: 错误位置, value: 错误信息
      */
-    public Map<String, String> validate(Map<String, Object> config) {
-        // 使用LinkedHashMap, 保证错误信息的顺序
-        Map<String, String> errorMap = new LinkedHashMap<>();
-        validate(config, "", template, errorMap);
-        return errorMap;
+    public LinkedHashMap<String, String> validate(Map<String, Object> config) {
+        return wrapperAndValidate(config);
     }
 
+    /**
+     * JSON Array格式校验
+     *
+     * @param config 待校验的JSON数据
+     * @return 错误信息列表, key: 错误位置, value: 错误信息
+     */
+    public LinkedHashMap<String, String> validate(List<Object> config) {
+        return wrapperAndValidate(config);
+    }
+
+    /**
+     * 包装并校验JSON数据
+     *
+     * @param config 原待校验数据
+     * @return 错误信息
+     */
+    private LinkedHashMap<String, String> wrapperAndValidate(Object config) {
+        // 使用LinkedHashMap, 保证错误信息的顺序
+        LinkedHashMap<String, String> errorInfo = new LinkedHashMap<>();
+        Map<String, Object> wrapper = new HashMap<>(1);
+        // 将校验数据外包一层
+        wrapper.put(WRAPPER_FIELD_NAME, config);
+        validate(wrapper, "", template, errorInfo);
+        return errorInfo;
+    }
+
+    /**
+     * 逐个字段校验
+     *
+     * @param config           待校验数据
+     * @param keyPrefix        当前校验的位置
+     * @param validationFields 校验的字段及其规则
+     * @param errorInfo        错误信息
+     */
     @SuppressWarnings("unchecked")
-    private void validate(Map<String, Object> config, String keyPrefix, Map<String, Object> templateFields, @NonNull Map<String, String> errorInfo) {
+    private void validate(Map<String, Object> config, String keyPrefix, Map<String, Object> validationFields, @NonNull Map<String, String> errorInfo) {
         // 遍历模板配置, k为字段名, v为校验规则
-        templateFields.forEach((k, v) -> {
+        validationFields.forEach((k, v) -> {
             Map<String, Object> regular = (Map<String, Object>) v;
             // 获取待校验JSON对应字段的值
             Object configItem = config.get(k);
@@ -75,22 +110,15 @@ public class JSONValidator {
                 return;
             }
 
-            processStringValue(errorInfo, regular, configItem, currentKeyPrefix, javaType);
+            // 字符串类型值校验
+            validateStringType(regular, configItem, currentKeyPrefix, javaType, errorInfo);
 
-            Map<String, Object> fieldsRegular;
+            // object类型值校验
+            validateObjectType(currentKeyPrefix, javaType, regular, configItem, errorInfo);
 
-            if (javaType.equals(Map.class)
-                && validateOptionalFields(regular, currentKeyPrefix, (Map<String, Object>) configItem, errorInfo)
-                && (((fieldsRegular = regular.get("fields_ref") == null ?
-                    (Map<String, Object>) regular.get("fields") : findObject(template, (String) regular.get("fields_ref"))) != null)
-                    || regular.get("reg_key") != null)) {
-                validateRegKey(errorInfo, regular, (Map<String, Object>) configItem, currentKeyPrefix, fieldsRegular);
-                if (fieldsRegular != null)
-                    validate((Map<String, Object>) configItem, currentKeyPrefix, fieldsRegular, errorInfo);
-                return;
-            }
-
+            // list类型值校验
             if (javaType.equals(List.class)) {
+                // item为list中每一项数据的格式
                 Map<String, Object> lTemplate = (Map<String, Object>) regular.get("item");
                 String lType = (String) lTemplate.get("type");
                 String[] lTypes = lType.split("\\|");
@@ -112,18 +140,10 @@ public class JSONValidator {
                         continue;
                     }
 
-                    processStringValue(errorInfo, lTemplate, i, lCurrentKeyPrefix, lJavaType);
+                    validateStringType(lTemplate, i, lCurrentKeyPrefix, lJavaType, errorInfo);
 
-                    Map<String, Object> lFieldsRegular;
-                    if (lJavaType.equals(Map.class)
-                        && validateOptionalFields(lTemplate, lCurrentKeyPrefix, (Map<String, Object>) i, errorInfo)
-                        && (((lFieldsRegular = lTemplate.get("fields_ref") == null ? (Map<String, Object>) lTemplate.get("fields") : findObject(template, (String) lTemplate.get("fields_ref"))) != null)
-                            || lTemplate.get("reg_key") != null)) {
-                        validateRegKey(errorInfo, lTemplate, (Map<String, Object>) i, lCurrentKeyPrefix, lFieldsRegular);
-                        if (lFieldsRegular != null)
-                            validate((Map<String, Object>) i, lCurrentKeyPrefix, lFieldsRegular, errorInfo);
-                        continue;
-                    }
+                    validateObjectType(lCurrentKeyPrefix, lJavaType, lTemplate, i, errorInfo);
+
                     if (lJavaType.equals(List.class))
                         validate((Map<String, Object>) i, lCurrentKeyPrefix, (Map<String, Object>) lTemplate.get("item"), errorInfo);
                 }
@@ -132,25 +152,48 @@ public class JSONValidator {
     }
 
     /**
+     * JSON Object类型数据的校验
+     *
+     * @param prefixKey  校验的当前位置
+     * @param javaType   数据的Java Class类型
+     * @param regular    该数据项的校验规则
+     * @param configItem 待校验数据项
+     * @param errorInfo  错误信息
+     */
+    @SuppressWarnings("unchecked")
+    private void validateObjectType(String prefixKey, Class<?> javaType, Map<String, Object> regular, Object configItem, Map<String, String> errorInfo) {
+        Map<String, Object> fieldsRegular;
+        if (javaType.equals(Map.class)
+                && validateOptionalFields(regular, prefixKey, (Map<String, Object>) configItem, errorInfo)
+                && (((fieldsRegular = regular.get("fields_ref") == null ?
+                (Map<String, Object>) regular.get("fields") : findObject(template, (String) regular.get("fields_ref"))) != null)
+                || regular.get("reg_key") != null)) {
+            validateRegKey(errorInfo, regular, (Map<String, Object>) configItem, prefixKey, fieldsRegular);
+            if (fieldsRegular != null)
+                validate((Map<String, Object>) configItem, prefixKey, fieldsRegular, errorInfo);
+        }
+    }
+
+    /**
      * String类型校验
      *
      * @param errorInfo        错误信息
-     * @param desc             校验规则
+     * @param regular          校验规则
      * @param configItem       待校验值
      * @param currentKeyPrefix 校验的位置
      * @param javaType         JAVA类类型
      */
-    private static void processStringValue(@NonNull Map<String, String> errorInfo, Map<String, Object> desc, Object configItem, String currentKeyPrefix, Class<?> javaType) {
+    private void validateStringType(Map<String, Object> regular, Object configItem, String currentKeyPrefix, Class<?> javaType, @NonNull Map<String, String> errorInfo) {
         if (javaType.equals(String.class)) {
             List<String> valueOption;
             String valueReg;
             //noinspection unchecked
-            if ((valueOption = (List<String>) desc.get("value_option")) != null
-                && !valueOption.contains((String) configItem)) {
+            if ((valueOption = (List<String>) regular.get("value_option")) != null
+                    && !valueOption.contains((String) configItem)) {
                 // 待校验的值不在'value_option(可选值)'之中
                 errorInfo.put(currentKeyPrefix, String.format("optional value is %s, not contains [%s]", valueOption, configItem));
-            } else if (StringUtils.isNotEmpty(valueReg = (String) desc.get("value_reg"))
-                       && !((String) configItem).matches(valueReg)) {
+            } else if (StringUtils.isNotEmpty(valueReg = (String) regular.get("value_reg"))
+                    && !((String) configItem).matches(valueReg)) {
                 // 待校验的值不符合正则表达式规则
                 errorInfo.put(currentKeyPrefix, String.format("value [%s] not match [%s]", configItem, valueReg));
             }
@@ -185,7 +228,7 @@ public class JSONValidator {
                 }
             }
             if (!flag) {
-                errorInfo.put(keyPrefix, String.format("value field must match at least one option in %s", template.get("fields_option")));
+                errorInfo.put(keyPrefix, String.format("value field must match at least one option in %s", Arrays.toString(fieldsOption)));
                 return false;
             }
         }
@@ -194,7 +237,8 @@ public class JSONValidator {
 
     private static Map<String, Object> findObject(Map<String, Object> object, String path) {
         String[] keys = path.split("\\.");
-        Map<String, Object> result = object;
+        @SuppressWarnings("unchecked")
+        Map<String, Object> result = (Map<String, Object>) object.get(WRAPPER_FIELD_NAME);
         for (String key : keys) {
             //noinspection unchecked
             result = (Map<String, Object>) result.get(key);
@@ -202,8 +246,16 @@ public class JSONValidator {
         return result;
     }
 
+    /**
+     * 获取规则文件中[type]字段对应的Java类型
+     *
+     * @param type 值类型
+     * @return JAVA Class类型
+     */
     @NonNull
     private static Class<?> getType(String type) {
+        Objects.requireNonNull(type);
+        type = type.toLowerCase();
         switch (type) {
             case "string":
             case "String":
@@ -218,8 +270,8 @@ public class JSONValidator {
             case "list":
                 return List.class;
             default:
-                log.error("unknown type: {}", type);
-                throw new IllegalArgumentException("unknown type: " + type);
+                log.error("unknown value type: '{}'", type);
+                throw new IllegalArgumentException("unknown value type: " + type);
         }
     }
 

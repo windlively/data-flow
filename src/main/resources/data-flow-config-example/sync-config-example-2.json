@@ -237,7 +237,7 @@
             ]
           }
         },
-        "pre_processor": "",
+        "pre_processor": null,
         "post_processor": ""
       }
     ]
