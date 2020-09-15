@@ -1,15 +1,26 @@
-package test.ink.andromeda.dataflow.test;
+package ink.andromeda.dataflow.test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.reflect.TypeToken;
+import ink.andromeda.dataflow.util.JSONValidator;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
+import org.springframework.boot.test.context.SpringBootTest;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
 import java.util.Map;
 
 import static ink.andromeda.dataflow.util.GeneralTools.GSON;
+import static ink.andromeda.dataflow.util.GeneralTools.toJSONString;
 
+@SpringBootTest
+@Slf4j
 public class StaticTest {
 
 
@@ -78,6 +89,23 @@ public class StaticTest {
             e.printStackTrace();
         }
         System.out.println(GSON().toJson(map));
+
+    }
+
+    @Test
+    public void jsonValidatorTest() throws URISyntaxException, IOException {
+        Map<String, Object> validateConfig = GSON().fromJson(String.join("",
+                Files.readAllLines(Paths.get(this.getClass().getResource("/data-flow-config-example/validate-template-example.json").toURI()))),
+                new TypeToken<Map<String, Object>>(){}.getType());
+
+        List<Map<String, Object>> config = GSON().fromJson(String.join("",
+                Files.readAllLines(Paths.get(this.getClass().getResource("/data-flow-config-example/sync-config-example-2.json").toURI()))),
+                new TypeToken<List<Map<String, Object>>>(){}.getType());
+
+        @SuppressWarnings("unchecked") JSONValidator validator = new JSONValidator((Map<String, Object>) validateConfig.get("template"));
+        Map<String, String> errorInfo = validator.validate(config.get(0));
+
+        log.info(toJSONString(errorInfo));
 
     }
 

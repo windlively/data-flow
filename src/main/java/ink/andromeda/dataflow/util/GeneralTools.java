@@ -4,12 +4,13 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
-import org.springframework.util.StringUtils;
+import org.springframework.util.Assert;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -22,6 +23,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import static org.apache.commons.lang3.ObjectUtils.isNotEmpty;
 import static org.springframework.util.ReflectionUtils.*;
 
 @Slf4j
@@ -449,5 +451,10 @@ public class GeneralTools {
             strVal = javaValue == null ? "null" : javaValue.toString();
 
         return strVal;
+    }
+
+
+    public static void checkNotEmpty(String str, String paramName) {
+        Assert.isTrue(isNotEmpty(str), paramName + " must be not empty");
     }
 }
