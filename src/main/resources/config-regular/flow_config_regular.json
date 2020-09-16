@@ -1,0 +1,41 @@
+{
+  "type": "object",
+  "required": true,
+  "fields": {
+    "_id": {
+      "type": "string",
+      "required": true,
+      "value_reg": "\\w+"
+    },
+    "source": {
+      "type": "string",
+      "required": true,
+      "value_reg": "\\w+"
+    },
+    "schema": {
+      "type": "string",
+      "required": true,
+      "value_reg": "\\w+"
+    },
+    "name": {
+      "type": "string",
+      "required": true,
+      "value_reg": "\\w+"
+    },
+    "execution_chain": {
+      "type": "list",
+      "required": true,
+      "item": {
+        "type": "object",
+        "fields_ref": "node_regular.fields"
+      }
+    }
+  },
+  "node_regular": {
+    "type": "object",
+    "required": true,
+    "fields": {
+
+    }
+  }
+}

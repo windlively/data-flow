@@ -102,7 +102,8 @@ public class StaticTest {
                 Files.readAllLines(Paths.get(this.getClass().getResource("/data-flow-config-example/sync-config-example-2.json").toURI()))),
                 new TypeToken<List<Map<String, Object>>>(){}.getType());
 
-        @SuppressWarnings("unchecked") JSONValidator validator = new JSONValidator((Map<String, Object>) validateConfig.get("template"));
+        @SuppressWarnings("unchecked")
+        JSONValidator validator = new JSONValidator((Map<String, Object>) validateConfig.get("template"));
         Map<String, String> errorInfo = validator.validate(config.get(0));
 
         log.info(toJSONString(errorInfo));
