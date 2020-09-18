@@ -24,13 +24,17 @@ public class ConfigurableFlowNode implements FlowNode {
 
     private final SpringELExpressionService expressionService;
 
+    private final String name;
+
     @Setter
     @Getter
     private Map<String, Object> config;
 
-    public ConfigurableFlowNode(Registry<SpringELConfigurationResolver> convertResolverRegistry,
+    public ConfigurableFlowNode(String name,
+                                Registry<SpringELConfigurationResolver> convertResolverRegistry,
                                 Registry<SpringELConfigurationResolver> exportResolverRegistry,
                                 SpringELExpressionService expressionService) {
+        this.name = name;
         this.convertResolverRegistry = convertResolverRegistry;
         this.exportResolverRegistry = exportResolverRegistry;
 

@@ -2,14 +2,19 @@ package ink.andromeda.dataflow.core;
 
 
 import com.google.gson.reflect.TypeToken;
+import ink.andromeda.dataflow.core.converter.ConfigurableFlowNode;
+import ink.andromeda.dataflow.core.converter.configuarion.SpringELConfigurationResolver;
 import ink.andromeda.dataflow.util.ConfigValidationException;
 import ink.andromeda.dataflow.util.JSONValidator;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static ink.andromeda.dataflow.util.GeneralTools.GSON;
@@ -17,35 +22,115 @@ import static ink.andromeda.dataflow.util.GeneralTools.GSON;
 @Slf4j
 public abstract class ConfigurableDataFlowManager implements DataFlowManager {
 
-    protected final Map<String, List<DataFlow>> flowMap = new ConcurrentHashMap<>();
+    protected final Map<String, List<DataFlow>> flowNamespaceIndexMap = new ConcurrentHashMap<>();
+
+    protected final Map<String, DataFlow> flowNameIndexMap = new ConcurrentHashMap<>();
+
+    protected Supplier<Registry<SpringELConfigurationResolver>> convertResolverRegistrySupplier;
+
+    protected Supplier<Registry<SpringELConfigurationResolver>> exportResolverRegistrySupplier;
+
+    protected Supplier<SpringELExpressionService> expressionServiceSupplier;
+
+    public void setConvertResolverRegistrySupplier(Supplier<Registry<SpringELConfigurationResolver>> convertResolverRegistrySupplier) {
+        this.convertResolverRegistrySupplier = convertResolverRegistrySupplier;
+    }
+
+    public void setExportResolverRegistrySupplier(Supplier<Registry<SpringELConfigurationResolver>> exportResolverRegistrySupplier) {
+        this.exportResolverRegistrySupplier = exportResolverRegistrySupplier;
+    }
 
     @Override
     public List<DataFlow> getFlow() {
-        return null;
+        return flowNamespaceIndexMap
+                .values()
+                .stream()
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<DataFlow> getFlow(String source, String schema, String name) {
-        return null;
+        return Optional.ofNullable(flowNamespaceIndexMap.get(
+                String.join(":", source, schema, name)
+        )).orElse(Collections.emptyList());
     }
 
+    @Nullable
     public DataFlow getFlow(String flowName) {
-        return null;
+        return flowNameIndexMap.get(flowName);
+    }
+
+    @NonNull
+    public DataFlow getNonNullFlow(String flowName){
+        return Optional.ofNullable(getFlow(flowName))
+                .orElseThrow(() -> new IllegalArgumentException(String.format(
+                        "flow '%s' not exist", flowName
+                )));
     }
 
     @Override
-    public void reload() {
-
+    public synchronized void reload() {
+        flowNamespaceIndexMap.clear();
+        flowNameIndexMap.clear();
+        getFlowConfig().forEach(m -> {
+            DataFlow flow = readFlowFromConfig(m);
+            refreshIndexMap(flow);
+        });
     }
 
     @Override
     public void reload(String source, String schema, String name) {
 
+        flowNamespaceIndexMap.computeIfAbsent(
+                String.join(":", source,
+                        schema,
+                        name),
+                k -> new ArrayList<>()).clear();
+
+        getFlowConfig(source, schema, name).forEach(m -> {
+            DataFlow flow = readFlowFromConfig(m);
+            refreshIndexMap(flow);
+        });
     }
 
     @Override
     public void reload(String flowName) {
+        refreshIndexMap(readFlowFromConfig(getFlowConfig(flowName)));
+    }
 
+    private DataFlow readFlowFromConfig(Map<String, Object> flowConfig) {
+        DefaultDataFlow flow = new DefaultDataFlow((String) flowConfig.get("_id"));
+        flow.setApplySource((String) flowConfig.get("source"));
+        flow.setApplySchema((String) flowConfig.get("schema"));
+        flow.setApplyName((String) flowConfig.get("name"));
+
+        //noinspection unchecked
+        ((List<Map<String, Object>>) flowConfig.get("execution_chain"))
+                .forEach(nodeConfig -> {
+                    String nodeName = (String) nodeConfig.get("node_name");
+                    ConfigurableFlowNode flowNode = new ConfigurableFlowNode(nodeName,
+                            convertResolverRegistrySupplier.get(),
+                            exportResolverRegistrySupplier.get(),
+                            expressionServiceSupplier.get());
+                    flowNode.setConfig(nodeConfig);
+                    flow.addLast(flowNode);
+                });
+        return flow;
+    }
+
+    private void refreshIndexMap(DataFlow flow){
+        flowNameIndexMap.put(flow.getName(), flow);
+        List<DataFlow> flowList = flowNamespaceIndexMap.computeIfAbsent(
+                String.join(":",
+                        flow.getApplySource(),
+                        flow.getApplySchema(),
+                        flow.getApplyName()
+                        ),
+                k -> new ArrayList<>()
+        );
+        flowList.removeIf(f -> Objects.equals(f.getName(), flow.getName()));
+        flowList.add(flow);
     }
 
     /**
@@ -187,7 +272,7 @@ public abstract class ConfigurableDataFlowManager implements DataFlowManager {
                 .orElse(null);
     }
 
-    private JSONValidator flowConfigvalidator;
+    private JSONValidator flowConfigValidator;
 
     public ConfigurableDataFlowManager() {
         try {
@@ -196,7 +281,7 @@ public abstract class ConfigurableDataFlowManager implements DataFlowManager {
                     .collect(Collectors.joining());
             Map<String, Object> template = GSON().fromJson(str, new TypeToken<Map<String, Object>>() {
             }.getType());
-            flowConfigvalidator = new JSONValidator(template);
+            flowConfigValidator = new JSONValidator(template);
         } catch (Exception e) {
             e.printStackTrace();
             log.error(e.getMessage(), e);
@@ -210,8 +295,8 @@ public abstract class ConfigurableDataFlowManager implements DataFlowManager {
      * @throws ConfigValidationException 校验未通过
      */
     public void validateFlowConfig(Map<String, Object> flowConfig) throws ConfigValidationException {
-        Objects.requireNonNull(flowConfigvalidator, "validator is null");
-        Map<String, String> errors = flowConfigvalidator.validate(flowConfig);
+        Objects.requireNonNull(flowConfigValidator, "validator is null");
+        Map<String, String> errors = flowConfigValidator.validate(flowConfig);
         if (!errors.isEmpty()) {
             throw new ConfigValidationException(errors);
         }

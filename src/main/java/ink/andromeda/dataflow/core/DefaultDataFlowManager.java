@@ -1,5 +1,6 @@
 package ink.andromeda.dataflow.core;
 
+import ink.andromeda.dataflow.core.converter.configuarion.SpringELConfigurationResolver;
 import ink.andromeda.dataflow.util.ConfigValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
@@ -9,8 +10,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.Assert;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static ink.andromeda.dataflow.util.GeneralTools.checkNotEmpty;
@@ -25,9 +25,13 @@ public class DefaultDataFlowManager extends ConfigurableDataFlowManager {
     private final RedisTemplate<String, String> redisTemplate;
 
     public DefaultDataFlowManager(MongoTemplate mongoTemplate,
-                                  RedisTemplate<String, String> redisTemplate) {
+                                  RedisTemplate<String, String> redisTemplate,
+                                  Registry<SpringELConfigurationResolver> convertResolverRegistry,
+                                  Registry<SpringELConfigurationResolver> exportResolverRegistry) {
         this.mongoTemplate = mongoTemplate;
         this.redisTemplate = redisTemplate;
+        super.convertResolverRegistrySupplier = () -> convertResolverRegistry;
+        super.exportResolverRegistrySupplier = () -> exportResolverRegistry;
     }
 
     @Override
@@ -127,22 +131,65 @@ public class DefaultDataFlowManager extends ConfigurableDataFlowManager {
 
     @Override
     protected int deleteFlowConfig(String flowName) {
-        return 0;
+        return (int) mongoTemplate.remove(Query.query(Criteria.where("_id").is(flowName)), FLOW_COLLECTION_NAME)
+                .getDeletedCount();
     }
 
     @Override
     protected int addNodeConfig(String flowName, Map<String, Object> nodeConfig) {
-        return 0;
+        Map<String, Object> flowConfig = getFlowConfig(flowName);
+        Assert.notNull(flowConfig, String.format("flow '%s' not exist", flowName));
+
+        Object nodes = flowConfig.get("execution_chain");
+        if(nodes == null){
+            nodes = new LinkedList<Map<String, Object>>();
+        }
+
+        Assert.state(nodes instanceof List, "execution_chain isn't a list type");
+
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> executionChainList = (List<Map<String, Object>>) nodes;
+
+        executionChainList.add(nodeConfig);
+
+        flowConfig.put("execution_chain", executionChainList);
+
+        return updateFlowConfig(flowName, flowConfig);
     }
 
     @Override
     protected int updateNodeConfig(String flowName, String nodeName, Map<String, Object> update) {
-        return 0;
+        Map<String, Object> flowConfig = getFlowConfig(flowName);
+        Assert.notNull(flowConfig, String.format("flow '%s' not exist", flowName));
+        Object nodes = Optional.ofNullable(flowConfig.get("execution_chain"))
+                .orElse(Collections.<Map<String, Object>>emptyList());
+
+        Assert.state(nodes instanceof List, "execution_chain isn't a list type");
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> nodeConfig = ((List<Map<String, Object>>) nodes).stream()
+                .filter(e -> Objects.equals(nodeName, e.get("node_name")))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException(String.format(
+                        "flow '%s' has no node '%s'", flowName, nodeName
+                )));
+        nodeConfig.clear();
+        nodeConfig.putAll(update);
+        return updateFlowConfig(flowName, flowConfig);
     }
 
     @Override
     protected int deleteNodeConfig(String flowName, String nodeName) {
-        return 0;
+        Map<String, Object> flowConfig = getFlowConfig(flowName);
+        Assert.notNull(flowConfig, String.format("flow '%s' not exist", flowName));
+        Object nodes = Optional.ofNullable(flowConfig.get("execution_chain"))
+                .orElse(Collections.<Map<String, Object>>emptyList());
+
+        Assert.state(nodes instanceof List, "execution_chain isn't a list type");
+
+        //noinspection unchecked
+        return ((List<Map<String, Object>>) nodes)
+                .removeIf(m -> Objects.equals(nodeName, m.get("node_name"))) ? 1 : 0;
     }
 
     @Override
@@ -150,4 +197,8 @@ public class DefaultDataFlowManager extends ConfigurableDataFlowManager {
         return super.getNodeConfig(flowName, nodeName);
     }
 
+    @Override
+    public void reload(String flowName) {
+        redisTemplate.convertAndSend("", "");
+    }
 }
