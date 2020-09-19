@@ -197,8 +197,10 @@ public class DefaultDataFlowManager extends ConfigurableDataFlowManager {
         return super.getNodeConfig(flowName, nodeName);
     }
 
-    @Override
-    public void reload(String flowName) {
-        redisTemplate.convertAndSend("", "");
+    public void reload(boolean cluster){
+        if(cluster)
+            redisTemplate.convertAndSend("", "");
+        else
+            reload();
     }
 }
