@@ -1,0 +1,44 @@
+datasource:
+  hikari:
+    - pool-name: master
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://localhost:3306/
+      password: 58603924715
+      username: root
+      connection-test-query: SELECT 1
+      validation-timeout: 18800
+rocket-mq:
+  # 生产者配置
+  producer:
+    is-on-off: true
+    producer-group: core-system-event
+    namesrv-addr:  10.164.200.204:9876
+    max-message-size: 10240
+    send-message-timeout: 1000
+    retry-times-when-send-failed: 3
+  # 消费者配置
+  consumer:
+    is-on-off: true
+    consumer-group: core-system-event
+    namesrv-addr: 10.164.200.204:9876
+    topics:
+      - topic: core-system
+        tags: [core-event]
+    consume-thread-min: 15
+    consume-thread-max: 40
+    consume-message-batch-max-size: 1
+
+spring:
+  data:
+    mongodb:
+      uri: mongodb://root:58603924715@127.0.0.1:27017/admin
+  redis:
+    port: 6380
+    password: 58603924715
+    lettuce:
+      pool:
+        max-idle: 8
+        min-idle: 1
+        max-active: 10
+    host: 127.0.0.1
+
