@@ -1,0 +1,37 @@
+package ink.andromeda.dataflow.entity;
+
+import ink.andromeda.dataflow.util.GeneralTools;
+import lombok.Data;
+
+import java.util.Date;
+import java.util.Map;
+
+@Data
+public class OGGMessage {
+
+    private String table;
+
+    private String opType;
+
+    private Date opTs;
+
+    private Date currentTs;
+
+    private long pos;
+
+    private String[] primaryKeys;
+
+    private Map<String, Object> before;
+
+    private Map<String, Object> after;
+
+    private String simpleTableName;
+
+    private String schemaName;
+
+    @Override
+    public String toString(){
+        return GeneralTools.toJSONString(this);
+    }
+
+}
