@@ -1,4 +1,4 @@
-package ink.andromeda.dataflow.core.converter.configresolver;
+package ink.andromeda.dataflow.core.node.configresolver;
 
 public interface ConfigurationResolver {
 

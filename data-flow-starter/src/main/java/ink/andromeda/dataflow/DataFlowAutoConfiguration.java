@@ -2,15 +2,17 @@ package ink.andromeda.dataflow;
 
 import com.zaxxer.hikari.HikariDataSource;
 import ink.andromeda.dataflow.core.*;
-import ink.andromeda.dataflow.core.converter.configresolver.SpringELConfigurationResolver;
+import ink.andromeda.dataflow.core.flow.DataFlowManager;
+import ink.andromeda.dataflow.core.flow.DefaultDataFlowManager;
+import ink.andromeda.dataflow.core.node.configresolver.SpringELConfigurationResolver;
 import ink.andromeda.dataflow.datasource.DataSourceConfig;
 import ink.andromeda.dataflow.datasource.DataSourceDetermineAspect;
 import ink.andromeda.dataflow.datasource.DynamicDataSource;
 import ink.andromeda.dataflow.entity.RefreshCacheMessage;
 import ink.andromeda.dataflow.util.GeneralTools;
+import ink.andromeda.dataflow.util.kafka.DataFlowKafkaListenerErrorHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSessionFactory;
-import org.mapstruct.Qualifier;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -25,6 +27,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.kafka.listener.KafkaListenerErrorHandler;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
@@ -91,6 +94,11 @@ public class DataFlowAutoConfiguration {
         return new DefaultDataRouter(dataFlowManager);
     }
 
+    @Bean
+    @ConditionalOnMissingBean
+    KafkaListenerErrorHandler kafkaListenerErrorHandler(){
+        return new DataFlowKafkaListenerErrorHandler();
+    }
 
     /**
      * 多数据源配置

@@ -1,15 +1,18 @@
-package ink.andromeda.dataflow.core;
+package ink.andromeda.dataflow.core.flow;
 
 
 import com.google.gson.reflect.TypeToken;
-import ink.andromeda.dataflow.core.converter.ConfigurableFlowNode;
-import ink.andromeda.dataflow.core.converter.configresolver.SpringELConfigurationResolver;
+import ink.andromeda.dataflow.core.Registry;
+import ink.andromeda.dataflow.core.SpringELExpressionService;
+import ink.andromeda.dataflow.core.node.ConfigurableFlowNode;
+import ink.andromeda.dataflow.core.node.configresolver.SpringELConfigurationResolver;
 import ink.andromeda.dataflow.util.ConfigValidationException;
 import ink.andromeda.dataflow.util.JSONValidator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
+import javax.annotation.PostConstruct;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -44,6 +47,11 @@ public abstract class ConfigurableDataFlowManager implements DataFlowManager {
 
     public void setExportResolverRegistrySupplier(Supplier<Registry<SpringELConfigurationResolver>> exportResolverRegistrySupplier) {
         this.exportResolverRegistrySupplier = exportResolverRegistrySupplier;
+    }
+
+    @PostConstruct
+    protected void init(){
+        reload();
     }
 
     @Override
@@ -102,17 +110,20 @@ public abstract class ConfigurableDataFlowManager implements DataFlowManager {
 
     @Override
     public void reload(String flowName) {
-        refreshIndexMap(readFlowFromConfig(getFlowConfig(flowName)));
+        refreshIndexMap(readFlowFromConfig(
+                Objects.requireNonNull(getFlowConfig(flowName))
+        ));
     }
 
     private DataFlow readFlowFromConfig(Map<String, Object> flowConfig) {
+        validateFlowConfig(flowConfig);
         DefaultDataFlow flow = new DefaultDataFlow((String) flowConfig.get("_id"));
         flow.setApplySource((String) flowConfig.get("source"));
         flow.setApplySchema((String) flowConfig.get("schema"));
         flow.setApplyName((String) flowConfig.get("name"));
 
         //noinspection unchecked
-        ((List<Map<String, Object>>) flowConfig.get("execution_chain"))
+        Objects.requireNonNull((List<Map<String, Object>>) flowConfig.get("execution_chain"))
                 .forEach(nodeConfig -> {
                     String nodeName = (String) nodeConfig.get("node_name");
                     ConfigurableFlowNode flowNode = new ConfigurableFlowNode(nodeName,

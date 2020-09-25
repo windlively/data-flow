@@ -1,11 +1,14 @@
-package ink.andromeda.dataflow.core;
+package ink.andromeda.dataflow.core.flow;
 
-import ink.andromeda.dataflow.core.converter.FlowNode;
+import ink.andromeda.dataflow.core.Registry;
+import ink.andromeda.dataflow.core.SourceEntity;
+import ink.andromeda.dataflow.core.TransferEntity;
+import ink.andromeda.dataflow.core.node.FlowNode;
 import org.springframework.lang.NonNull;
 
 import java.util.List;
 
-public interface DataFlow extends Registry<FlowNode>{
+public interface DataFlow extends Registry<FlowNode> {
 
     default String getApplySource(){return "";}
 

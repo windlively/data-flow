@@ -1,6 +1,8 @@
-package ink.andromeda.dataflow.core;
+package ink.andromeda.dataflow.core.flow;
 
-import ink.andromeda.dataflow.core.converter.FlowNode;
+import ink.andromeda.dataflow.core.Registry;
+import ink.andromeda.dataflow.core.flow.DataFlow;
+import ink.andromeda.dataflow.core.node.FlowNode;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.lang.NonNull;
@@ -43,19 +45,19 @@ public class DefaultDataFlow implements DataFlow {
     }
 
     @Override
-    public Registry<FlowNode> addLast(@NonNull FlowNode item) {
+    public @NonNull Registry<FlowNode> addLast(@NonNull FlowNode item) {
         nodes.add(item);
         return this;
     }
 
     @Override
-    public Registry<FlowNode> addFirst(@NonNull FlowNode item) {
+    public @NonNull Registry<FlowNode> addFirst(@NonNull FlowNode item) {
         nodes.addFirst(item);
         return this;
     }
 
     @Override
-    public Registry<FlowNode> addTo(int index, @NonNull FlowNode item) {
+    public @NonNull Registry<FlowNode> addTo(int index, @NonNull FlowNode item) {
         nodes.add(index, item);
         return this;
     }

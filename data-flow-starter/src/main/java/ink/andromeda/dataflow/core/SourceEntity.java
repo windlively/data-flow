@@ -40,6 +40,7 @@ public class SourceEntity implements Cloneable, Serializable {
         this.data = Collections.unmodifiableMap(data);
     }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     public Object clone(){
         return builder()

@@ -81,15 +81,3 @@ spring:
     mongodb:
       uri: mongodb://app_abakus_core_rw:X1Hj7IpkRcsRo0Z7bWm3w2wpNYi7M@dds-m5e6203ba8efe0341.mongodb.rds.aliyuncs.com:3717,dds-m5e6203ba8efe0342.mongodb.rds.aliyuncs.com:3717/abakus_core?replicaSet=mgset-34994683
 
-redis:
-  config:
-    host: rds-phaiercash01cn.svc.haiercash.com
-    port: 6379
-    password: mMgABZhDyPGbUsyRgm9IgGEYg
-    database-index: 1
-    max-active: 8
-    max-wait: 20000
-    max-idle: 8
-    min-idle: 1
-    timeout: 50000
-    ssl: false

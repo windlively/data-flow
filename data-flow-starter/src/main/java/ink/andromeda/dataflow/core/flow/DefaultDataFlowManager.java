@@ -1,6 +1,7 @@
-package ink.andromeda.dataflow.core;
+package ink.andromeda.dataflow.core.flow;
 
-import ink.andromeda.dataflow.core.converter.configresolver.SpringELConfigurationResolver;
+import ink.andromeda.dataflow.core.Registry;
+import ink.andromeda.dataflow.core.node.configresolver.SpringELConfigurationResolver;
 import ink.andromeda.dataflow.util.ConfigValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
@@ -8,6 +9,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -36,6 +38,7 @@ public class DefaultDataFlowManager extends ConfigurableDataFlowManager {
     }
 
     @Override
+    @NonNull
     public List<Map<String, Object>> getFlowConfig() {
         return mongoTemplate.findAll(Document.class, FLOW_COLLECTION_NAME).stream()
                 .map(document -> (Map<String, Object>) document)
@@ -43,7 +46,8 @@ public class DefaultDataFlowManager extends ConfigurableDataFlowManager {
     }
 
     @Override
-    public List<Map<String, Object>> getFlowConfig(String source, String schema, String name) {
+    @NonNull
+    public List<Map<String, Object>> getFlowConfig(@NonNull String source, @NonNull String schema, @NonNull String name) {
         checkNotEmpty(source, "source");
         checkNotEmpty(schema, "schema");
         checkNotEmpty(name, "name");
@@ -57,12 +61,12 @@ public class DefaultDataFlowManager extends ConfigurableDataFlowManager {
     }
 
     @Override
-    @Nullable public Map<String, Object> getFlowConfig(String flowName) {
+    @Nullable public Map<String, Object> getFlowConfig(@NonNull String flowName) {
         return mongoTemplate.findOne(Query.query(Criteria.where("_id").is(flowName)), Document.class, FLOW_COLLECTION_NAME);
     }
 
     @Override
-    protected int addFlowConfig(List<Map<String, Object>> configs) {
+    protected int addFlowConfig(@NonNull List<Map<String, Object>> configs) {
         /*
             // 非原子性操作
             int c = 0;

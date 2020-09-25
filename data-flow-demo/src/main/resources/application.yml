@@ -51,6 +51,7 @@ spring:
       concurrency: 1
     consumer:
       group-id: test
+      value-deserializer: ink.andromeda.dataflow.util.kafka.serialize.OGGMessageDeserializer
 data-flow:
   enable: true
 multi-data-source:

@@ -1,37 +1,39 @@
 package ink.andromeda.dataflow;
 
-import com.google.common.collect.Sets;
 import com.google.gson.reflect.TypeToken;
-import ink.andromeda.dataflow.core.ConfigurableDataFlowManager;
+import ink.andromeda.dataflow.core.flow.ConfigurableDataFlowManager;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
 import static ink.andromeda.dataflow.util.GeneralTools.GSON;
 
+@Slf4j
 public class LocalConfigDataFlowManager extends ConfigurableDataFlowManager {
     @Override
     protected List<Map<String, Object>> getFlowConfig() {
         try {
             Path configDir = Paths.get(
                     LocalConfigDataFlowManager.class.getResource(
-                            "/data-flow-config-example/"
-                    ).toURI()
+                            "/"
+                    ).toURI().getPath(), "flow-config"
             );
             List<Map<String, Object>> config = new ArrayList<>();
             Files.walkFileTree(
                     configDir,
-                    Sets.immutableEnumSet(FileVisitOption.FOLLOW_LINKS),
+                    new HashSet<>(),
                     1,
                     new FileVisitor<Path>() {
                 @Override
                 public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                    return dir.endsWith(".json") || Files.isDirectory(dir) ? FileVisitResult.CONTINUE : FileVisitResult.SKIP_SUBTREE;
+                    return FileVisitResult.CONTINUE;
                 }
 
                 @Override
@@ -45,6 +47,7 @@ public class LocalConfigDataFlowManager extends ConfigurableDataFlowManager {
 
                 @Override
                 public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+                    log.error(exc.getMessage(), exc);
                     return FileVisitResult.CONTINUE;
                 }
 

@@ -1,7 +1,8 @@
 package ink.andromeda.dataflow;
 
-import ink.andromeda.dataflow.core.DataFlowManager;
 import ink.andromeda.dataflow.core.DataRouter;
+import ink.andromeda.dataflow.core.SourceEntity;
+import ink.andromeda.dataflow.entity.OGGMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -12,19 +13,31 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class RealTimeDataFetch {
 
-
     private final DataRouter dataRouter;
 
-    public RealTimeDataFetch(DataFlowManager dataFlowManager,
-                             DataRouter dataRouter) {
+    public RealTimeDataFetch(DataRouter dataRouter) {
         this.dataRouter = dataRouter;
     }
 
-    @KafkaListener(topics = "test")
-    public void onMessage(ConsumerRecord<String, String> consumerRecord, Acknowledgment acknowledgment){
-        String s = consumerRecord.value();
+    @KafkaListener(topics = "test", errorHandler = "kafkaListenerErrorHandler")
+    public void onMessage(ConsumerRecord<String, OGGMessage> consumerRecord, Acknowledgment acknowledgment){
+        try {
+            OGGMessage oggMessage = consumerRecord.value();
+            String source = "test";
 
-        log.info(s);
+            dataRouter.routeAndProcess(SourceEntity.builder()
+                    .source(source)
+                    .name(oggMessage.getSimpleTableName())
+                    .schema(oggMessage.getSchemaName())
+                    .data(oggMessage.getAfter())
+                    .before(oggMessage.getBefore())
+                    .opType(oggMessage.getOpType())
+                    .build());
+
+            log.info(oggMessage.toString());
+        }catch (Exception ex){
+            log.error(ex.getMessage(), ex);
+        }
         acknowledgment.acknowledge();
     }
 

@@ -1,4 +1,4 @@
-package ink.andromeda.dataflow.core.converter.configresolver;
+package ink.andromeda.dataflow.core.node.configresolver;
 
 import ink.andromeda.dataflow.core.SourceEntity;
 import ink.andromeda.dataflow.core.TransferEntity;

@@ -1,4 +1,4 @@
-package ink.andromeda.dataflow.core;
+package ink.andromeda.dataflow.core.flow;
 
 import org.springframework.lang.Nullable;
 

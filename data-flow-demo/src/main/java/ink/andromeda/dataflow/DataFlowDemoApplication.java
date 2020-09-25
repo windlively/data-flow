@@ -1,15 +1,18 @@
 package ink.andromeda.dataflow;
 
 import com.google.common.collect.Lists;
-import ink.andromeda.dataflow.core.DataFlowManager;
+import ink.andromeda.dataflow.core.flow.DataFlowManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 
 import java.util.Properties;
 
-@SpringBootApplication
+@SpringBootApplication(
+        exclude = RabbitAutoConfiguration.class
+)
 @Slf4j
 public class DataFlowDemoApplication {
 

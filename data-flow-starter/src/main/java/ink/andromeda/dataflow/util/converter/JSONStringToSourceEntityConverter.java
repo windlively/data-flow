@@ -1,5 +1,7 @@
-package ink.andromeda.dataflow.core;
+package ink.andromeda.dataflow.util.converter;
 
+import ink.andromeda.dataflow.core.SourceEntity;
+import ink.andromeda.dataflow.core.SourceEntityConverter;
 import ink.andromeda.dataflow.util.GeneralTools;
 
 import javax.annotation.Nonnull;

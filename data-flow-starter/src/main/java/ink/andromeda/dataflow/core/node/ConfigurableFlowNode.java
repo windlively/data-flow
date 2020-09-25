@@ -1,6 +1,6 @@
-package ink.andromeda.dataflow.core.converter;
+package ink.andromeda.dataflow.core.node;
 
-import ink.andromeda.dataflow.core.converter.configresolver.SpringELConfigurationResolver;
+import ink.andromeda.dataflow.core.node.configresolver.SpringELConfigurationResolver;
 import ink.andromeda.dataflow.core.Registry;
 import ink.andromeda.dataflow.core.SourceEntity;
 import ink.andromeda.dataflow.core.SpringELExpressionService;
