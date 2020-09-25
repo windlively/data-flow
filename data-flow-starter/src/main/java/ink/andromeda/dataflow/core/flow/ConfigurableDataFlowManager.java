@@ -5,7 +5,7 @@ import com.google.gson.reflect.TypeToken;
 import ink.andromeda.dataflow.core.Registry;
 import ink.andromeda.dataflow.core.SpringELExpressionService;
 import ink.andromeda.dataflow.core.node.ConfigurableFlowNode;
-import ink.andromeda.dataflow.core.node.configresolver.SpringELConfigurationResolver;
+import ink.andromeda.dataflow.core.node.resolver.SpringELConfigurationResolver;
 import ink.andromeda.dataflow.util.ConfigValidationException;
 import ink.andromeda.dataflow.util.JSONValidator;
 import lombok.extern.slf4j.Slf4j;

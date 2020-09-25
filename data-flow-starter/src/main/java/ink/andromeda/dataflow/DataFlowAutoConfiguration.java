@@ -4,7 +4,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import ink.andromeda.dataflow.core.*;
 import ink.andromeda.dataflow.core.flow.DataFlowManager;
 import ink.andromeda.dataflow.core.flow.DefaultDataFlowManager;
-import ink.andromeda.dataflow.core.node.configresolver.SpringELConfigurationResolver;
+import ink.andromeda.dataflow.core.node.resolver.SpringELConfigurationResolver;
 import ink.andromeda.dataflow.datasource.DataSourceConfig;
 import ink.andromeda.dataflow.datasource.DataSourceDetermineAspect;
 import ink.andromeda.dataflow.datasource.DynamicDataSource;

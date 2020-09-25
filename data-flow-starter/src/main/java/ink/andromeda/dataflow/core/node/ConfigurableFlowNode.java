@@ -1,6 +1,6 @@
 package ink.andromeda.dataflow.core.node;
 
-import ink.andromeda.dataflow.core.node.configresolver.SpringELConfigurationResolver;
+import ink.andromeda.dataflow.core.node.resolver.SpringELConfigurationResolver;
 import ink.andromeda.dataflow.core.Registry;
 import ink.andromeda.dataflow.core.SourceEntity;
 import ink.andromeda.dataflow.core.SpringELExpressionService;
@@ -26,6 +26,11 @@ public class ConfigurableFlowNode implements FlowNode {
 
     private final String name;
 
+    @Override
+    public String getName() {
+        return name;
+    }
+
     @Setter
     @Getter
     private Map<String, Object> config;
@@ -37,7 +42,6 @@ public class ConfigurableFlowNode implements FlowNode {
         this.name = name;
         this.convertResolverRegistry = convertResolverRegistry;
         this.exportResolverRegistry = exportResolverRegistry;
-
         this.expressionService = expressionService;
     }
 
@@ -53,10 +57,12 @@ public class ConfigurableFlowNode implements FlowNode {
 
     @Override
     public int export(SourceEntity sourceEntity, TransferEntity transferEntity) throws Exception {
+        int i = 0;
         for (SpringELConfigurationResolver resolver : exportResolverRegistry.get()) {
             resolver.resolve(sourceEntity, transferEntity, config.get(resolver.getName()),
                     expressionService.evaluationContext(), expressionService.expressionParser());
+            i ++;
         }
-        return 1;
+        return i;
     }
 }

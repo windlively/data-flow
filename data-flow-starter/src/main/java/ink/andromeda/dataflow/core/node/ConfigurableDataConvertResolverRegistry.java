@@ -1,6 +1,6 @@
 package ink.andromeda.dataflow.core.node;
 
-import ink.andromeda.dataflow.core.node.configresolver.SpringELConfigurationResolver;
+import ink.andromeda.dataflow.core.node.resolver.SpringELConfigurationResolver;
 import lombok.Getter;
 
 import java.util.Collections;

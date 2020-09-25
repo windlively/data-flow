@@ -1,7 +1,7 @@
 package ink.andromeda.dataflow.core.flow;
 
 import ink.andromeda.dataflow.core.Registry;
-import ink.andromeda.dataflow.core.node.configresolver.SpringELConfigurationResolver;
+import ink.andromeda.dataflow.core.node.resolver.SpringELConfigurationResolver;
 import ink.andromeda.dataflow.util.ConfigValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;

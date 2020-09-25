@@ -3,10 +3,14 @@ package ink.andromeda.dataflow.core.node;
 import ink.andromeda.dataflow.core.SourceEntity;
 import ink.andromeda.dataflow.core.TransferEntity;
 
+/**
+ * flow节点
+ * 每一个节点拥有转换和导出操作,
+ */
 public interface FlowNode {
 
     default String getName() {
-        return "flow node";
+        return "default";
     }
 
     TransferEntity convert(SourceEntity sourceEntity, TransferEntity transferEntity) throws Exception;

@@ -8,6 +8,10 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+/**
+ * 注册中心，管理对象实例
+ * @param <T> 注册的对象类型
+ */
 public interface Registry<T> {
 
     Registry<T> addLast(@NonNull T item);

@@ -1,7 +1,6 @@
 package ink.andromeda.dataflow.core.flow;
 
 import ink.andromeda.dataflow.core.Registry;
-import ink.andromeda.dataflow.core.flow.DataFlow;
 import ink.andromeda.dataflow.core.node.FlowNode;
 import lombok.Getter;
 import lombok.Setter;

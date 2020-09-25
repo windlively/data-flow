@@ -4,6 +4,10 @@ import org.springframework.lang.Nullable;
 
 import java.util.List;
 
+/**
+ * flow管理器, 用于加载、获取flow操作
+ * @see DataFlow
+ */
 public interface DataFlowManager {
 
     /**
