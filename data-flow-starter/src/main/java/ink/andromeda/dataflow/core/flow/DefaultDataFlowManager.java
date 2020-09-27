@@ -1,7 +1,7 @@
 package ink.andromeda.dataflow.core.flow;
 
 import ink.andromeda.dataflow.core.Registry;
-import ink.andromeda.dataflow.core.node.resolver.SpringELConfigurationResolver;
+import ink.andromeda.dataflow.core.node.resolver.DefaultConfigurationResolver;
 import ink.andromeda.dataflow.util.ConfigValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
@@ -29,8 +29,8 @@ public class DefaultDataFlowManager extends ConfigurableDataFlowManager {
 
     public DefaultDataFlowManager(MongoTemplate mongoTemplate,
                                   RedisTemplate<String, String> redisTemplate,
-                                  Registry<SpringELConfigurationResolver> convertResolverRegistry,
-                                  Registry<SpringELConfigurationResolver> exportResolverRegistry) {
+                                  Registry<DefaultConfigurationResolver> convertResolverRegistry,
+                                  Registry<DefaultConfigurationResolver> exportResolverRegistry) {
         this.mongoTemplate = mongoTemplate;
         this.redisTemplate = redisTemplate;
         super.convertResolverRegistrySupplier = () -> convertResolverRegistry;

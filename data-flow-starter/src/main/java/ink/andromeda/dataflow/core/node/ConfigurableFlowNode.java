@@ -1,15 +1,14 @@
 package ink.andromeda.dataflow.core.node;
 
-import ink.andromeda.dataflow.core.node.resolver.SpringELConfigurationResolver;
-import ink.andromeda.dataflow.core.Registry;
-import ink.andromeda.dataflow.core.SourceEntity;
-import ink.andromeda.dataflow.core.SpringELExpressionService;
-import ink.andromeda.dataflow.core.TransferEntity;
+import ink.andromeda.dataflow.core.*;
+import ink.andromeda.dataflow.core.node.resolver.DefaultConfigurationResolver;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.lang.Nullable;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -18,9 +17,9 @@ import java.util.Map;
 @Slf4j
 public class ConfigurableFlowNode implements FlowNode {
 
-    private final Registry<SpringELConfigurationResolver> convertResolverRegistry;
+    private final Registry<DefaultConfigurationResolver> convertResolverRegistry;
 
-    private final Registry<SpringELConfigurationResolver> exportResolverRegistry;
+    private final Registry<DefaultConfigurationResolver> exportResolverRegistry;
 
     private final SpringELExpressionService expressionService;
 
@@ -36,8 +35,8 @@ public class ConfigurableFlowNode implements FlowNode {
     private Map<String, Object> config;
 
     public ConfigurableFlowNode(String name,
-                                Registry<SpringELConfigurationResolver> convertResolverRegistry,
-                                Registry<SpringELConfigurationResolver> exportResolverRegistry,
+                                Registry<DefaultConfigurationResolver> convertResolverRegistry,
+                                @Nullable Registry<DefaultConfigurationResolver> exportResolverRegistry,
                                 SpringELExpressionService expressionService) {
         this.name = name;
         this.convertResolverRegistry = convertResolverRegistry;
@@ -48,19 +47,35 @@ public class ConfigurableFlowNode implements FlowNode {
     @Override
     @Nullable
     public TransferEntity convert(SourceEntity sourceEntity, TransferEntity transferEntity) throws Exception {
-        for (SpringELConfigurationResolver resolver : convertResolverRegistry.get()) {
-            resolver.resolve(sourceEntity, transferEntity, config.get(resolver.getName()),
-                    expressionService.evaluationContext(), expressionService.expressionParser());
+        Map<String, Object> root = new HashMap<>(4);
+        StandardEvaluationContext context = expressionService.evaluationContext();
+        context.setRootObject(root);
+        context.setVariable("_src", sourceEntity);
+        // context.setVariable("_tsf", transferEntity);
+        if(transferEntity.getData() != null)
+            transferEntity.getData().forEach(context::setVariable);
+        for (DefaultConfigurationResolver resolver : convertResolverRegistry.get()) {
+            /*
+                EnvironmentContext environmentContext = new EnvironmentContext()
+                        .setVariable("sourceEntity", sourceEntity)
+                        .setVariable("transferEntity", transferEntity)
+                        .setVariable("root", root)
+                        .setVariable("config", config.get(resolver.getName()));
+                resolver.resolve(environmentContext);
+             */
+            resolver.resolve(sourceEntity, transferEntity, config.get(resolver.getName()), root);
         }
         return transferEntity;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public int export(SourceEntity sourceEntity, TransferEntity transferEntity) throws Exception {
         int i = 0;
-        for (SpringELConfigurationResolver resolver : exportResolverRegistry.get()) {
+        if(exportResolverRegistry == null) return i;
+        for (DefaultConfigurationResolver resolver : exportResolverRegistry.get()) {
             resolver.resolve(sourceEntity, transferEntity, config.get(resolver.getName()),
-                    expressionService.evaluationContext(), expressionService.expressionParser());
+                    (Map<String, Object>) expressionService.evaluationContext().getRootObject().getValue());
             i ++;
         }
         return i;

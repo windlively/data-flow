@@ -3,15 +3,16 @@ package ink.andromeda.dataflow.util.kafka.serialize;
 import ink.andromeda.dataflow.core.SourceEntity;
 import ink.andromeda.dataflow.util.converter.JSONStringToSourceEntityConverter;
 import org.apache.kafka.common.serialization.Deserializer;
+import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 
 import java.nio.charset.StandardCharsets;
 
-public class SourceEntityDeserializer implements Deserializer<SourceEntity> {
+public class SourceEntityDeserializer extends ErrorHandlingDeserializer<SourceEntity> {
 
-    private final JSONStringToSourceEntityConverter converter = new JSONStringToSourceEntityConverter();
+    private final static JSONStringToSourceEntityConverter converter = new JSONStringToSourceEntityConverter();
 
-    @Override
-    public SourceEntity deserialize(String topic, byte[] data) {
-        return converter.convert(new String(data, StandardCharsets.UTF_8));
+    public SourceEntityDeserializer() {
+        super((topic, data) -> converter.convert(new String(data, StandardCharsets.UTF_8)));
     }
+
 }

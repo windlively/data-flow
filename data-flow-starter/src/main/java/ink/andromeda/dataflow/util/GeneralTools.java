@@ -366,10 +366,6 @@ public class GeneralTools {
         System.out.println(object);
     }
 
-    public static String getMongoConfigId(String schemaName, String tableName) {
-        return String.format("%s-%s", schemaName, tableName);
-    }
-
     // 数据库类型对应的Java类型
     public static Class<?> jdbcTypeToJavaType(String columnType) {
         switch (columnType) {

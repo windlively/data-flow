@@ -16,21 +16,21 @@ public class SimpleRegistry<T> implements Registry<T> {
     private List<T> registeredList = Collections.emptyList();
 
     @Override
-    public Registry<T> addLast(@NonNull T bean) {
+    public synchronized Registry<T> addLast(@NonNull T bean) {
         check(bean);
         internalRegisteredList.add(bean);
         return this;
     }
 
     @Override
-    public Registry<T> addFirst(@NonNull T bean) {
+    public synchronized Registry<T> addFirst(@NonNull T bean) {
         check(bean);
         internalRegisteredList.addFirst(bean);
         return this;
     }
 
     @Override
-    public Registry<T> addTo(int index, @NonNull T bean) {
+    public synchronized Registry<T> addTo(int index, @NonNull T bean) {
         check(bean);
         internalRegisteredList.add(index, bean);
         return this;
@@ -43,7 +43,7 @@ public class SimpleRegistry<T> implements Registry<T> {
     }
 
     @Override
-    public int remove(@NonNull Predicate<T> predicate) {
+    public synchronized int remove(@NonNull Predicate<T> predicate) {
         return internalRegisteredList.removeIf(predicate) ? 1 : 0;
     }
 
@@ -52,7 +52,7 @@ public class SimpleRegistry<T> implements Registry<T> {
         registeredList = Collections.unmodifiableList(new ArrayList<>(internalRegisteredList));
     }
 
-    private void check(T item){
+    private synchronized void check(T item){
         Assert.notNull(item, "input object must be non null");
         Assert.isTrue(!internalRegisteredList.contains(item), "input object '" + item +"' has exist");
     }

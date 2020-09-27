@@ -5,7 +5,7 @@ import com.google.gson.reflect.TypeToken;
 import ink.andromeda.dataflow.core.Registry;
 import ink.andromeda.dataflow.core.SpringELExpressionService;
 import ink.andromeda.dataflow.core.node.ConfigurableFlowNode;
-import ink.andromeda.dataflow.core.node.resolver.SpringELConfigurationResolver;
+import ink.andromeda.dataflow.core.node.resolver.DefaultConfigurationResolver;
 import ink.andromeda.dataflow.util.ConfigValidationException;
 import ink.andromeda.dataflow.util.JSONValidator;
 import lombok.extern.slf4j.Slf4j;
@@ -29,11 +29,11 @@ public abstract class ConfigurableDataFlowManager implements DataFlowManager {
 
     protected final Map<String, DataFlow> flowNameIndexMap = new ConcurrentHashMap<>();
 
-    protected Supplier<Registry<SpringELConfigurationResolver>> convertResolverRegistrySupplier = () -> {
+    protected Supplier<Registry<DefaultConfigurationResolver>> convertResolverRegistrySupplier = () -> {
       throw new IllegalStateException("convert resolver registry supplier not set");
     };
 
-    protected Supplier<Registry<SpringELConfigurationResolver>> exportResolverRegistrySupplier = () -> {
+    protected Supplier<Registry<DefaultConfigurationResolver>> exportResolverRegistrySupplier = () -> {
       throw new IllegalStateException("export resolver registry supplier not set");
     };
 
@@ -41,11 +41,11 @@ public abstract class ConfigurableDataFlowManager implements DataFlowManager {
         throw new IllegalStateException("expression service supplier not set");
     };
 
-    public void setConvertResolverRegistrySupplier(Supplier<Registry<SpringELConfigurationResolver>> convertResolverRegistrySupplier) {
+    public void setConvertResolverRegistrySupplier(Supplier<Registry<DefaultConfigurationResolver>> convertResolverRegistrySupplier) {
         this.convertResolverRegistrySupplier = convertResolverRegistrySupplier;
     }
 
-    public void setExportResolverRegistrySupplier(Supplier<Registry<SpringELConfigurationResolver>> exportResolverRegistrySupplier) {
+    public void setExportResolverRegistrySupplier(Supplier<Registry<DefaultConfigurationResolver>> exportResolverRegistrySupplier) {
         this.exportResolverRegistrySupplier = exportResolverRegistrySupplier;
     }
 

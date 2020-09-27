@@ -4,7 +4,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import ink.andromeda.dataflow.core.*;
 import ink.andromeda.dataflow.core.flow.DataFlowManager;
 import ink.andromeda.dataflow.core.flow.DefaultDataFlowManager;
-import ink.andromeda.dataflow.core.node.resolver.SpringELConfigurationResolver;
+import ink.andromeda.dataflow.core.node.resolver.DefaultConfigurationResolver;
 import ink.andromeda.dataflow.datasource.DataSourceConfig;
 import ink.andromeda.dataflow.datasource.DataSourceDetermineAspect;
 import ink.andromeda.dataflow.datasource.DynamicDataSource;
@@ -46,16 +46,16 @@ public class DataFlowAutoConfiguration {
 
     @ConditionalOnMissingBean(name = "flowNodeConvertResolver", value = Registry.class)
     @Bean
-    Registry<SpringELConfigurationResolver> flowNodeConvertResolver(){
-        SimpleRegistry<SpringELConfigurationResolver> registry = new SimpleRegistry<>();
+    Registry<DefaultConfigurationResolver> flowNodeConvertResolver(){
+        SimpleRegistry<DefaultConfigurationResolver> registry = new SimpleRegistry<>();
 
         return registry;
     }
 
     @Bean
     @ConditionalOnMissingBean(name = "flowNodeExportResolver", value = Registry.class)
-    Registry<SpringELConfigurationResolver> flowNodeExportResolver(){
-        SimpleRegistry<SpringELConfigurationResolver> registry = new SimpleRegistry<>();
+    Registry<DefaultConfigurationResolver> flowNodeExportResolver(){
+        SimpleRegistry<DefaultConfigurationResolver> registry = new SimpleRegistry<>();
 
         return registry;
     }
@@ -64,8 +64,8 @@ public class DataFlowAutoConfiguration {
     @ConditionalOnMissingBean(name = "dataFlowManager")
     DefaultDataFlowManager dataFlowManager(MongoTemplate mongoTemplate,
                                            RedisTemplate<String, String> redisTemplate,
-                                           Registry<SpringELConfigurationResolver> flowNodeConvertResolver,
-                                           Registry<SpringELConfigurationResolver> flowNodeExportResolver){
+                                           Registry<DefaultConfigurationResolver> flowNodeConvertResolver,
+                                           Registry<DefaultConfigurationResolver> flowNodeExportResolver){
         return new DefaultDataFlowManager(mongoTemplate, redisTemplate,
                 flowNodeConvertResolver, flowNodeExportResolver);
     }

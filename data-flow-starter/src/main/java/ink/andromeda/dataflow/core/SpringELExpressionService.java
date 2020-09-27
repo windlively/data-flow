@@ -1,11 +1,8 @@
 package ink.andromeda.dataflow.core;
 
-
+import ink.andromeda.dataflow.datasource.dao.CommonDao;
 import ink.andromeda.dataflow.util.Functions;
 import ink.andromeda.dataflow.util.GeneralTools;
-import ink.andromeda.dataflow.datasource.dao.CommonDao;
-import ink.andromeda.dataflow.datasource.dao.CoreTableDao;
-import ink.andromeda.dataflow.entity.ColumnInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -15,22 +12,20 @@ import org.springframework.expression.spel.SpelCompilerMode;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Objects;
 import java.util.regex.Matcher;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
-public class SpringELExpressionService implements ExpressionService{
-
-    private static final String masterSchemaName = "abakus_core";
+public class SpringELExpressionService implements ExpressionService<String> {
 
     // spring context
     private final ApplicationContext applicationContext;
@@ -40,21 +35,17 @@ public class SpringELExpressionService implements ExpressionService{
 
     private final CommonDao commonDao;
 
-    private final Map<String, List<ColumnInfo>> coreTableSchema = new ConcurrentHashMap<>();
-
-    private final CoreTableDao coreTableDao;
     // EvaluationContext非线程安全, 但是创建代价较为昂贵, 因此为每个线程创建一个
     // 使用时作为方法参数传入, 不能保存在实例属性中, 保证其安全性, 不能共享
     private final ThreadLocal<StandardEvaluationContext> evaluationContext;
 
     public SpringELExpressionService(ApplicationContext applicationContext,
                                      @Qualifier("dataSourceMap") Map<String, DataSource> dataSourceMap,
-                                     CommonDao commonDao, CoreTableDao coreTableDao) {
+                                     CommonDao commonDao) {
 
         this.applicationContext = applicationContext;
         this.dataSourceMap = dataSourceMap;
         this.commonDao = commonDao;
-        this.coreTableDao = coreTableDao;
 
         // Evaluation Context 配置
         this.evaluationContext = ThreadLocal.withInitial(() -> {
@@ -75,15 +66,7 @@ public class SpringELExpressionService implements ExpressionService{
             return evaluationContext;
 
         });
-        coreTableSchema.putAll(coreTableDao.findAllColumns().stream().collect(Collectors.groupingBy(ColumnInfo::getColumnName)));
-    }
 
-    public List<ColumnInfo> getColumnInfo(String tableName){
-        return coreTableSchema.computeIfAbsent(tableName, k -> coreTableDao.findAllColumns(tableName, masterSchemaName));
-    }
-
-    public void refreshColumnInfoCache(){
-        coreTableSchema.putAll(coreTableDao.findAllColumns().stream().collect(Collectors.groupingBy(ColumnInfo::getColumnName)));
     }
 
     private final ThreadLocal<SpelExpressionParser> expressionParser = ThreadLocal.withInitial(() -> {
@@ -123,38 +106,64 @@ public class SpringELExpressionService implements ExpressionService{
 
     }
 
+    @Nullable
     public Object executeExpression(String expression, StandardEvaluationContext evaluationContext, boolean template) {
         try {
             if (template)
                 return expressionParser().parseExpression(expression, parserContext).getValue(evaluationContext);
             return expressionParser().parseExpression(expression).getValue(evaluationContext);
-        }catch (Exception ex){
-            throw new RuntimeException("execute expression [" + expression +"] failed: " + ex.getMessage(), ex);
+        } catch (Exception ex) {
+            throw new RuntimeException("execute expression [" + expression + "] failed: " + ex.getMessage(), ex);
         }
     }
 
+    @Nullable
+    public Object executeExpression(String expression, boolean template) {
+        return executeExpression(expression, evaluationContext(), template);
+    }
+
+    @Nullable
     public <T> T executeExpression(String expression, StandardEvaluationContext evaluationContext, Class<T> clazz, boolean template) {
         try {
             if (template)
                 return expressionParser().parseExpression(expression, parserContext).getValue(evaluationContext, clazz);
             return expressionParser().parseExpression(expression).getValue(evaluationContext, clazz);
-        }catch (Exception ex){
-            throw new RuntimeException("execute expression [" + expression +"] failed: " + ex.getMessage(), ex);
+        } catch (Exception ex) {
+            throw new RuntimeException("execute expression [" + expression + "] failed: " + ex.getMessage(), ex);
         }
     }
 
+    @Nullable
+    public <T> T executeExpression(String expression, Class<T> clazz, boolean template) {
+        return executeExpression(expression, evaluationContext(), clazz, template);
+    }
+
+    @Nullable
     public Object executeExpression(String expression, StandardEvaluationContext evaluationContext) {
         return executeExpression(expression, evaluationContext, false);
     }
 
+    @Nullable
+    public Object executeExpression(String expression) {
+        return executeExpression(expression, evaluationContext(), false);
+    }
+
+    @Nullable
     public <T> T executeExpression(String expression, StandardEvaluationContext evaluationContext, Class<T> clazz) {
         return executeExpression(expression, evaluationContext, clazz, false);
     }
 
+    @Nullable
+    public <T> T executeExpression(String expression, Class<T> clazz) {
+        return executeExpression(expression, evaluationContext(), clazz, false);
+    }
+
+    @Nullable
     public Object executeExpression(String expression, StandardEvaluationContext evaluationContext, Object rootObject) {
         return expressionParser().parseExpression(expression).getValue(evaluationContext, rootObject);
     }
 
+    @Nullable
     public <T> T executeExpression(String expression, StandardEvaluationContext evaluationContext, Object rootObject, Class<T> clazz) {
         return expressionParser().parseExpression(expression).getValue(evaluationContext, rootObject, clazz);
     }
@@ -165,6 +174,7 @@ public class SpringELExpressionService implements ExpressionService{
      * @param dataItem 该数据项配置
      * @return 数据项的值
      */
+    @Nullable
     public Object genEvalContextVal(Map<String, Object> dataItem, StandardEvaluationContext context) {
 
         // 自定义数据, 忽略其他所有配置, 支持任何有返回值的表达式
@@ -183,7 +193,7 @@ public class SpringELExpressionService implements ExpressionService{
         String sql = (String) dataItem.get("sql");
 
         String dataSourceName = (String) dataItem.get("data_source");
-        if(StringUtils.isEmpty(dataSourceName))
+        if (StringUtils.isEmpty(dataSourceName))
             dataSourceName = (String) dataItem.get("db_name");
 
         String tableName = (String) dataItem.get("t_name");
@@ -191,7 +201,7 @@ public class SpringELExpressionService implements ExpressionService{
             sql = String.format("SELECT * FROM %s.%s WHERE %s", dataSourceName, tableName, dataItem.get("where_case"));
         }
 
-        if(StringUtils.isEmpty(dataSourceName)) {
+        if (StringUtils.isEmpty(dataSourceName)) {
             // 获取SQL中所用到的数据库，
             Matcher matcher = GeneralTools.SQL_TABLE_NAME_REGEX.matcher(sql);
             if (matcher.find()) {
@@ -200,11 +210,20 @@ public class SpringELExpressionService implements ExpressionService{
             }
         }
 
-        if(StringUtils.isEmpty(dataSourceName))
+        if (StringUtils.isEmpty(dataSourceName))
             throw new RuntimeException(String.format("sql [%s] data source name could not found!", sql));
         // 解析sql中的变量
         sql = executeExpression(sql, context, String.class, true);
         return commonDao.select(sql, dataSourceName, type);
     }
 
+    @Override
+    public <R> R executeExpression(String expression, @Nullable EnvironmentContext additionalEnv, Class<R> clazz) {
+        Assert.notNull(additionalEnv, "environment context is null");
+        return executeExpression(
+                expression,
+                (StandardEvaluationContext) Objects.requireNonNull(additionalEnv.getVariable("evaluationContext")),
+                clazz);
+
+    }
 }

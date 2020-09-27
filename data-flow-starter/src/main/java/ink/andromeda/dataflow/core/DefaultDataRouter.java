@@ -12,7 +12,7 @@ import java.util.List;
  * 默认的路由策略，根据source, schema, name匹配flow
  */
 @Slf4j
-public class DefaultDataRouter implements DataRouter{
+public class DefaultDataRouter implements DataRouter {
 
     @Setter
     @Getter
@@ -29,10 +29,10 @@ public class DefaultDataRouter implements DataRouter{
                 sourceEntity.getSource(),
                 sourceEntity.getSchema(),
                 sourceEntity.getName());
-        if(flowList.isEmpty()){
+        if (flowList.isEmpty()) {
             log.info("source: {}, schema: {}, name: {} cannot be routed to at least one flow",
                     sourceEntity.getSource(), sourceEntity.getSchema(), sourceEntity.getName());
-        }else {
+        } else {
             log.info("be routed to flow: {}", flowList.stream().map(DataFlow::getName));
         }
         return flowList;
