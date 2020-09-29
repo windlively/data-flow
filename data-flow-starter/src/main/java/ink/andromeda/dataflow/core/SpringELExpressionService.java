@@ -1,6 +1,6 @@
 package ink.andromeda.dataflow.core;
 
-import ink.andromeda.dataflow.datasource.dao.CommonDao;
+import ink.andromeda.dataflow.datasource.dao.CommonJdbcDao;
 import ink.andromeda.dataflow.util.Functions;
 import ink.andromeda.dataflow.util.GeneralTools;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +33,7 @@ public class SpringELExpressionService implements ExpressionService<String> {
     // 项目中的所有数据源
     public final Map<String, DataSource> dataSourceMap;
 
-    private final CommonDao commonDao;
+    private final CommonJdbcDao commonDao;
 
     // EvaluationContext非线程安全, 但是创建代价较为昂贵, 因此为每个线程创建一个
     // 使用时作为方法参数传入, 不能保存在实例属性中, 保证其安全性, 不能共享
@@ -41,7 +41,7 @@ public class SpringELExpressionService implements ExpressionService<String> {
 
     public SpringELExpressionService(ApplicationContext applicationContext,
                                      @Qualifier("dataSourceMap") Map<String, DataSource> dataSourceMap,
-                                     CommonDao commonDao) {
+                                     CommonJdbcDao commonDao) {
 
         this.applicationContext = applicationContext;
         this.dataSourceMap = dataSourceMap;

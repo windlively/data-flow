@@ -1,19 +1,22 @@
 package ink.andromeda.dataflow;
 
 import com.zaxxer.hikari.HikariDataSource;
-import ink.andromeda.dataflow.core.*;
+import ink.andromeda.dataflow.core.DataRouter;
+import ink.andromeda.dataflow.core.DefaultDataRouter;
+import ink.andromeda.dataflow.core.Registry;
+import ink.andromeda.dataflow.core.SimpleRegistry;
 import ink.andromeda.dataflow.core.flow.DataFlowManager;
 import ink.andromeda.dataflow.core.flow.DefaultDataFlowManager;
 import ink.andromeda.dataflow.core.node.resolver.DefaultConfigurationResolver;
 import ink.andromeda.dataflow.datasource.DataSourceConfig;
 import ink.andromeda.dataflow.datasource.DataSourceDetermineAspect;
 import ink.andromeda.dataflow.datasource.DynamicDataSource;
+import ink.andromeda.dataflow.datasource.dao.CommonJdbcDao;
+import ink.andromeda.dataflow.datasource.dao.DefaultCommonJdbcDao;
 import ink.andromeda.dataflow.entity.RefreshCacheMessage;
 import ink.andromeda.dataflow.util.GeneralTools;
 import ink.andromeda.dataflow.util.kafka.DataFlowKafkaListenerErrorHandler;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.ibatis.session.SqlSessionFactory;
-import org.mybatis.spring.SqlSessionFactoryBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -34,7 +37,6 @@ import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 import static ink.andromeda.dataflow.util.GeneralTools.GSON;
@@ -138,16 +140,10 @@ public class DataFlowAutoConfiguration {
         }
     */
 
-
-
         @Bean
-        public SqlSessionFactory sqlSessionFactory() throws Exception {
-            SqlSessionFactoryBean sessionFactoryBean = new SqlSessionFactoryBean();
-            sessionFactoryBean.setDataSource(dataSource());
-            sessionFactoryBean.setTypeAliasesPackage("net.wecash.coresystem.data.entity");
-            Objects.requireNonNull(sessionFactoryBean.getObject()).getConfiguration().setMapUnderscoreToCamelCase(true);
-            return sessionFactoryBean.getObject();
-
+        @ConditionalOnMissingBean
+        public CommonJdbcDao commonDao(DynamicDataSource dynamicDataSource){
+            return new DefaultCommonJdbcDao(dynamicDataSource);
         }
 
         @Bean

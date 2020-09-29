@@ -23,6 +23,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import static org.apache.commons.lang3.ObjectUtils.anyNotNull;
 import static org.apache.commons.lang3.ObjectUtils.isNotEmpty;
 import static org.springframework.util.ReflectionUtils.*;
 
@@ -285,7 +286,7 @@ public class GeneralTools {
     public static String genPrefixedMethodName(String filedName, String prefix) {
         assert filedName != null && prefix != null;
         char ch = filedName.charAt(0);
-        if (ch >= 97)
+        if (Character.isLowerCase(ch))
             ch = (char) (ch - 32);
         return prefix + ch + filedName.substring(1);
     }
@@ -449,6 +450,18 @@ public class GeneralTools {
         return strVal;
     }
 
+    public static void setProperties(@NonNull Map<String, Object> properties, @NonNull Object target, boolean nameMapping){
+        Class<?> clazz = target.getClass();
+        properties.forEach((k, v) -> {
+            String name = k;
+            if(nameMapping){
+                name = upCaseToCamelCase(name, true);
+            }
+            String setterName = genSetterMethodName(name);
+            Method method = Objects.requireNonNull(findMethod(clazz, setterName, (Class<?>) null), "method '" + setterName + "' not exists in type " + clazz.getName());
+            invokeMethod(method, target, conversionService().convert(v, method.getParameterTypes()[0]));
+        });
+    }
 
     public static void checkNotEmpty(String str, String paramName) {
         Assert.isTrue(isNotEmpty(str), paramName + " must be not empty");

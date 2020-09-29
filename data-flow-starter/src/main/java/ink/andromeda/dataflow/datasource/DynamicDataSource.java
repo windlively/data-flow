@@ -123,9 +123,7 @@ public class DynamicDataSource extends AbstractDataSource implements DisposableB
 
     @Override
     public Connection getConnection() throws SQLException {
-        long timeS = System.currentTimeMillis();
-        Connection connection = determineTargetDataSource().getConnection();
-        return  connection;
+        return determineTargetDataSource().getConnection();
     }
 
     @Override

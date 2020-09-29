@@ -6,6 +6,9 @@ import org.springframework.lang.Nullable;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * 默认的配置解析器实现, 强依赖于{@link SpringELExpressionService}表达式解析服务
+ */
 public abstract class DefaultConfigurationResolver implements ConfigurationResolver<Void> {
 
     public DefaultConfigurationResolver(SpringELExpressionService expressionService) {

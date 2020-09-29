@@ -19,8 +19,16 @@ public interface ConfigurationResolver<R> {
      */
     String getName();
 
+    /**
+     * 设置一个解析环境
+     *
+     * @param environmentContext 环境上下文
+     */
     void setEnvironmentContext(EnvironmentContext environmentContext);
 
+    /**
+     * @return 解析器内部的环境上下文
+     */
     @Nullable
     EnvironmentContext getEnvironmentContext();
 
@@ -40,6 +48,12 @@ public interface ConfigurationResolver<R> {
         return "this resolver has no description";
     }
 
+    /**
+     * 执行配置解析
+     *
+     * @return 配置解析结果
+     * @throws Exception 解析发生异常
+     */
     default R resolve() throws Exception {
         return resolve(Objects.requireNonNull(getEnvironmentContext(), "environment context is null"));
     }
