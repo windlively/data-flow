@@ -29,12 +29,10 @@ public class DefaultDataFlowManager extends ConfigurableDataFlowManager {
 
     public DefaultDataFlowManager(MongoTemplate mongoTemplate,
                                   RedisTemplate<String, String> redisTemplate,
-                                  Registry<DefaultConfigurationResolver> convertResolverRegistry,
-                                  Registry<DefaultConfigurationResolver> exportResolverRegistry) {
+                                  Registry<DefaultConfigurationResolver> nodeConfigResolverRegistry) {
         this.mongoTemplate = mongoTemplate;
         this.redisTemplate = redisTemplate;
-        super.convertResolverRegistrySupplier = () -> convertResolverRegistry;
-        super.exportResolverRegistrySupplier = () -> exportResolverRegistry;
+        super.nodeConfigResolverRegistrySupplier = () -> nodeConfigResolverRegistry;
     }
 
     @Override
@@ -145,19 +143,19 @@ public class DefaultDataFlowManager extends ConfigurableDataFlowManager {
         Map<String, Object> flowConfig = getFlowConfig(flowName);
         Assert.notNull(flowConfig, String.format("flow '%s' not exist", flowName));
 
-        Object nodes = flowConfig.get("execution_chain");
+        Object nodes = flowConfig.get("node_list");
         if(nodes == null){
             nodes = new LinkedList<Map<String, Object>>();
         }
 
-        Assert.state(nodes instanceof List, "execution_chain isn't a list type");
+        Assert.state(nodes instanceof List, "node_list isn't a list type");
 
         @SuppressWarnings("unchecked")
         List<Map<String, Object>> executionChainList = (List<Map<String, Object>>) nodes;
 
         executionChainList.add(nodeConfig);
 
-        flowConfig.put("execution_chain", executionChainList);
+        flowConfig.put("node_list", executionChainList);
 
         return updateFlowConfig(flowName, flowConfig);
     }
@@ -166,10 +164,10 @@ public class DefaultDataFlowManager extends ConfigurableDataFlowManager {
     protected int updateNodeConfig(String flowName, String nodeName, Map<String, Object> update) {
         Map<String, Object> flowConfig = getFlowConfig(flowName);
         Assert.notNull(flowConfig, String.format("flow '%s' not exist", flowName));
-        Object nodes = Optional.ofNullable(flowConfig.get("execution_chain"))
+        Object nodes = Optional.ofNullable(flowConfig.get("node_list"))
                 .orElse(Collections.<Map<String, Object>>emptyList());
 
-        Assert.state(nodes instanceof List, "execution_chain isn't a list type");
+        Assert.state(nodes instanceof List, "node_list isn't a list type");
 
         @SuppressWarnings("unchecked")
         Map<String, Object> nodeConfig = ((List<Map<String, Object>>) nodes).stream()
@@ -187,10 +185,10 @@ public class DefaultDataFlowManager extends ConfigurableDataFlowManager {
     protected int deleteNodeConfig(String flowName, String nodeName) {
         Map<String, Object> flowConfig = getFlowConfig(flowName);
         Assert.notNull(flowConfig, String.format("flow '%s' not exist", flowName));
-        Object nodes = Optional.ofNullable(flowConfig.get("execution_chain"))
+        Object nodes = Optional.ofNullable(flowConfig.get("node_list"))
                 .orElse(Collections.<Map<String, Object>>emptyList());
 
-        Assert.state(nodes instanceof List, "execution_chain isn't a list type");
+        Assert.state(nodes instanceof List, "node_list isn't a list type");
 
         //noinspection unchecked
         return ((List<Map<String, Object>>) nodes)

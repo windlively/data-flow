@@ -29,24 +29,16 @@ public abstract class ConfigurableDataFlowManager implements DataFlowManager {
 
     protected final Map<String, DataFlow> flowNameIndexMap = new ConcurrentHashMap<>();
 
-    protected Supplier<Registry<DefaultConfigurationResolver>> convertResolverRegistrySupplier = () -> {
+    protected Supplier<Registry<DefaultConfigurationResolver>> nodeConfigResolverRegistrySupplier = () -> {
       throw new IllegalStateException("convert resolver registry supplier not set");
-    };
-
-    protected Supplier<Registry<DefaultConfigurationResolver>> exportResolverRegistrySupplier = () -> {
-      throw new IllegalStateException("export resolver registry supplier not set");
     };
 
     protected Supplier<SpringELExpressionService> expressionServiceSupplier = () -> {
         throw new IllegalStateException("expression service supplier not set");
     };
 
-    public void setConvertResolverRegistrySupplier(Supplier<Registry<DefaultConfigurationResolver>> convertResolverRegistrySupplier) {
-        this.convertResolverRegistrySupplier = convertResolverRegistrySupplier;
-    }
-
-    public void setExportResolverRegistrySupplier(Supplier<Registry<DefaultConfigurationResolver>> exportResolverRegistrySupplier) {
-        this.exportResolverRegistrySupplier = exportResolverRegistrySupplier;
+    public void setNodeConfigResolverRegistrySupplier(Supplier<Registry<DefaultConfigurationResolver>> nodeConfigResolverRegistrySupplier) {
+        this.nodeConfigResolverRegistrySupplier = nodeConfigResolverRegistrySupplier;
     }
 
     @PostConstruct
@@ -123,12 +115,12 @@ public abstract class ConfigurableDataFlowManager implements DataFlowManager {
         flow.setApplyName((String) flowConfig.get("name"));
 
         //noinspection unchecked
-        Objects.requireNonNull((List<Map<String, Object>>) flowConfig.get("execution_chain"))
+        Objects.requireNonNull((List<Map<String, Object>>) flowConfig.get("node_list"))
                 .forEach(nodeConfig -> {
-                    String nodeName = (String) nodeConfig.get("node_name");
+                    String nodeName = Objects.requireNonNull((String) nodeConfig.get("node_name"),
+                    "node name is null");
                     ConfigurableFlowNode flowNode = new ConfigurableFlowNode(nodeName,
-                            convertResolverRegistrySupplier.get(),
-                            exportResolverRegistrySupplier.get(),
+                            nodeConfigResolverRegistrySupplier.get(),
                             expressionServiceSupplier.get());
                     flowNode.setConfig(nodeConfig);
                     flow.addLast(flowNode);
@@ -281,7 +273,7 @@ public abstract class ConfigurableDataFlowManager implements DataFlowManager {
      */
     protected Map<String, Object> getNodeConfig(String flowName, String nodeName) {
         //noinspection unchecked
-        return Optional.ofNullable((List<Map<String, Object>>) getFlowConfig(flowName).get("execution_chain"))
+        return Optional.ofNullable((List<Map<String, Object>>) getFlowConfig(flowName).get("node_list"))
                 .orElse(Collections.emptyList())
                 .stream()
                 .filter(m -> Objects.equals(m.get("node_name"), nodeName))

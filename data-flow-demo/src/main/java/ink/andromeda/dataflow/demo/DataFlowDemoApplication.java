@@ -1,7 +1,10 @@
-package ink.andromeda.dataflow;
+package ink.andromeda.dataflow.demo;
 
 import com.google.common.collect.Lists;
+import ink.andromeda.dataflow.core.Registry;
+import ink.andromeda.dataflow.core.SpringELExpressionService;
 import ink.andromeda.dataflow.core.flow.DataFlowManager;
+import ink.andromeda.dataflow.core.node.resolver.DefaultConfigurationResolver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -32,7 +35,8 @@ public class DataFlowDemoApplication {
     }
 
     @Bean
-    DataFlowManager dataFlowManager(){
-        return new LocalConfigDataFlowManager();
+    DataFlowManager dataFlowManager(Registry<DefaultConfigurationResolver> nodeConfigResolver,
+                                    SpringELExpressionService springELExpressionService){
+        return new LocalConfigDataFlowManager(nodeConfigResolver, springELExpressionService);
     }
 }

@@ -1,4 +1,4 @@
-package ink.andromeda.dataflow;
+package ink.andromeda.dataflow.demo;
 
 import ink.andromeda.dataflow.core.DataRouter;
 import ink.andromeda.dataflow.core.SourceEntity;

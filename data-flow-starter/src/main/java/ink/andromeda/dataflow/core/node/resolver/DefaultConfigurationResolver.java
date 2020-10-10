@@ -2,7 +2,9 @@ package ink.andromeda.dataflow.core.node.resolver;
 
 import ink.andromeda.dataflow.core.*;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -32,18 +34,22 @@ public abstract class DefaultConfigurationResolver implements ConfigurationResol
         return environmentContext.get();
     }
 
-    public abstract void resolve(SourceEntity sourceEntity, TransferEntity transferEntity, Object config,
+    public abstract void resolve(SourceEntity source, TransferEntity input, TransferEntity target, Object config,
                                  Map<String, Object> rootData) throws Exception;
 
     @Override
     public Void resolve(EnvironmentContext env) throws Exception {
         resolve(
-                Objects.requireNonNull(env.getVariable("sourceEntity"), "source entity is null"),
-                Objects.requireNonNull(env.getVariable("transferEntity"), "transfer entity is null"),
+                Objects.requireNonNull(env.getVariable("source"), "source entity is null"),
+                Objects.requireNonNull(env.getVariable("input"), "input entity is null"),
+                Objects.requireNonNull(env.getVariable("target"), "target entity is null"),
                 Objects.requireNonNull(env.getVariable("config"), "config is null"),
-                Objects.requireNonNull(env.getVariable("root"), "root data is null")
-        );
+                Objects.requireNonNull(env.getVariable("root"), "root data is null"));
         return null;
+    }
+
+    protected <T> void checkConfigType(Object config, Class<T> expectClass, String expectType){
+        Assert.isTrue(expectClass.isInstance(config), getName() + " must be " + expectType + " type");
     }
 
     @Override
@@ -55,5 +61,10 @@ public abstract class DefaultConfigurationResolver implements ConfigurationResol
     @Override
     public int hashCode() {
         return getName().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "DefaultConfigurationResolver(" + getName() + ')';
     }
 }

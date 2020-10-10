@@ -1,7 +1,10 @@
-package ink.andromeda.dataflow;
+package ink.andromeda.dataflow.demo;
 
 import com.google.gson.reflect.TypeToken;
+import ink.andromeda.dataflow.core.Registry;
+import ink.andromeda.dataflow.core.SpringELExpressionService;
 import ink.andromeda.dataflow.core.flow.ConfigurableDataFlowManager;
+import ink.andromeda.dataflow.core.node.resolver.DefaultConfigurationResolver;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -17,6 +20,13 @@ import static ink.andromeda.dataflow.util.GeneralTools.GSON;
 
 @Slf4j
 public class LocalConfigDataFlowManager extends ConfigurableDataFlowManager {
+
+    public LocalConfigDataFlowManager(Registry<DefaultConfigurationResolver> nodeConfigResolverRegistry,
+                                      SpringELExpressionService expressionService){
+        super.nodeConfigResolverRegistrySupplier = () -> nodeConfigResolverRegistry;
+        super.expressionServiceSupplier = () -> expressionService;
+    }
+
     @Override
     protected List<Map<String, Object>> getFlowConfig() {
         try {

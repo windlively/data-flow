@@ -1,13 +1,10 @@
 package ink.andromeda.dataflow;
 
 import com.zaxxer.hikari.HikariDataSource;
-import ink.andromeda.dataflow.core.DataRouter;
-import ink.andromeda.dataflow.core.DefaultDataRouter;
-import ink.andromeda.dataflow.core.Registry;
-import ink.andromeda.dataflow.core.SimpleRegistry;
+import ink.andromeda.dataflow.core.*;
 import ink.andromeda.dataflow.core.flow.DataFlowManager;
 import ink.andromeda.dataflow.core.flow.DefaultDataFlowManager;
-import ink.andromeda.dataflow.core.node.resolver.DefaultConfigurationResolver;
+import ink.andromeda.dataflow.core.node.resolver.*;
 import ink.andromeda.dataflow.datasource.DataSourceConfig;
 import ink.andromeda.dataflow.datasource.DataSourceDetermineAspect;
 import ink.andromeda.dataflow.datasource.DynamicDataSource;
@@ -21,6 +18,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
@@ -46,19 +44,18 @@ import static ink.andromeda.dataflow.util.GeneralTools.GSON;
 @Slf4j
 public class DataFlowAutoConfiguration {
 
-    @ConditionalOnMissingBean(name = "flowNodeConvertResolver", value = Registry.class)
+    @ConditionalOnMissingBean(name = "flowNodeResolver", value = Registry.class)
     @Bean
-    Registry<DefaultConfigurationResolver> flowNodeConvertResolver(){
+    Registry<DefaultConfigurationResolver> flowNodeConvertResolver(SpringELExpressionService expressionService,
+                                                                   CommonJdbcDao commonJdbcDao){
         SimpleRegistry<DefaultConfigurationResolver> registry = new SimpleRegistry<>();
-
-        return registry;
-    }
-
-    @Bean
-    @ConditionalOnMissingBean(name = "flowNodeExportResolver", value = Registry.class)
-    Registry<DefaultConfigurationResolver> flowNodeExportResolver(){
-        SimpleRegistry<DefaultConfigurationResolver> registry = new SimpleRegistry<>();
-
+        registry.addLast(new EvalContextResolver(expressionService, commonJdbcDao));
+        registry.addLast(new FilterResolver(expressionService));
+        registry.addLast(new SimpleConvertResolver(expressionService));
+        registry.addLast(new SimpleCopyFieldsResolver(expressionService));
+        registry.addLast(new ConditionalExpressionResolver(expressionService));
+        registry.addLast(new AdditionalExpressionResolver(expressionService));
+        registry.effect();
         return registry;
     }
 
@@ -66,10 +63,9 @@ public class DataFlowAutoConfiguration {
     @ConditionalOnMissingBean(name = "dataFlowManager")
     DefaultDataFlowManager dataFlowManager(MongoTemplate mongoTemplate,
                                            RedisTemplate<String, String> redisTemplate,
-                                           Registry<DefaultConfigurationResolver> flowNodeConvertResolver,
-                                           Registry<DefaultConfigurationResolver> flowNodeExportResolver){
+                                           Registry<DefaultConfigurationResolver> flowNodeResolver){
         return new DefaultDataFlowManager(mongoTemplate, redisTemplate,
-                flowNodeConvertResolver, flowNodeExportResolver);
+                flowNodeResolver);
     }
 
     @Bean
@@ -92,6 +88,7 @@ public class DataFlowAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean
     DataRouter dataRouter(DataFlowManager dataFlowManager){
         return new DefaultDataRouter(dataFlowManager);
     }
@@ -112,6 +109,10 @@ public class DataFlowAutoConfiguration {
 
         // k: 数据源名称, v: 所包含的数据库名称
         public static final Map<String, String[]> DATASOURCE_SCHEME_NAME_REF = new HashMap<>();
+
+        public MultiDataSourceConfiguration(ApplicationContext applicationContext) {
+            this.applicationContext = applicationContext;
+        }
 
     /*
         改用Apollo配置, 不再读取本地配置文件
@@ -191,7 +192,13 @@ public class DataFlowAutoConfiguration {
             return new DataSourceConfig();
         }
 
+        private final ApplicationContext applicationContext;
 
+        @Bean
+        @ConditionalOnMissingBean(ExpressionService.class)
+        SpringELExpressionService springELExpressionService(){
+            return new SpringELExpressionService(applicationContext, dataSourceMap());
+        }
 
     }
 

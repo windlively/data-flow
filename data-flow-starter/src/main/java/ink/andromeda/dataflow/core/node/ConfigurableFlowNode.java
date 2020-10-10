@@ -2,14 +2,16 @@ package ink.andromeda.dataflow.core.node;
 
 import ink.andromeda.dataflow.core.*;
 import ink.andromeda.dataflow.core.node.resolver.DefaultConfigurationResolver;
+import ink.andromeda.dataflow.util.GeneralTools;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.lang.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+
+import static ink.andromeda.dataflow.util.GeneralTools.copyFields;
 
 /**
  * 配置化的转换器
@@ -17,9 +19,9 @@ import java.util.Map;
 @Slf4j
 public class ConfigurableFlowNode implements FlowNode {
 
-    private final Registry<DefaultConfigurationResolver> convertResolverRegistry;
+    private final Registry<DefaultConfigurationResolver> nodeConfigResolverRegistry;
 
-    private final Registry<DefaultConfigurationResolver> exportResolverRegistry;
+    private final List<DefaultConfigurationResolver> nodeConfigResolveChain = new ArrayList<>();
 
     private final SpringELExpressionService expressionService;
 
@@ -30,31 +32,52 @@ public class ConfigurableFlowNode implements FlowNode {
         return name;
     }
 
-    @Setter
+    private boolean skipIfException;
+
     @Getter
     private Map<String, Object> config;
 
+    public void setConfig(Map<String, Object> config) {
+        this.config = config;
+        skipIfException = (boolean) this.config.getOrDefault("skip_if_exception", false);
+        //noinspection unchecked
+        List<String> resolveOrder = (List<String>) this.config.get("resolve_order");
+        if(resolveOrder != null){
+            nodeConfigResolveChain.sort((o1, o2) -> {
+                int iO1, iO2;
+                return ((iO1 = resolveOrder.indexOf(o1.getName())) == -1 ? Integer.MAX_VALUE : iO1) -
+                        ((iO2 = resolveOrder.indexOf(o2.getName())) == -1 ? Integer.MAX_VALUE : iO2);
+            });
+        }
+        log.info("{}", nodeConfigResolveChain);
+    }
+
     public ConfigurableFlowNode(String name,
-                                Registry<DefaultConfigurationResolver> convertResolverRegistry,
-                                @Nullable Registry<DefaultConfigurationResolver> exportResolverRegistry,
+                                Registry<DefaultConfigurationResolver> nodeConfigResolverRegistry,
                                 SpringELExpressionService expressionService) {
         this.name = name;
-        this.convertResolverRegistry = convertResolverRegistry;
-        this.exportResolverRegistry = exportResolverRegistry;
+        this.nodeConfigResolverRegistry = nodeConfigResolverRegistry;
         this.expressionService = expressionService;
+        nodeConfigResolveChain.addAll(nodeConfigResolverRegistry.get());
+
+
     }
 
     @Override
     @Nullable
-    public TransferEntity convert(SourceEntity sourceEntity, TransferEntity transferEntity) throws Exception {
-        Map<String, Object> root = new HashMap<>(4);
-        StandardEvaluationContext context = expressionService.evaluationContext();
-        context.setRootObject(root);
-        context.setVariable("_src", sourceEntity);
-        // context.setVariable("_tsf", transferEntity);
-        if(transferEntity.getData() != null)
-            transferEntity.getData().forEach(context::setVariable);
-        for (DefaultConfigurationResolver resolver : convertResolverRegistry.get()) {
+    public TransferEntity apply(SourceEntity source, TransferEntity input) throws Exception {
+        TransferEntity target = new TransferEntity();
+        copyFields(input, target);
+        target.setData(new HashMap<>());
+        try {
+
+            Map<String, Object> root = new HashMap<>(4);
+            StandardEvaluationContext context = expressionService.evaluationContext();
+            context.setRootObject(root);
+            context.setVariable("src", source);
+            context.setVariable("in", input);
+            if (input.getData() != null) root.putAll(input.getData());
+            for (DefaultConfigurationResolver resolver : nodeConfigResolveChain) {
             /*
                 EnvironmentContext environmentContext = new EnvironmentContext()
                         .setVariable("sourceEntity", sourceEntity)
@@ -63,21 +86,18 @@ public class ConfigurableFlowNode implements FlowNode {
                         .setVariable("config", config.get(resolver.getName()));
                 resolver.resolve(environmentContext);
              */
-            resolver.resolve(sourceEntity, transferEntity, config.get(resolver.getName()), root);
+                resolver.resolve(source, input, target, config.get(resolver.getName()), root);
+                log.info("resolve '{}' success", resolver.getName());
+            }
+        } catch (Exception ex) {
+            if (skipIfException) {
+                log.warn("skip exception: {}", ex.getMessage(), ex);
+            } else {
+                throw ex;
+            }
         }
-        return transferEntity;
+        log.info("pass node: {}", getName());
+        return target;
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public int export(SourceEntity sourceEntity, TransferEntity transferEntity) throws Exception {
-        int i = 0;
-        if(exportResolverRegistry == null) return i;
-        for (DefaultConfigurationResolver resolver : exportResolverRegistry.get()) {
-            resolver.resolve(sourceEntity, transferEntity, config.get(resolver.getName()),
-                    (Map<String, Object>) expressionService.evaluationContext().getRootObject().getValue());
-            i ++;
-        }
-        return i;
-    }
 }

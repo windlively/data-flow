@@ -1,10 +1,17 @@
 {
-  "_id" : "demo_flow_1",
+  "_id" : "demo_flow_2",
   "source": "demo_source",
   "name": "demo_table",
   "schema" : "demo_schema",
 
   "node_list": [
+    {
+      "node_name": "node2",
+      "simple_convert": {
+        "f3": "78",
+        "f4": "[f2]"
+      }
+    },
     {
       "node_name": "node1",
       "eval_context": [
@@ -19,7 +26,7 @@
         "f1": "[a]",
         "f2": "1233"
       },
-      "simple_copy_fields": true,
+      "simple_copy_fields": false,
       "conditional_expression": [
         {
           "condition": "true",
@@ -42,17 +49,10 @@
       ]
     },
     {
-      "node_name": "node2",
-      "simple_convert": {
-        "f3": "78",
-        "f4": "[f2]"
-      }
-    },
-    {
       "node_name": "node3",
       "simple_convert": {
         "f4": "785",
-        "f5": "[f4]",
+        "f5": "[f3]",
         "f6": "'word'"
       }
     }

@@ -33,19 +33,15 @@ public class SpringELExpressionService implements ExpressionService<String> {
     // 项目中的所有数据源
     public final Map<String, DataSource> dataSourceMap;
 
-    private final CommonJdbcDao commonDao;
-
     // EvaluationContext非线程安全, 但是创建代价较为昂贵, 因此为每个线程创建一个
     // 使用时作为方法参数传入, 不能保存在实例属性中, 保证其安全性, 不能共享
     private final ThreadLocal<StandardEvaluationContext> evaluationContext;
 
     public SpringELExpressionService(ApplicationContext applicationContext,
-                                     @Qualifier("dataSourceMap") Map<String, DataSource> dataSourceMap,
-                                     CommonJdbcDao commonDao) {
+                                     @Qualifier("dataSourceMap") Map<String, DataSource> dataSourceMap) {
 
         this.applicationContext = applicationContext;
         this.dataSourceMap = dataSourceMap;
-        this.commonDao = commonDao;
 
         // Evaluation Context 配置
         this.evaluationContext = ThreadLocal.withInitial(() -> {
@@ -166,55 +162,6 @@ public class SpringELExpressionService implements ExpressionService<String> {
     @Nullable
     public <T> T executeExpression(String expression, StandardEvaluationContext evaluationContext, Object rootObject, Class<T> clazz) {
         return expressionParser().parseExpression(expression).getValue(evaluationContext, rootObject, clazz);
-    }
-
-    /**
-     * 生成数据项
-     *
-     * @param dataItem 该数据项配置
-     * @return 数据项的值
-     */
-    @Nullable
-    public Object genEvalContextVal(Map<String, Object> dataItem, StandardEvaluationContext context) {
-
-        // 自定义数据, 忽略其他所有配置, 支持任何有返回值的表达式
-        String customData = (String) dataItem.get("custom_data");
-        if (StringUtils.isNotEmpty(customData))
-            return executeExpression(customData, context);
-
-        // 调用预先定义的获取数据的服务
-        String service = (String) dataItem.get("service");
-        if (StringUtils.isNotEmpty(service)) {
-            // TODO 其他数据服务
-        }
-
-        // SQL方式查询数据
-        String type = (String) dataItem.get("type");
-        String sql = (String) dataItem.get("sql");
-
-        String dataSourceName = (String) dataItem.get("data_source");
-        if (StringUtils.isEmpty(dataSourceName))
-            dataSourceName = (String) dataItem.get("db_name");
-
-        String tableName = (String) dataItem.get("t_name");
-        if (sql == null) {
-            sql = String.format("SELECT * FROM %s.%s WHERE %s", dataSourceName, tableName, dataItem.get("where_case"));
-        }
-
-        if (StringUtils.isEmpty(dataSourceName)) {
-            // 获取SQL中所用到的数据库，
-            Matcher matcher = GeneralTools.SQL_TABLE_NAME_REGEX.matcher(sql);
-            if (matcher.find()) {
-                String tName = matcher.group();
-                dataSourceName = tName.trim().split("\\.")[0].trim();
-            }
-        }
-
-        if (StringUtils.isEmpty(dataSourceName))
-            throw new RuntimeException(String.format("sql [%s] data source name could not found!", sql));
-        // 解析sql中的变量
-        sql = executeExpression(sql, context, String.class, true);
-        return commonDao.select(sql, dataSourceName, type);
     }
 
     @Override

@@ -55,13 +55,16 @@ public interface DataFlow extends Registry<FlowNode> {
                 .source(sourceEntity.getSource())
                 .schema(sourceEntity.getSchema())
                 .opType(sourceEntity.getOpType())
+                .name(sourceEntity.getName())
                 .data(sourceEntity.getData())
                 .build();
-        for (FlowNode flowNode : getNodes()) {
-            transferEntity = flowNode.convert(sourceEntity, transferEntity);
-            flowNode.export(sourceEntity, transferEntity);
-        }
-        return transferEntity;
+        return getNodes().stream().reduce(FlowNode::then).map(n -> {
+            try {
+                return n.apply(sourceEntity, transferEntity);
+            } catch (Exception e) {
+                throw new IllegalStateException(e);
+            }
+        }).orElse(transferEntity);
     }
 
 }

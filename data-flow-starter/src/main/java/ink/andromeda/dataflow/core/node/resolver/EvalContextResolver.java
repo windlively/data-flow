@@ -3,10 +3,8 @@ package ink.andromeda.dataflow.core.node.resolver;
 import ink.andromeda.dataflow.core.SourceEntity;
 import ink.andromeda.dataflow.core.SpringELExpressionService;
 import ink.andromeda.dataflow.core.TransferEntity;
-import ink.andromeda.dataflow.datasource.DynamicDataSource;
 import ink.andromeda.dataflow.datasource.dao.CommonJdbcDao;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.util.Assert;
 
 import java.util.List;
 import java.util.Map;
@@ -18,15 +16,11 @@ import java.util.Objects;
  */
 public class EvalContextResolver extends DefaultConfigurationResolver {
 
-    private final DynamicDataSource dataSource;
-
     private final CommonJdbcDao commonDao;
 
     public EvalContextResolver(SpringELExpressionService expressionService,
-                               DynamicDataSource dataSource,
                                CommonJdbcDao commonDao) {
         super(expressionService);
-        this.dataSource = dataSource;
         this.commonDao = commonDao;
     }
 
@@ -36,26 +30,33 @@ public class EvalContextResolver extends DefaultConfigurationResolver {
     }
 
     @Override
-    public void resolve(SourceEntity sourceEntity, TransferEntity transferEntity, Object config, Map<String, Object> rootData) throws Exception {
-        if(config == null) return;
-        Assert.isTrue(config instanceof List, "eval_context must be list type");
+    public void resolve(SourceEntity source, TransferEntity input, TransferEntity target, Object config, Map<String, Object> rootData) throws Exception {
+        if (config == null) return;
+        checkConfigType(config, List.class, "List<Map<String, String>>");
 
         //noinspection unchecked
-        ((List<Map<String, Object>>) (config)).forEach(dataItem -> {
-            String name = (String) dataItem.get("name");
+        for (Map<String, Object> dataItem : ((List<Map<String, Object>>) (config))) {
+            String name = (String) Objects.requireNonNull(dataItem.get("name"), "must assign a name for eval_context item");
             Object value;
             String exp = (String) dataItem.get("expression");
             String sql = (String) dataItem.get("sql");
-            if(StringUtils.isNotBlank(exp)){
+            String condition = (String) dataItem.get("on_condition");
+            if (StringUtils.isNotBlank(condition)
+                    && !Objects.requireNonNull(
+                    expressionService.executeExpression(condition, expressionService.evaluationContext(), boolean.class))
+            ) {
+                continue;
+            }
+            if (StringUtils.isNotBlank(exp)) {
                 value = expressionService.executeExpression(exp);
-            }else if(StringUtils.isNotBlank(sql)){
+            } else if (StringUtils.isNotBlank(sql)) {
                 String type = (String) Objects.requireNonNull(dataItem.get("type"), "result type is required with sql");
                 String dataSourceName = (String) dataItem.get("data_source");
                 value = commonDao.select(sql, dataSourceName, type);
             } else {
-                throw new IllegalArgumentException("");
+                throw new IllegalArgumentException("the eval_context item must has expression or sql config");
             }
             rootData.put(name, value);
-        });
+        }
     }
 }

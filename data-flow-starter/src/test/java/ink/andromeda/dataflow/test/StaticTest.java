@@ -4,15 +4,23 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.reflect.TypeToken;
+import ink.andromeda.dataflow.DataFlowAutoConfiguration;
+import ink.andromeda.dataflow.core.ExpressionService;
+import ink.andromeda.dataflow.core.SpringELExpressionService;
 import ink.andromeda.dataflow.util.JSONValidator;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +28,7 @@ import static ink.andromeda.dataflow.util.GeneralTools.GSON;
 import static ink.andromeda.dataflow.util.GeneralTools.toJSONString;
 
 @SpringBootTest
+
 @Slf4j
 public class StaticTest {
 
@@ -109,6 +118,8 @@ public class StaticTest {
         log.info(toJSONString(errorInfo));
 
     }
+
+
 
 
 }
