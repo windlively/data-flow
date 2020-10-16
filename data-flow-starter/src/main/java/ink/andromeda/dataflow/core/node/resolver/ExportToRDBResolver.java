@@ -48,7 +48,7 @@ public class ExportToRDBResolver extends DefaultConfigurationResolver {
         String targetSchema = (String) ((Map<String, Object>) config).get("target_schema");
         String targetTable = (String) ((Map<String, Object>) config).get("target_table");
 
-        Map<String, Object> data = input.getData();
+        Map<String, Object> data = target.getData();
         String dataExpression;
         if ((dataExpression = (String) ((Map<?, ?>) config).get("data")) != null) {
             data = Objects.requireNonNull(expressionService.executeExpression(dataExpression, Map.class));

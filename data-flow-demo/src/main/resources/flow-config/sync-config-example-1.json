@@ -16,7 +16,7 @@
         }
       ],
       "simple_convert": {
-        "f1": "[a]",
+        "f1": "[id]",
         "f2": "1233"
       },
       "simple_copy_fields": true,
@@ -44,16 +44,36 @@
     {
       "node_name": "node2",
       "simple_convert": {
-        "f3": "78",
-        "f4": "[f2]"
+        "f3": "'时间简史'",
+        "f4": "[f1]"
       }
     },
     {
       "node_name": "node3",
       "simple_convert": {
-        "f4": "785",
-        "f5": "[f4]",
-        "f6": "'word'"
+        "bookId": "[f4]",
+        "bookName": "[f3]",
+        "bookAuthor": "'佚名'",
+        "bookPrice": "T(Math).random() * 10 + 20",
+        "bookInfo": "'aaa'"
+      },
+      "export_to_rdb": {
+        "method": "upsert",
+        "target_schema": "test",
+        "target_table": "book",
+        "find_original": {
+          "match_fields": [
+            "bookId"
+          ]
+        },
+        "update": {
+          "match_fields": [
+            "bookId"
+          ]
+        },
+        "insert": {
+          "sql": "insert into test.book values(DEFAULT, '${#res.data[bookName]}', '${#res.data[bookAuthor]}',${#res.data[bookPrice] * 10}, '${#res.data[bookInfo]+'01'}' )"
+        }
       }
     }
   ]

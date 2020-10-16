@@ -77,6 +77,7 @@ public class ConfigurableFlowNode implements FlowNode {
             context.setRootObject(root);
             context.setVariable("src", source);
             context.setVariable("in", input);
+            context.setVariable("res", target);
             if (input.getData() != null) root.putAll(input.getData());
             for (DefaultConfigurationResolver resolver : nodeConfigResolveChain) {
             /*

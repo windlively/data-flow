@@ -84,7 +84,9 @@
             "simple_copy_fields",
             "simple_convert",
             "conditional_expression",
-            "additional_expression"
+            "additional_expression",
+            "export_to_rdb",
+            "export_to_mq"
           ]
         }
       },

@@ -59,7 +59,7 @@ public class SQLGenerator {
         Assert.isTrue(!CollectionUtils.isEmpty(matchFields), "match fields is null");
         customFields = customFields == null ? Collections.emptyMap() : customFields;
         data.putAll(customFields);
-        StringBuilder SQL = new StringBuilder("UPDATE TABLE ").append(schema).append('.').append(table)
+        StringBuilder SQL = new StringBuilder("UPDATE ").append(schema).append('.').append(table)
                 .append(" SET ");
         List<String> setItem = new ArrayList<>(data.size());
         for (Map.Entry<String, Object> e : data.entrySet()) {
@@ -69,7 +69,7 @@ public class SQLGenerator {
             if (value == null) continue;
             setItem.add(field + "=" + (customValue == null ? javaValToSqlVal(value) : value));
         }
-        SQL.append("(").append(String.join(",", setItem)).append(")");
+        SQL.append(String.join(",", setItem));
         SQL.append(" WHERE ");
         SQL.append(genWhereCondition(matchFields, data));
         return SQL.toString();
