@@ -29,7 +29,8 @@ public class DefaultCommonJdbcDao implements CommonJdbcDao {
 
     @Override
     public void setDataSource(Object dataSource) {
-
+        Assert.isTrue(dataSource instanceof String, "please provide data source name");
+        dynamicDataSource.changeLookupKey((String) dataSource);
     }
 
     @Override

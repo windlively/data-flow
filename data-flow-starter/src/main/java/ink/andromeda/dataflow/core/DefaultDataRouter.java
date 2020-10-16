@@ -11,7 +11,6 @@ import org.slf4j.MDC;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -64,7 +63,9 @@ public class DefaultDataRouter implements DataRouter {
             executorService.submit(() -> {
                 try {
                     transferEntities.add(flow.inflow(sourceEntity.clone()));
-                } catch (Exception e) {
+                }catch (FilteredException e){
+                    log.info(e.getMessage());
+                }catch (Exception e) {
                     log.error(e.getMessage(), e);
                 }finally {
                     countDownLatch.countDown();

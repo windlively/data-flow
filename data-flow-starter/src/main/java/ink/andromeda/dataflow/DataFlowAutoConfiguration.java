@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import ink.andromeda.dataflow.core.*;
 import ink.andromeda.dataflow.core.flow.DataFlowManager;
 import ink.andromeda.dataflow.core.flow.DefaultDataFlowManager;
+import ink.andromeda.dataflow.core.mq.*;
 import ink.andromeda.dataflow.core.node.resolver.*;
 import ink.andromeda.dataflow.datasource.DataSourceConfig;
 import ink.andromeda.dataflow.datasource.DataSourceDetermineAspect;
@@ -12,12 +13,13 @@ import ink.andromeda.dataflow.datasource.dao.CommonJdbcDao;
 import ink.andromeda.dataflow.datasource.dao.DefaultCommonJdbcDao;
 import ink.andromeda.dataflow.entity.RefreshCacheMessage;
 import ink.andromeda.dataflow.util.GeneralTools;
-import ink.andromeda.dataflow.util.kafka.DataFlowKafkaListenerErrorHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.rocketmq.client.exception.MQClientException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,26 +30,35 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.kafka.listener.KafkaListenerErrorHandler;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static ink.andromeda.dataflow.util.GeneralTools.GSON;
+import static ink.andromeda.dataflow.util.GeneralTools.calcSum;
 
 @Configuration
 @ConditionalOnProperty(name = "data-flow.enable", havingValue = "true", matchIfMissing = true)
+@EnableConfigurationProperties(DataFlowProperties.class)
 @Slf4j
 public class DataFlowAutoConfiguration {
+
+    private final DataFlowProperties dataFlowProperties;
+
+    public DataFlowAutoConfiguration(DataFlowProperties dataFlowProperties) {
+        this.dataFlowProperties = dataFlowProperties;
+    }
 
     @ConditionalOnMissingBean(name = "flowNodeResolver", value = Registry.class)
     @Bean
     Registry<DefaultConfigurationResolver> flowNodeConvertResolver(SpringELExpressionService expressionService,
-                                                                   CommonJdbcDao commonJdbcDao){
+                                                                   CommonJdbcDao commonJdbcDao,
+                                                                   MessageQueueContainer messageQueueContainer
+    ) {
         SimpleRegistry<DefaultConfigurationResolver> registry = new SimpleRegistry<>();
         registry.addLast(new EvalContextResolver(expressionService, commonJdbcDao));
         registry.addLast(new FilterResolver(expressionService));
@@ -55,6 +66,8 @@ public class DataFlowAutoConfiguration {
         registry.addLast(new SimpleCopyFieldsResolver(expressionService));
         registry.addLast(new ConditionalExpressionResolver(expressionService));
         registry.addLast(new AdditionalExpressionResolver(expressionService));
+        registry.addLast(new ExportToRDBResolver(expressionService, commonJdbcDao));
+        registry.addLast(new ExportToKafkaResolver(expressionService, messageQueueContainer));
         registry.effect();
         return registry;
     }
@@ -63,7 +76,7 @@ public class DataFlowAutoConfiguration {
     @ConditionalOnMissingBean(name = "dataFlowManager")
     DefaultDataFlowManager dataFlowManager(MongoTemplate mongoTemplate,
                                            RedisTemplate<String, String> redisTemplate,
-                                           Registry<DefaultConfigurationResolver> flowNodeResolver){
+                                           Registry<DefaultConfigurationResolver> flowNodeResolver) {
         return new DefaultDataFlowManager(mongoTemplate, redisTemplate,
                 flowNodeResolver);
     }
@@ -71,32 +84,69 @@ public class DataFlowAutoConfiguration {
     @Bean
     @ConditionalOnBean(DefaultDataFlowManager.class)
     RedisMessageListenerContainer redisMessageListenerContainer(RedisConnectionFactory connectionFactory,
-                                                                DataFlowManager dataFlowManager){
+                                                                DataFlowManager dataFlowManager) {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
         container.addMessageListener((message, pattern) -> {
             String body = new String(message.getBody());
             log.info("receive redis message, topic: {}, body: {}", new String(message.getChannel()), body);
             RefreshCacheMessage refreshCacheMessage = GSON().fromJson(body, RefreshCacheMessage.class);
-            switch (refreshCacheMessage.getCacheType()){
+            switch (refreshCacheMessage.getCacheType()) {
                 case "flow-config":
-                    ((DefaultDataFlowManager)dataFlowManager).reload(true);
+                    ((DefaultDataFlowManager) dataFlowManager).reload(true);
             }
         }, new ChannelTopic("refresh-cache"));
         return container;
-
     }
 
     @Bean
     @ConditionalOnMissingBean
-    DataRouter dataRouter(DataFlowManager dataFlowManager){
+    MessageQueueContainer messageQueueContainer() {
+        MessageQueueContainer container = new SimpleMessageQueueContainer();
+        Optional.ofNullable(dataFlowProperties.getMqInstances()).ifPresent(mqInstanceConfigs -> {
+            Stream.of(mqInstanceConfigs).map(c -> {
+                try {
+
+                    String type = c.getType() == null ?
+                            dataFlowProperties.getDefaultMqType() : c.getType();
+                    String name = Objects.requireNonNull(c.getName(), "must assign a name for mq instance");
+                    switch (type) {
+                        case "kafka":
+                            return new KafkaInstance(
+                                    c.getProperties().entrySet().stream().collect(
+                                            Properties::new,
+                                            (p, e1) -> p.put(((String) e1.getKey()).replace('-', '.'), e1.getValue()),
+                                            Hashtable::putAll
+                                    ),
+                                    name
+                            );
+                        case "rocket":
+                            Properties properties = c.getProperties();
+                            return new RocketInstance(
+                                    name,
+                                    properties.getProperty("group-id"),
+                                    properties.getProperty("name-serv")
+                            );
+                        default:
+                            throw new IllegalArgumentException("unknown mq type: " + type);
+                    }
+                } catch (Exception ex) {
+                    throw new IllegalStateException(String.format(
+                            "exception on create rocket instance: %s, %s",
+                            c.getName(), ex.getMessage()));
+
+                }
+
+            }).forEach(container::add);
+        });
+
+        return container;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    DataRouter dataRouter(DataFlowManager dataFlowManager) {
         return new DefaultDataRouter(dataFlowManager);
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    KafkaListenerErrorHandler kafkaListenerErrorHandler(){
-        return new DataFlowKafkaListenerErrorHandler();
     }
 
     /**
@@ -143,14 +193,14 @@ public class DataFlowAutoConfiguration {
 
         @Bean
         @ConditionalOnMissingBean
-        public CommonJdbcDao commonDao(DynamicDataSource dynamicDataSource){
+        public CommonJdbcDao commonDao(DynamicDataSource dynamicDataSource) {
             return new DefaultCommonJdbcDao(dynamicDataSource);
         }
 
         @Bean
-        public DynamicDataSource dataSource(){
+        public DynamicDataSource dataSource() {
             Map<String, DataSource> dataSourceMap = new HashMap<>();
-            Stream.of(datasourceConfig().getHikari()).forEach(config->{
+            Stream.of(datasourceConfig().getHikari()).forEach(config -> {
                 HikariDataSource dataSource = new HikariDataSource(config);
                 String name = config.getPoolName();
                 dataSource.setMaximumPoolSize(100);
@@ -167,13 +217,13 @@ public class DataFlowAutoConfiguration {
         }
 
         @Bean
-        public DataSourceDetermineAspect dataSourceDetermineAspect(){
+        public DataSourceDetermineAspect dataSourceDetermineAspect() {
             return new DataSourceDetermineAspect(dataSource());
         }
 
         @Bean
         @DependsOn("dataSource")
-        public Map<String, DataSource> dataSourceMap(){
+        public Map<String, DataSource> dataSourceMap() {
             Map<String, DataSource> dataSourceMap = new HashMap<>();
             dataSource().getIncludedDataSource().forEach((name, source) -> dataSourceMap.put((String) name, source));
             DATASOURCE_SCHEME_NAME_REF.forEach((dataSourceName, dbNames) -> Stream.of(dbNames).forEach(dbName -> dataSourceMap.put(dbName, dataSourceMap.get(dataSourceName))));
@@ -182,13 +232,13 @@ public class DataFlowAutoConfiguration {
         }
 
         @Bean
-        public PlatformTransactionManager transactionManager(){
+        public PlatformTransactionManager transactionManager() {
             return new DataSourceTransactionManager(dataSource());
         }
 
         @Bean
-        @ConfigurationProperties("datasource")
-        public DataSourceConfig datasourceConfig(){
+        @ConfigurationProperties("multi-data-source.data-source")
+        public DataSourceConfig datasourceConfig() {
             return new DataSourceConfig();
         }
 
@@ -196,7 +246,7 @@ public class DataFlowAutoConfiguration {
 
         @Bean
         @ConditionalOnMissingBean(ExpressionService.class)
-        SpringELExpressionService springELExpressionService(){
+        SpringELExpressionService springELExpressionService() {
             return new SpringELExpressionService(applicationContext, dataSourceMap());
         }
 

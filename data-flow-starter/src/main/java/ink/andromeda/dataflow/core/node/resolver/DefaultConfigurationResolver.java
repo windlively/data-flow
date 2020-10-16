@@ -34,7 +34,7 @@ public abstract class DefaultConfigurationResolver implements ConfigurationResol
         return environmentContext.get();
     }
 
-    public abstract void resolve(SourceEntity source, TransferEntity input, TransferEntity target, Object config,
+    public abstract void resolve(SourceEntity source, TransferEntity input, TransferEntity target, @Nullable Object config,
                                  Map<String, Object> rootData) throws Exception;
 
     @Override

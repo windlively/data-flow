@@ -19,6 +19,7 @@ public class SimpleConvertResolver extends DefaultConfigurationResolver{
 
     @Override
     public void resolve(SourceEntity source, TransferEntity input, TransferEntity target, Object config, Map<String, Object> rootData) throws Exception {
+        if(config == null) return;
         checkConfigType(config, Map.class, "Map<String, String>");
         //noinspection unchecked
         ((Map<String, String>) config).forEach((field, exp) -> {

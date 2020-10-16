@@ -54,5 +54,16 @@ spring:
       value-deserializer: ink.andromeda.dataflow.util.kafka.serialize.OGGMessageDeserializer
 data-flow:
   enable: true
-multi-data-source:
-  enable: true
+  mq-instances:
+    - name: to_kafka
+      type: kafka
+      properties:
+        bootstrap-servers: ubuntu:9092
+        group-id: data-flow
+        key-serializer: org.apache.kafka.common.serialization.StringSerializer
+        value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    - name: to_rocket
+      type: rocket
+      properties:
+        name-serv: localhost:8088
+        group-id: test

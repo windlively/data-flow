@@ -6,6 +6,7 @@ import ink.andromeda.dataflow.util.GeneralTools;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.lang.Nullable;
 
@@ -42,7 +43,7 @@ public class ConfigurableFlowNode implements FlowNode {
         skipIfException = (boolean) this.config.getOrDefault("skip_if_exception", false);
         //noinspection unchecked
         List<String> resolveOrder = (List<String>) this.config.get("resolve_order");
-        if(resolveOrder != null){
+        if (resolveOrder != null) {
             nodeConfigResolveChain.sort((o1, o2) -> {
                 int iO1, iO2;
                 return ((iO1 = resolveOrder.indexOf(o1.getName())) == -1 ? Integer.MAX_VALUE : iO1) -
@@ -92,6 +93,7 @@ public class ConfigurableFlowNode implements FlowNode {
         } catch (Exception ex) {
             if (skipIfException) {
                 log.warn("skip exception: {}", ex.getMessage(), ex);
+                target.setData(input.getData());
             } else {
                 throw ex;
             }

@@ -10,6 +10,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.kafka.listener.KafkaListenerErrorHandler;
+import org.springframework.kafka.listener.ListenerExecutionFailedException;
+import org.springframework.messaging.Message;
 
 import java.util.Properties;
 
@@ -38,5 +41,13 @@ public class DataFlowDemoApplication {
     DataFlowManager dataFlowManager(Registry<DefaultConfigurationResolver> nodeConfigResolver,
                                     SpringELExpressionService springELExpressionService){
         return new LocalConfigDataFlowManager(nodeConfigResolver, springELExpressionService);
+    }
+
+    @Bean
+    KafkaListenerErrorHandler kafkaListenerErrorHandler(){
+        return (message, exception) -> {
+            log.error("exception in listen kafka message: {}, body: {}", exception.getMessage(), message.getPayload(), exception);
+            return null;
+        };
     }
 }
