@@ -1,0 +1,95 @@
+multi-data-source:
+  enable: true
+  data-source:
+    hikari:
+      - pool-name: master
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://localhost:3306/
+        password: 58603924715
+        username: root
+        connection-test-query: SELECT 1
+        validation-timeout: 18800
+spring:
+  data:
+    mongodb:
+      uri:  mongodb://data-flow:data-flow@127.0.0.1:27017/data-flow
+  redis:
+    port: 6380
+    password: 58603924715
+    lettuce:
+      pool:
+        max-idle: 8
+        min-idle: 1
+        max-active: 10
+    host: 127.0.0.1
+data-flow:
+  server:
+    enable-kafka: true
+    listen-table-config:
+      - schema: .*
+        tables:
+          - .*
+      - schema: capital
+        tables:
+          - zfpt_capital_order
+          - zfpt_capital_repayment_plan
+      - schema: auto_core_sys
+        tables:
+          - auto_core_order
+      - schema: zion
+        tables:
+          - credit_repay_serial
+          - loan_invoice_info
+          - repay_plan
+          - repay_reduce_record
+      - schema: mobile_card
+        tables:
+          - mcc_business_pay
+          - mcc_consume_repayment
+          - mcc_consume_supply
+          - mcc_customer_consume
+          - mcc_virtual_order_transaction
+      - schema: o2o
+        tables:
+          - appreciation_service
+          - orderdetail
+          - order
+          - pl_order
+          - loan_result
+          - order_type_rule
+          - pl_repayment_plan_capital
+          - pl_repayment_plan_user
+    kafka:
+      consumer:
+        properties:
+          bootstrap-servers: localhost:9092
+          group-id: local
+          enable-auto-commit: false
+          auto-commit-interval-ms: 1000
+          session-timeout-ms: 15000
+          ##  auto-offset-reset: earliest
+          max-poll-records: 1
+          key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+          value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
+      container:
+        topics:
+          - example
+        ack-mode: MANUAL
+    enable-http-invoke: true
+  mq-instances:
+    - name: example_sink
+      type: kafka
+      properties:
+        bootstrap-servers: localhost:9092
+        group-id: data-flow
+        key-serializer: org.apache.kafka.common.serialization.StringSerializer
+        value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    - name: to_rocket
+      type: rocket
+      properties:
+        name-serv: localhost:8088
+        group-id: test
+server:
+  servlet:
+    context-path: /data-flow
+  port: 10022

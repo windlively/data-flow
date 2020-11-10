@@ -11,10 +11,9 @@ import ink.andromeda.dataflow.datasource.DataSourceDetermineAspect;
 import ink.andromeda.dataflow.datasource.DynamicDataSource;
 import ink.andromeda.dataflow.datasource.dao.CommonJdbcDao;
 import ink.andromeda.dataflow.datasource.dao.DefaultCommonJdbcDao;
-import ink.andromeda.dataflow.entity.RefreshCacheMessage;
+import ink.andromeda.dataflow.server.entity.RefreshCacheMessage;
 import ink.andromeda.dataflow.util.GeneralTools;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.rocketmq.client.exception.MQClientException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -31,15 +30,14 @@ import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.util.Assert;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static ink.andromeda.dataflow.util.GeneralTools.GSON;
-import static ink.andromeda.dataflow.util.GeneralTools.calcSum;
 
 @Configuration
 @ConditionalOnProperty(name = "data-flow.enable", havingValue = "true", matchIfMissing = true)
@@ -48,9 +46,12 @@ import static ink.andromeda.dataflow.util.GeneralTools.calcSum;
 public class DataFlowAutoConfiguration {
 
     private final DataFlowProperties dataFlowProperties;
+    private final ApplicationContext applicationContext;
 
-    public DataFlowAutoConfiguration(DataFlowProperties dataFlowProperties) {
+    public DataFlowAutoConfiguration(DataFlowProperties dataFlowProperties,
+                                     ApplicationContext applicationContext) {
         this.dataFlowProperties = dataFlowProperties;
+        this.applicationContext = applicationContext;
     }
 
     @ConditionalOnMissingBean(name = "flowNodeResolver", value = Registry.class)
@@ -67,7 +68,7 @@ public class DataFlowAutoConfiguration {
         registry.addLast(new ConditionalExpressionResolver(expressionService));
         registry.addLast(new AdditionalExpressionResolver(expressionService));
         registry.addLast(new ExportToRDBResolver(expressionService, commonJdbcDao));
-        registry.addLast(new ExportToKafkaResolver(expressionService, messageQueueContainer));
+        registry.addLast(new ExportToMQResolver(expressionService, messageQueueContainer));
         registry.effect();
         return registry;
     }
@@ -76,9 +77,9 @@ public class DataFlowAutoConfiguration {
     @ConditionalOnMissingBean(name = "dataFlowManager")
     DefaultDataFlowManager dataFlowManager(MongoTemplate mongoTemplate,
                                            RedisTemplate<String, String> redisTemplate,
-                                           Registry<DefaultConfigurationResolver> flowNodeResolver) {
-        return new DefaultDataFlowManager(mongoTemplate, redisTemplate,
-                flowNodeResolver);
+                                           Registry<DefaultConfigurationResolver> flowNodeResolver,
+                                           SpringELExpressionService expressionService) {
+        return new DefaultDataFlowManager(mongoTemplate, redisTemplate, flowNodeResolver, expressionService);
     }
 
     @Bean
@@ -200,7 +201,9 @@ public class DataFlowAutoConfiguration {
         @Bean
         public DynamicDataSource dataSource() {
             Map<String, DataSource> dataSourceMap = new HashMap<>();
-            Stream.of(datasourceConfig().getHikari()).forEach(config -> {
+            Assert.notNull(dataSourceConfig(), "multi data source config is null");
+            Assert.notNull(dataSourceConfig().getHikari(), "multi data source config is null");
+            Stream.of(dataSourceConfig().getHikari()).forEach(config -> {
                 HikariDataSource dataSource = new HikariDataSource(config);
                 String name = config.getPoolName();
                 dataSource.setMaximumPoolSize(100);
@@ -238,7 +241,7 @@ public class DataFlowAutoConfiguration {
 
         @Bean
         @ConfigurationProperties("multi-data-source.data-source")
-        public DataSourceConfig datasourceConfig() {
+        public DataSourceConfig dataSourceConfig() {
             return new DataSourceConfig();
         }
 
@@ -250,6 +253,20 @@ public class DataFlowAutoConfiguration {
             return new SpringELExpressionService(applicationContext, dataSourceMap());
         }
 
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(ExpressionService.class)
+    @ConditionalOnProperty(name = "multi-data-source.enable", havingValue = "false")
+    SpringELExpressionService springELExpressionService() {
+        return new SpringELExpressionService(applicationContext, new HashMap<>());
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(name = "multi-data-source.enable", havingValue = "false")
+    CommonJdbcDao commonJdbcDao(){
+        return new DefaultCommonJdbcDao(new DynamicDataSource());
     }
 
 }

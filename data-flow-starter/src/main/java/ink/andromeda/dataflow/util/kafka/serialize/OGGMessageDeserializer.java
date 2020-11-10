@@ -1,6 +1,6 @@
 package ink.andromeda.dataflow.util.kafka.serialize;
 
-import ink.andromeda.dataflow.entity.OGGMessage;
+import ink.andromeda.dataflow.server.entity.OGGMessage;
 import ink.andromeda.dataflow.util.converter.JSONStringToOGGMessageConverter;
 import org.apache.kafka.common.serialization.Deserializer;
 

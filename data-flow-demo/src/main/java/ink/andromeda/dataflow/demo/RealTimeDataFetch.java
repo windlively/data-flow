@@ -3,7 +3,7 @@ package ink.andromeda.dataflow.demo;
 import ink.andromeda.dataflow.core.DataRouter;
 import ink.andromeda.dataflow.core.SourceEntity;
 import ink.andromeda.dataflow.core.TransferEntity;
-import ink.andromeda.dataflow.entity.OGGMessage;
+import ink.andromeda.dataflow.server.entity.OGGMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.MDC;

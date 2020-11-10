@@ -13,6 +13,8 @@ import java.util.Map;
 @Builder
 public class TransferEntity {
 
+    private String key;
+
     private String source;
 
     private String schema;

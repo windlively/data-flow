@@ -15,6 +15,7 @@ import org.springframework.lang.Nullable;
 import javax.annotation.PostConstruct;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.cert.CollectionCertStoreParameters;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
@@ -83,6 +84,12 @@ public abstract class ConfigurableDataFlowManager implements DataFlowManager {
             DataFlow flow = readFlowFromConfig(m);
             refreshIndexMap(flow);
         });
+
+        log.info("load {} flow: {}", flowNameIndexMap.size(),
+                flowNameIndexMap.values()
+                        .stream()
+                        .map(DataFlow::getName)
+                        .collect(Collectors.toList()));
     }
 
     @Override

@@ -89,7 +89,7 @@ public class ConfigurableFlowNode implements FlowNode {
                 resolver.resolve(environmentContext);
              */
                 resolver.resolve(source, input, target, config.get(resolver.getName()), root);
-                log.info("resolve '{}' success", resolver.getName());
+                log.debug("resolve '{}' success", resolver.getName());
             }
         } catch (Exception ex) {
             if (skipIfException) {

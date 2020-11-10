@@ -3,7 +3,7 @@ package ink.andromeda.dataflow.util.converter;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import ink.andromeda.dataflow.entity.OGGMessage;
+import ink.andromeda.dataflow.server.entity.OGGMessage;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.lang.NonNull;
 

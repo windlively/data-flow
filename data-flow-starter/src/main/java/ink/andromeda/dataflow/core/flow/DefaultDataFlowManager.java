@@ -1,6 +1,7 @@
 package ink.andromeda.dataflow.core.flow;
 
 import ink.andromeda.dataflow.core.Registry;
+import ink.andromeda.dataflow.core.SpringELExpressionService;
 import ink.andromeda.dataflow.core.node.resolver.DefaultConfigurationResolver;
 import ink.andromeda.dataflow.util.ConfigValidationException;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +22,7 @@ import static ink.andromeda.dataflow.util.GeneralTools.checkNotEmpty;
 @Slf4j
 public class DefaultDataFlowManager extends ConfigurableDataFlowManager {
 
-    public static final String FLOW_COLLECTION_NAME = "data_flow_list";
+    public static final String FLOW_COLLECTION_NAME = "flow-list";
 
     private final MongoTemplate mongoTemplate;
 
@@ -29,10 +30,13 @@ public class DefaultDataFlowManager extends ConfigurableDataFlowManager {
 
     public DefaultDataFlowManager(MongoTemplate mongoTemplate,
                                   RedisTemplate<String, String> redisTemplate,
-                                  Registry<DefaultConfigurationResolver> nodeConfigResolverRegistry) {
+                                  Registry<DefaultConfigurationResolver> nodeConfigResolverRegistry,
+                                  SpringELExpressionService springELExpressionService
+    ) {
         this.mongoTemplate = mongoTemplate;
         this.redisTemplate = redisTemplate;
         super.nodeConfigResolverRegistrySupplier = () -> nodeConfigResolverRegistry;
+        super.expressionServiceSupplier = () -> springELExpressionService;
     }
 
     @Override

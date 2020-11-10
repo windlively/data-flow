@@ -45,7 +45,7 @@ spring:
       max-file-size: 1GB
       max-request-size: 1GB
   kafka:
-    bootstrap-servers: ubuntu:9092
+    bootstrap-servers: localhost:9092
     listener:
       ack-mode: manual
       concurrency: 1
@@ -58,7 +58,7 @@ data-flow:
     - name: to_kafka
       type: kafka
       properties:
-        bootstrap-servers: ubuntu:9092
+        bootstrap-servers: localhost:9092
         group-id: data-flow
         key-serializer: org.apache.kafka.common.serialization.StringSerializer
         value-serializer: org.apache.kafka.common.serialization.StringSerializer

@@ -21,11 +21,13 @@ public class SourceEntity implements Cloneable, Serializable {
     @Nullable
     private String key;
 
-    private String source;
+    private String source = "";
 
     private String schema;
 
     private String name;
+
+    private long timestamp;
 
     @Nullable
     private String opType;
@@ -64,8 +66,11 @@ public class SourceEntity implements Cloneable, Serializable {
                 .schema(schema)
                 .name(name)
                 .opType(opType)
+                .timestamp(timestamp)
+                .id(id)
                 .data(new HashMap<>(data))
                 .before(new HashMap<>(before))
+                .key(key)
                 .build();
     }
 }
