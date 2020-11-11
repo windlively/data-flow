@@ -76,6 +76,7 @@ data-flow:
           - example
         ack-mode: MANUAL
     enable-http-invoke: true
+    kafka-msg-type: canal
   mq-instances:
     - name: example_sink
       type: kafka
