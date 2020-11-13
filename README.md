@@ -22,9 +22,10 @@
 multi-data-source:
   # 是否启用多数据源, 若项目不涉及数据库操作, 可为false
   enable: true
+  # 数据源配置, 只支持hikari连接池
   data-source:
     hikari:
-      - pool-name: master
+      - pool-name: master # mysql连接池名称, 同时也是数据源名称, 在flow配置中通过此名称选择数据源, 不可重复
         driver-class-name: com.mysql.cj.jdbc.Driver
         jdbc-url: jdbc:mysql://localhost:3306/
         password: 58603924715
@@ -97,8 +98,9 @@ data-flow:
     enable-http-invoke: true
   # 导出数据的MQ配置, 暂时支持kafka和Rocket, 如未使用到可不配置
   mq-instances:
-    - name: example_sink
-      type: kafka
+    - name: example_sink # 此MQ实例的名称, 在flow配置中通过此名称使用
+      type: kafka # MQ类型(kafka, rocket)
+      # MQ属性配置, 参考kafka, rocket的构造参数
       properties:
         bootstrap-servers: localhost:9092
         group-id: data-flow
@@ -115,15 +117,98 @@ server:
   port: 10022
 ```
 - Flow配置示例与说明
+> - **_id** *string*   
+> flow名称, 同时也作为mongo存储主键
+> - **source** *string*  
+> flow对应的source名称, 若没有source名称需设置为空字符串
+> - **schema** *string*  
+> flow对应的schema
+> - **name** *string*   
+> flow对应的name
+> - **node_list** *list*
+> 流中的节点配置
+>   - **node_name** *string*  
+>     节点名称, 同一个流中不可重复
+>   - **eval_context** *list*  
+>     表达式计算环境, 用于补充数据, 可为空, 可以有多个, 有序, 前一个变量的值也可为下一个变量定义所用
+>       - **name** *string*  
+>         变量名称, 用于在之后使用
+>       - **sql** *string*  
+>         SQL语句, 如果提供该配置, 则此变量的值为SQL语句的查询结果, 使用`${}`书写表达式在SQL语句中引用已知数据
+>       - **type** *string*  
+>         指明SQL的查询结果类型: list(多条查询结果)或map(单条查询结果)
+>       - **data_source** *string*  
+>         指明SQL查询所使用的数据源, 如不配置则默认为master数据源
+>       - **expression** *string*  
+>         SPEL表达式, 如果配置了该项则忽略SQL配置, 表达式的计算结果作为该变量的值
+>       - **on_condition** *string*  
+>         SPEL表达式, 返回值应为bool值, 用于指明在何种条件下才加载该变量, 如无可不配置
+>   - **simple_copy_fields** *boolean*  
+>     是否将输入entity的字段全部直接复制到结果entity
+>   - **skip_if_exception** *boolean*  
+>     是否忽略异常
+>   - **simple_convert** *object*  
+>     简单的字段转换, 配置对象中的key为结果entity的字段名称, value为一个SPEL表达式, 表示
+>   - **additional_expression** *list*  
+>     附加表达式, 数组类型, 数组中的每一个元素为一个SPEL表达式(string), 可用以执行任意表达式
+>   - **conditional_expression** *list*  
+>     按条件执行的表达式, 每一项为一个object类型, condition字段为条件表达式, expression为该条件所要执行的表达式, expression也可以继续为一个object类型的条件配置  
+>     示例： 
+>     ```json
+>      "conditional_expression": [
+>        {
+>          "condition": "true",
+>          "expression": [
+>             "@service()",
+>            {
+>              "condition": "false",
+>              "expression": "[field2] = [var1] * 10"
+>            }
+>          ]
+>        }
+>      ]
+>     ```
+>   - **export_to_rdb** *object*  
+>     将当前结果数据导出至关系型数据库
+>     - **method** *string*  
+>       数据导出方式, 可选值: 
+>       - upsert: 当该条数据已经在数据库中存在时更新, 若不存在则插入
+>       - insert: 直接插入
+>     - **target_data_source** *string*  
+>       目标数据源名称, 不设置默认为master
+>     - **target_schema** *string*  
+>       目标库名, 必须指定
+>     - **target_table** *string*  
+>       目标表名, 必须指定
+>     - **find_original** *object*  
+>       upsert方式下查询旧数据的配置
+>       - **match_fields** *list*  
+>         指定主键字段, 查询时会以这些字段为WHERE条件进行查询, 且这些字段必须在结果实体中存在
+>       - **sql** *string*  
+>         自定义查询旧数据的SQL, 使用`${}`书写表达式引用参数, 此配置将覆盖match_fields配置项
+>     - **update** *object*  
+>       - **match_fields** *list*  
+>         指定主键字段, 查询时会以这些字段为WHERE条件进行查询, 且这些字段必须在结果实体中存在
+>       - **sql** *string*  
+>         自定义查询旧数据的SQL, 使用`${}`书写表达式引用参数, 此配置将覆盖match_fields配置项
+>       - **custom_fields** *object*  
+>         自定义SQL字段
+>     - **insert** *object*  
+>       数据插入的配置, 
+>   - **export_to_mq** *object*
+>     将当前数据导出至MQ
+>   - **data** *string*  
+>     SPEL表达式自定义导出数据, 不使用默认的结果数据  
+> 未完待续...
 ```json
 {
-    "_id" : "a_pay_flow_test",
-    "source" : "",
-    "name" : "a_pay_flow",
-    "schema" : "electricity_payment",
+    "_id" : "a_pay_flow_test", 
+    "source" : "",  
+    "name" : "a_pay_flow", 
+    "schema" : "electricity_payment",  
     "node_list" : [ 
         {
-            "node_name" : "node1",
+            "node_name" : "node1", 
             "eval_context" : [ 
                 {
                     "name" : "var1",

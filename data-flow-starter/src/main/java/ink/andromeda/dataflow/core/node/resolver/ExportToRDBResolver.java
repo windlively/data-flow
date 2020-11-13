@@ -135,7 +135,7 @@ public class ExportToRDBResolver extends DefaultConfigurationResolver {
         timestamp = System.currentTimeMillis();
         int i = commonJdbcDao.insert(sql);
         elapsedTime = System.currentTimeMillis() - timestamp;
-        log.info("insert data sql [{}], used time； {}ms", sql, elapsedTime);
+        log.info("insert data sql [{}], used time: {}ms", sql, elapsedTime);
         return i;
     }
 }
