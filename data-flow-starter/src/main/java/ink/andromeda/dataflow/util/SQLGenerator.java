@@ -22,7 +22,7 @@ public class SQLGenerator {
      * @param schema       库名
      * @param table        表名
      */
-    public static String genInsertSQL(Map<String, Object> data, @Nullable Map<String, String> customFields, @Nullable String schema, String table) {
+    public static String genInsertSQL(Map<String, Object> data, @Nullable Map<String, String> customFields, String schema, String table) {
         Assert.isTrue(data != null && !data.isEmpty(), "data is null, could not generate insert sql");
         customFields = customFields == null ? Collections.emptyMap() : customFields;
         // 自定义字段的值将覆盖传入的data map中的值
