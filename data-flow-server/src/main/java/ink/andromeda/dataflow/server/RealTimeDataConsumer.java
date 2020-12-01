@@ -23,6 +23,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static ink.andromeda.dataflow.server.entity.DefaultServerConfig.KafkaMsgType.CANAL;
+
 
 @Slf4j
 public class RealTimeDataConsumer implements BatchAcknowledgingMessageListener<Long, byte[]> {
@@ -106,13 +108,16 @@ public class RealTimeDataConsumer implements BatchAcknowledgingMessageListener<L
             .create();
 
     public List<SourceEntity> convert(byte[] body) {
-        String kafkaMsgType = defaultServerConfig.getKafkaMsgType();
+        DefaultServerConfig.KafkaMsgType kafkaMsgType = defaultServerConfig.getKafkaMsgType();
         switch (kafkaMsgType) {
-            case "canal":
+            case CANAL:
                 Message convert = byteArrayCanalMessageConverter.convert(body);
                 Assert.notNull(convert, "convert canal message is null");
                 return canalMessageToSourceEntityConverter.convert(convert);
-            case "ogg":
+            case CANAL_PLAIN:
+
+
+            case OGG:
                 OGGMessage message = jsonStringToOGGMessageConverter.convert(new String(body, StandardCharsets.UTF_8));
                 Assert.notNull(message, "convert ogg message is null");
                 String schemaName = message.getSchemaName();
@@ -126,7 +131,7 @@ public class RealTimeDataConsumer implements BatchAcknowledgingMessageListener<L
                         .source("")
                         .build();
                 return Collections.singletonList(sourceEntity);
-            case "source-entity":
+            case SOURCE_ENTITY:
                 return Collections.singletonList(gson.fromJson(new String(body, StandardCharsets.UTF_8), SourceEntity.class));
             default:
                 throw new IllegalArgumentException("unknown kafka msg type: " + kafkaMsgType);

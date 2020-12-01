@@ -18,9 +18,32 @@ public class DefaultServerConfig {
 
     private List<Map<String, Object>> listenTableConfig;
 
-    private String kafkaMsgType = "canal";
+    private KafkaMsgType kafkaMsgType = KafkaMsgType.CANAL;
 
     @NestedConfigurationProperty
     private KafkaConfig kafka;
 
+    public enum  KafkaMsgType{
+
+        /**
+         * 默认的canal消息(protobuf压缩)
+         */
+        CANAL,
+
+        /**
+         * 解压的canal消息(JSON文本格式)
+         */
+        CANAL_PLAIN,
+
+        /**
+         * OGG消息(JSON文本格式)
+         */
+        OGG,
+
+        /**
+         * SourceEntity消息(JSON文本格式)
+         */
+        SOURCE_ENTITY
+
+    }
 }

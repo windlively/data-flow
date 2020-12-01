@@ -31,7 +31,7 @@ public class CanalMessageToSourceEntityConverter implements Converter<Message, L
                 rowChange = CanalEntry.RowChange.parseFrom(entry.getStoreValue());
                 // 遍历原有的RowChange List, 一条RowChange可能包含多条数据(即RowChange对应的SQL语句影响的行)
                 rowChange.getRowDatasList().forEach(rowData -> {
-                    SourceEntity businessEntity = SourceEntity.builder()
+                    SourceEntity sourceEntity = SourceEntity.builder()
                             .before(new JSONObject(rowData.getBeforeColumnsList().stream().collect(Collectors.toMap(CanalEntry.Column::getName, CanalEntry.Column::getValue))))
                             .data(new JSONObject(rowData.getAfterColumnsList().stream().collect(Collectors.toMap(CanalEntry.Column::getName, CanalEntry.Column::getValue))))
                             .opType(entry.getHeader().getEventType().name())
@@ -67,7 +67,7 @@ public class CanalMessageToSourceEntityConverter implements Converter<Message, L
                         // 新的Message只包含一个Entry
                         transformMsg.addEntry(transformEntry);
                     */
-                    result.add(businessEntity);
+                    result.add(sourceEntity);
                 });
             } catch (InvalidProtocolBufferException e) {
                 throw new IllegalStateException(e);
