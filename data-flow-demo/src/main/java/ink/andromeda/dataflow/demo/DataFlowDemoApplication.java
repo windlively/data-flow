@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
+import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
+import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.listener.KafkaListenerErrorHandler;
 import org.springframework.kafka.listener.ListenerExecutionFailedException;
@@ -17,7 +19,11 @@ import org.springframework.messaging.Message;
 import java.util.Properties;
 
 @SpringBootApplication(
-        exclude = RabbitAutoConfiguration.class
+        exclude = {
+                RabbitAutoConfiguration.class,
+                MongoAutoConfiguration.class,
+                RedisAutoConfiguration.class
+        }
 )
 @Slf4j
 public class DataFlowDemoApplication {

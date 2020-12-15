@@ -23,7 +23,7 @@ public class RealTimeDataFetch {
         this.dataRouter = dataRouter;
     }
 
-    @KafkaListener(topics = "test", errorHandler = "kafkaListenerErrorHandler")
+//    @KafkaListener(topics = "test", errorHandler = "kafkaListenerErrorHandler")
     public void onMessage(ConsumerRecord<String, OGGMessage> consumerRecord, Acknowledgment acknowledgment){
         try {
             OGGMessage oggMessage = consumerRecord.value();

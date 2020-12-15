@@ -33,11 +33,15 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.Assert;
 
 import javax.sql.DataSource;
+import java.io.IOException;
+import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.*;
 import java.util.stream.Stream;
 
 import static ink.andromeda.dataflow.util.GeneralTools.GSON;
+import static ink.andromeda.dataflow.util.GeneralTools.conversionService;
 
 @Configuration
 @ConditionalOnProperty(name = "data-flow.enable", havingValue = "true", matchIfMissing = true)
@@ -216,6 +220,30 @@ public class DataFlowAutoConfiguration {
                 }
 
             });
+            if(dataSourceConfig().getInitSqlScript() != null && !dataSourceConfig().getInitSqlScript().isEmpty()){
+                dataSourceConfig().getInitSqlScript().forEach(
+                        (k, v) -> {
+                            DataSource dataSource = dataSourceMap.get(k);
+                            if(dataSource != null){
+                                try (
+                                        Connection connection = dataSource.getConnection();
+                                        Statement statement = connection.createStatement();
+                                        Scanner scanner = new Scanner(v.getInputStream());
+                                ) {
+                                    StringBuilder script = new StringBuilder();
+                                    while (scanner.hasNextLine()){
+                                        script.append(scanner.nextLine()).append("\n");
+                                    }
+                                    statement.execute(script.toString());
+                                    log.info("execute init sql script for datasource {} : {}",k , script);
+                                } catch (SQLException | IOException ex) {
+                                    log.error(ex.getMessage(), ex);
+                                }
+
+                            }
+                        }
+                );
+            }
             return new DynamicDataSource(dataSourceMap.get("master"), new HashMap<>(dataSourceMap));
         }
 
