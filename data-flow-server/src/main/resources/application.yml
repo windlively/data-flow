@@ -12,7 +12,7 @@ multi-data-source:
 spring:
   data:
     mongodb:
-      uri:  mongodb://data-flow:data-flow@127.0.0.1:27017/data-flow
+      uri: mongodb://data-flow:data-flow@127.0.0.1:27017/data-flow
   redis:
     port: 6380
     password: 58603924715
@@ -67,8 +67,8 @@ data-flow:
           enable-auto-commit: false
           auto-commit-interval-ms: 1000
           session-timeout-ms: 15000
-          ##  auto-offset-reset: earliest
-          max-poll-records: 1
+          auto-offset-reset: earliest
+          max-poll-records: 60
           key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
           value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
       container:

@@ -5,6 +5,7 @@ import ch.qos.logback.core.AppenderBase;
 import com.google.common.base.Strings;
 import ink.andromeda.dataflow.util.GeneralTools;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -22,8 +23,6 @@ import java.util.Properties;
 @Data
 public class KafkaLogAppender extends AppenderBase<ILoggingEvent> {
 
-    public static final String DESTINATION_ADDRESS_URL = "http://169.254.169.254/latest/meta-data/local-ipv4";
-    public static final String DESTINATION_HOSTNAME_URL = "http://169.254.169.254/latest/meta-data/hostname";
     private String topic;
     private String brokerList;
     private String department;
@@ -50,33 +49,7 @@ public class KafkaLogAppender extends AppenderBase<ILoggingEvent> {
             jsonObject.put("environment", this.environment);
             jsonObject.put("message", eventObject.getFormattedMessage());
             jsonObject.put("logtype", "java");
-            jsonObject.put("throwableContext", WeLogUtils.throwableToString(eventObject.getThrowableProxy()));
-            ProducerRecord<String, String> data = new ProducerRecord<>(this.topic, GeneralTools.toJSONString(jsonObject));
-            this.producer.send(data);
-        }
-
-        if (Objects.equals(eventObject.getLoggerName(), "net.wecash.coresystem.backoffice.filter.TraceIdFilter")) {
-            Map<String, Object> jsonObject = new HashMap<>();
-            jsonObject.put("dateTime", LocalDateTime.now(DateTimeZone.getDefault()).toString("dd/MM/yyyy HH:mm:ss"));
-            jsonObject.put("applicationName", "financialSystem");
-            jsonObject.put("eventType", MDC.get("eventType"));
-            jsonObject.put("sourceAddress", MDC.get("xForwardFor"));
-            jsonObject.put("sourceHostname", "");
-            jsonObject.put("sourceUserid", MDC.get("sourceUserid"));
-            jsonObject.put("sourceObject", "");
-            jsonObject.put("destinationAddress", Strings.nullToEmpty(this.destinationAddress));
-            jsonObject.put("destinationHostname", Strings.nullToEmpty(this.destinationHostname));
-            jsonObject.put("destinationUserid", "");
-            jsonObject.put("destinationObject", "");
-            jsonObject.put("result", MDC.get("result"));
-            jsonObject.put("message", MDC.get("message"));
-            jsonObject.put("env", getEnvironment());
-            jsonObject.put("method", eventObject.getLoggerName());
-            jsonObject.put("traceId", MDC.get("traceId"));
-            jsonObject.put("logtype", "audit-trail");
-            jsonObject.put("department", this.department);
-            jsonObject.put("path", MDC.get("path"));
-            jsonObject.put("requestMethod", MDC.get("requestMethod"));
+            // jsonObject.put("throwableContext", WeLogUtils.throwableToString(eventObject.getThrowableProxy()));
             ProducerRecord<String, String> data = new ProducerRecord<>(this.topic, GeneralTools.toJSONString(jsonObject));
             this.producer.send(data);
         }
@@ -86,7 +59,7 @@ public class KafkaLogAppender extends AppenderBase<ILoggingEvent> {
     @Override
     public void start() {
         super.start();
-        if (!Strings.isNullOrEmpty(this.topic) && !Strings.isNullOrEmpty(this.brokerList) && !Strings.isNullOrEmpty(this.department) && !Strings.isNullOrEmpty(this.environment) && !Strings.isNullOrEmpty(this.type)) {
+        if(StringUtils.isNoneEmpty(topic, brokerList, department, environment, type)){
             Properties properties = new Properties();
             properties.put("bootstrap.servers", this.brokerList);
             properties.put("value.serializer", StringSerializer.class.getName());
