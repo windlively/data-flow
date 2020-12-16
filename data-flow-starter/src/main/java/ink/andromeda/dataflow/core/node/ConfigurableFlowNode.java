@@ -76,8 +76,8 @@ public class ConfigurableFlowNode implements FlowNode {
             StandardEvaluationContext context = expressionService.evaluationContext();
             context.setRootObject(root);
             context.setVariable("src", source);
-            context.setVariable("in", input);
-            context.setVariable("res", target);
+            context.setVariable("in", input.getData());
+            context.setVariable("res", target.getData());
             if (input.getData() != null) root.putAll(input.getData());
             for (DefaultConfigurationResolver resolver : nodeConfigResolveChain) {
             /*

@@ -29,6 +29,8 @@
         "count": "[count]",
         "should_amount": "[count] * [bookInfo][price]",
         "paid_amount": "[amount]",
+        "paid_time": "#formatDate([pay_time],'yyyy-MM-dd HH:mm:ss.SSS')",
+        "discount": "#res[should_amount]-#res[paid_amount]",
         "create_time": "[create_time]"
       },
       "simple_copy_fields": false,
@@ -49,13 +51,13 @@
         "target_table": "purchase_log",
         "target_data_source": "op_log",
         "find_original": {
-            "sql": "SELECT * FROM op_log_db.purchase_log WHERE id=${#res[id]}"
+            "sql": "SELECT * FROM op_log_db.purchase_log WHERE id=${#res[id]} "
         },
         "update": {
-          "sql": "U"
+          "sql": "UPDATE op_log_db.purchase_log SET book_id=${#res[book_id]}, customer_id=${#res[customer_id]}, book_name='${#res[book_name]}', customer_account_name='${#res[customer_account_name]}', count=${#res[count]}, should_amount=${#res[should_amount]}, paid_amount=${#res[paid_amount]}, discount=${#res[discount]}, paid_time='${#res[paid_time]}',update_time=NOW() WHERE id=${#res[id]}"
         },
         "insert": {
-          "sql": "INSERT INTO op_log_db.purchase_log VALUES(${#res[id]}, ${#res[book_id]}, ${#res[customer_id]}, ${#res[book_name]}, ${#res[customer_account_name]}, ${#res[count]}, ${#res[should_amount]}, ${#res[paid_amount]}, NOW())"
+          "sql": "INSERT INTO op_log_db.purchase_log VALUES(${#res[id]}, ${#res[book_id]}, ${#res[customer_id]}, '${#res[book_name]}', '${#res[customer_account_name]}', ${#res[count]}, ${#res[should_amount]}, ${#res[paid_amount]},${#res[discount]},'${#res[paid_time]}',NOW(),NOW())"
         }
       }
     }

@@ -1,4 +1,7 @@
+
+-- 模拟日志记录库
 CREATE SCHEMA op_log_db;
+
 -- 购买记录表
 CREATE TABLE op_log_db.purchase_log
 (
@@ -10,5 +13,8 @@ CREATE TABLE op_log_db.purchase_log
     count                 INT          NOT NULL COMMENT '数量',
     should_amount         DECIMAL      NOT NULL COMMENT '应付金额',
     paid_amount           DECIMAL      NOT NULL COMMENT '实付金额',
-    create_time           DATETIME     NOT NULL COMMENT '创建时间'
+    discount              DECIMAL      NOT NULL COMMENT '优惠减免',
+    paid_time             DATETIME     NOT NULL COMMENT '支付时间',
+    create_time           DATETIME     NOT NULL COMMENT '创建时间',
+    update_time           DATETIME     NOT NULL COMMENT '更新时间'
 );

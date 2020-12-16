@@ -52,6 +52,7 @@ public class EvalContextResolver extends DefaultConfigurationResolver {
             } else if (StringUtils.isNotBlank(sql)) {
                 String type = (String) Objects.requireNonNull(dataItem.get("type"), "result type is required with sql");
                 String dataSourceName = (String) dataItem.get("data_source");
+                sql = Objects.requireNonNull(expressionService.executeExpression(sql, String.class, true));
                 value = commonDao.select(sql, dataSourceName, type);
             } else {
                 throw new IllegalArgumentException("the eval_context item must has expression or sql config");

@@ -1,6 +1,9 @@
 package ink.andromeda.dataflow.util;
 
+import org.joda.time.DateTime;
+
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -46,5 +49,15 @@ public class Functions {
 
     public static void main(String[] args) {
 //        Stream.of(Functions.class.getMethods()).filter(m -> Modifier.isStatic(m.getModifiers())).forEach(m -> System.out.println(m.getName()));
+    }
+
+    public static String formatDate(Object date, String format){
+        if(date instanceof String){
+            return DateTime.parse((String) date).toString(format);
+        }
+        if(date instanceof Date){
+            return new DateTime(date).toString(format);
+        }
+        throw new IllegalArgumentException("could not format date object " + date.getClass().getName());
     }
 }
