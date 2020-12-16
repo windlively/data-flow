@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.listener.KafkaListenerErrorHandler;
 import org.springframework.kafka.listener.ListenerExecutionFailedException;
 import org.springframework.messaging.Message;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.Properties;
 
@@ -26,6 +27,7 @@ import java.util.Properties;
         }
 )
 @Slf4j
+@EnableScheduling
 public class DataFlowDemoApplication {
 
     public static void main(String[] args) {

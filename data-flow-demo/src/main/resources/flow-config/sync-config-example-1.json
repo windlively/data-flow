@@ -1,23 +1,15 @@
 {
   "_id" : "demo_flow_1",
-  "source": "demo_source",
-  "name": "demo_table",
-  "schema" : "demo_schema",
-
+  "source": "demo",
+  "name": "order_summary",
+  "schema" : "business_db",
   "node_list": [
     {
       "node_name": "node1",
-      "eval_context": [
-        {
-          "name": "var1",
-          "sql": "SELECT * FROM test.notice LIMIT 1",
-          "type": "list",
-          "data_source": "master"
-        }
-      ],
+      "eval_context": [],
       "simple_convert": {
-        "f1": "[id]",
-        "f2": "1233"
+        "create_time": "new java.util.Date()",
+        "outer_create_time": "[pay_time]"
       },
       "simple_copy_fields": true,
       "conditional_expression": [
@@ -39,40 +31,24 @@
         "simple_convert",
         "additional_expression",
         "conditional_expression"
-      ]
-    },
-    {
-      "node_name": "node2",
-      "simple_convert": {
-        "f3": "'时间简史'",
-        "f4": "[f1]"
-      }
-    },
-    {
-      "node_name": "node3",
-      "simple_convert": {
-        "bookId": "[f4]",
-        "bookName": "[f3]",
-        "bookAuthor": "'佚名'",
-        "bookPrice": "T(Math).random() * 10 + 20",
-        "bookInfo": "'aaa'"
-      },
+      ],
       "export_to_rdb": {
         "method": "upsert",
-        "target_schema": "test",
-        "target_table": "book",
+        "target_schema": "origin_db",
+        "target_table": "origin_order",
+        "target_data_source": "origin",
         "find_original": {
           "match_fields": [
-            "bookId"
+            "id"
           ]
         },
         "update": {
           "match_fields": [
-            "bookId"
+            "id"
           ]
         },
         "insert": {
-          "sql": "insert into test.book values(DEFAULT, '${#res.data[bookName]}', '${#res.data[bookAuthor]}',${#res.data[bookPrice] * 10}, '${#res.data[bookInfo]+'01'}' )"
+
         }
       }
     }

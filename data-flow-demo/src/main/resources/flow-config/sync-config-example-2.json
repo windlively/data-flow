@@ -1,42 +1,38 @@
 {
   "_id" : "demo_flow_2",
-  "source": "demo_source",
-  "name": "demo_table",
-  "schema" : "demo_schema",
-
+  "source": "demo",
+  "name": "order_summary",
+  "schema" : "business_db",
   "node_list": [
-    {
-      "node_name": "node2",
-      "simple_convert": {
-        "f3": "78",
-        "f4": "[f2]"
-      }
-    },
     {
       "node_name": "node1",
       "eval_context": [
         {
-          "name": "var1",
-          "sql": "SELECT * FROM test.notice LIMIT 1",
-          "type": "list",
-          "data_source": "master"
+          "name": "bookInfo",
+          "data_source": "master",
+          "sql": "SELECT * FROM business_db.book_info WHERE id=${[book_id]}",
+          "type": "map"
+        },
+        {
+          "name": "customerInfo",
+          "data_source": "master",
+          "sql": "SELECT * FROM business_db.customer_info WHERE id=${[customer_id]}",
+          "type": "map"
         }
       ],
       "simple_convert": {
-        "f1": "[a]",
-        "f2": "1233"
+        "id": "[id]",
+        "book_id": "[book_id]",
+        "customer_id": "[customer_id]",
+        "book_name": "[bookInfo][name]",
+        "customer_account_name": "[customerInfo][account_name]",
+        "count": "[count]",
+        "should_amount": "[count] * [bookInfo][price]",
+        "paid_amount": "[amount]",
+        "create_time": "[create_time]"
       },
       "simple_copy_fields": false,
       "conditional_expression": [
-        {
-          "condition": "true",
-          "expression": [
-            {
-              "condition": "false",
-              "expression": "111"
-            }
-          ]
-        }
       ],
       "skip_if_exception": false,
       "resolve_order": [
@@ -46,14 +42,21 @@
         "simple_convert",
         "additional_expression",
         "conditional_expression"
-      ]
-    },
-    {
-      "node_name": "node3",
-      "simple_convert": {
-        "f4": "785",
-        "f5": "[f3]",
-        "f6": "'word'"
+      ],
+      "export_to_rdb": {
+        "method": "upsert",
+        "target_schema": "op_log_db",
+        "target_table": "purchase_log",
+        "target_data_source": "op_log",
+        "find_original": {
+            "sql": "SELECT * FROM op_log_db.purchase_log WHERE id=${#res[id]}"
+        },
+        "update": {
+          "sql": "U"
+        },
+        "insert": {
+          "sql": "INSERT INTO op_log_db.purchase_log VALUES(${#res[id]}, ${#res[book_id]}, ${#res[customer_id]}, ${#res[book_name]}, ${#res[customer_account_name]}, ${#res[count]}, ${#res[should_amount]}, ${#res[paid_amount]}, NOW())"
+        }
       }
     }
   ]
