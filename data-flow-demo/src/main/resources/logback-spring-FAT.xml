@@ -1,7 +1,7 @@
 <configuration debug="false" scan="false" scanPeriod="10 seconds">
     <!---->
     <property name="appName" value="data-flow-demo"/>
-    <property name="log.root" value="/Users/windlively/logs"/>
+    <property name="log.root" value="${HOME}/logs"/>
     <!-- 引入 服务名, 做 日志文件路径 和 文件名 -->
     <property name="encoding" value="UTF-8"/>
     <property name="normal-pattern"
@@ -46,6 +46,7 @@
     <!-- 引入 WeLogAppender -->
     <root level="DEBUG">
         <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
     </root>
 
     <logger name="net.abakus" level="DEBUG">

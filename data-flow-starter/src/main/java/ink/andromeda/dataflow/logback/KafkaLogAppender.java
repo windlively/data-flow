@@ -43,7 +43,7 @@ public class KafkaLogAppender extends AppenderBase<ILoggingEvent> {
             Map<String, Object> jsonObject = new HashMap<>();
             jsonObject.put("department", this.department);
             jsonObject.put("type", this.type);
-            jsonObject.put("created", (new DateTime()).toString("yyyy-MM-dd HH:mm:ss"));
+            jsonObject.put("created", (new DateTime()).toString("yyyy-MM-dd HH:mm:ss.SSS"));
             jsonObject.put("traceId", MDC.get("traceId"));
             jsonObject.put("level", eventObject.getLevel().toString());
             jsonObject.put("environment", this.environment);

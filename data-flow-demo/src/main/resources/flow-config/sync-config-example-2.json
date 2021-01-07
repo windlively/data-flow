@@ -51,7 +51,7 @@
         "target_table": "purchase_log",
         "target_data_source": "op_log",
         "find_original": {
-            "sql": "SELECT * FROM op_log_db.purchase_log WHERE id=${#res[id]} "
+            "sql": "SELECT * FROM op_log_db.purchase_log WHERE id=${#res[id]}"
         },
         "update": {
           "sql": "UPDATE op_log_db.purchase_log SET book_id=${#res[book_id]}, customer_id=${#res[customer_id]}, book_name='${#res[book_name]}', customer_account_name='${#res[customer_account_name]}', count=${#res[count]}, should_amount=${#res[should_amount]}, paid_amount=${#res[paid_amount]}, discount=${#res[discount]}, paid_time='${#res[paid_time]}',update_time=NOW() WHERE id=${#res[id]}"
