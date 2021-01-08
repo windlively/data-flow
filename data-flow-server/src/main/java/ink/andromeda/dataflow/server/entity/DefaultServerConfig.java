@@ -18,7 +18,8 @@ public class DefaultServerConfig {
 
     private List<Map<String, Object>> listenTableConfig;
 
-    private KafkaMsgType kafkaMsgType = KafkaMsgType.CANAL;
+    @NestedConfigurationProperty
+    private KafkaMsg kafkaMsg = new KafkaMsg();
 
     @NestedConfigurationProperty
     private KafkaConfig kafka;
@@ -43,7 +44,48 @@ public class DefaultServerConfig {
         /**
          * SourceEntity消息(JSON文本格式)
          */
-        SOURCE_ENTITY
+        SOURCE_ENTITY,
+        /**
+         * 其他格式的json
+         */
+        JSON,
+
+        /**
+         * 其他格式的json列表
+         */
+        JSON_ARRAY
+
+    }
+
+    @Data
+    public static class JsonMsgConvertConfig{
+
+        private String id;
+
+        private String key;
+
+        private String source;
+
+        private String schema;
+
+        private String name;
+
+        private String timestamp;
+
+        private String opType;
+
+        private String data;
+
+        private String before;
+
+    }
+
+    @Data
+    public static class KafkaMsg{
+
+        private KafkaMsgType type = KafkaMsgType.CANAL;
+
+        private JsonMsgConvertConfig jsonMsgConvertConfig;
 
     }
 }
