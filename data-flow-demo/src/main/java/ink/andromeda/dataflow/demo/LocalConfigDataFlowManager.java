@@ -6,15 +6,20 @@ import ink.andromeda.dataflow.core.SpringELExpressionService;
 import ink.andromeda.dataflow.core.flow.ConfigurableDataFlowManager;
 import ink.andromeda.dataflow.core.node.resolver.DefaultConfigurationResolver;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static ink.andromeda.dataflow.util.GeneralTools.GSON;
 
@@ -22,54 +27,35 @@ import static ink.andromeda.dataflow.util.GeneralTools.GSON;
 public class LocalConfigDataFlowManager extends ConfigurableDataFlowManager {
 
     public LocalConfigDataFlowManager(Registry<DefaultConfigurationResolver> nodeConfigResolverRegistry,
-                                      SpringELExpressionService expressionService){
+                                      SpringELExpressionService expressionService) {
         super.nodeConfigResolverRegistrySupplier = () -> nodeConfigResolverRegistry;
         super.expressionServiceSupplier = () -> expressionService;
     }
 
+    @Value("classpath:/flow-config/**")
+    private Resource[] flowConfigResources;
+
     @Override
     protected List<Map<String, Object>> getFlowConfig() {
-        try {
-            Path configDir = Paths.get(
-                    LocalConfigDataFlowManager.class.getResource(
-                            "/"
-                    ).toURI().getPath(), "flow-config"
-            );
-            List<Map<String, Object>> config = new ArrayList<>();
-            Files.walkFileTree(
-                    configDir,
-                    new HashSet<>(),
-                    1,
-                    new FileVisitor<Path>() {
-                @Override
-                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                    return FileVisitResult.CONTINUE;
-                }
+        return Stream.of(flowConfigResources)
+                .filter(s -> Objects.nonNull(s.getFilename()))
+                .filter(s -> s.getFilename().matches("^sync-config-[\\w-]+?.json$"))
+                .map(flowConfigResource -> {
+                    try (InputStream is = flowConfigResource.getInputStream()) {
+                        ByteArrayOutputStream os = new ByteArrayOutputStream();
+                        int data;
+                        while ((data = is.read()) != -1) os.write(data);
+                        //noinspection unchecked
+                        return (Map<String, Object>) GSON().fromJson(os.toString(StandardCharsets.UTF_8.name()),
+                                new TypeToken<Map<String, Object>>() {
+                                }.getType());
 
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    Map<String, Object> flowConfig =
-                            GSON().fromJson(String.join("", Files.readAllLines(file)),
-                    new TypeToken<Map<String, Object>>(){}.getType());
-                    config.add(flowConfig);
-                    return FileVisitResult.CONTINUE;
-                }
-
-                @Override
-                public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-                    log.error(exc.getMessage(), exc);
-                    return FileVisitResult.CONTINUE;
-                }
-
-                @Override
-                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                    return FileVisitResult.CONTINUE;
-                }
-            });
-            return config;
-        } catch (URISyntaxException | IOException e) {
-            throw new IllegalStateException(e);
-        }
+                    } catch (IOException ex) {
+                        throw new IllegalStateException(ex);
+                    }
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     @Override

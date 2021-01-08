@@ -9,10 +9,17 @@ import ink.andromeda.dataflow.core.node.resolver.DefaultConfigurationResolver;
 import ink.andromeda.dataflow.util.ConfigValidationException;
 import ink.andromeda.dataflow.util.JSONValidator;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 import javax.annotation.PostConstruct;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.cert.CollectionCertStoreParameters;
@@ -25,6 +32,9 @@ import static ink.andromeda.dataflow.util.GeneralTools.GSON;
 
 @Slf4j
 public abstract class ConfigurableDataFlowManager implements DataFlowManager {
+
+    @Value("classpath:/config-regular/flow_config_regular.json")
+    private Resource configRegularFile;
 
     protected final Map<String, List<DataFlow>> flowNamespaceIndexMap = new ConcurrentHashMap<>();
 
@@ -44,6 +54,18 @@ public abstract class ConfigurableDataFlowManager implements DataFlowManager {
 
     @PostConstruct
     protected void init(){
+        try (InputStream inputStream = configRegularFile.getInputStream()) {
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
+            int data;
+            while ((data = inputStream.read()) != -1) os.write(data);
+            String str = os.toString(StandardCharsets.UTF_8.name());
+            Map<String, Object> template = GSON().fromJson(str, new TypeToken<Map<String, Object>>() {
+            }.getType());
+            flowConfigValidator = new JSONValidator(template);
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error(e.getMessage(), e);
+        }
         reload();
     }
 
@@ -291,17 +313,7 @@ public abstract class ConfigurableDataFlowManager implements DataFlowManager {
     private JSONValidator flowConfigValidator;
 
     public ConfigurableDataFlowManager() {
-        try {
-            String str = Files.lines(
-                    Paths.get(this.getClass().getResource("/config-regular/flow_config_regular.json").toURI()))
-                    .collect(Collectors.joining());
-            Map<String, Object> template = GSON().fromJson(str, new TypeToken<Map<String, Object>>() {
-            }.getType());
-            flowConfigValidator = new JSONValidator(template);
-        } catch (Exception e) {
-            e.printStackTrace();
-            log.error(e.getMessage(), e);
-        }
+
     }
 
     /**

@@ -38,7 +38,8 @@
                 <version>2.0.4.RELEASE</version>
             </plugin>
         </plugins>
-        <finalName>${artifactId}</finalName>
+
+        <finalName>${artifactId}-${version}</finalName>
     </build>
 
     <dependencyManagement>

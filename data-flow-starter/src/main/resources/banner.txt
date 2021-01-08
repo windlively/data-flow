@@ -6,4 +6,4 @@ ${AnsiColor.BRIGHT_MAGENTA}
 (/\_/(_/(_(__(_/(_  _/  (/_(_)(_(_/_
 
 
- :: Data Flow ::        1.0-SNAPSHOT
+ :: ${application.title} ::        ${application.version}
