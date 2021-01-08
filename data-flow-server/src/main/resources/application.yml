@@ -34,6 +34,9 @@ data-flow:
 #      - schema: .*
 #        tables:
 #          - .*
+      - schema: test_schema
+        tables:
+          - test_table
       - schema: capital
         tables:
           - zfpt_capital_order
@@ -79,11 +82,12 @@ data-flow:
       container:
         topics:
           - example
+          - spider_weibo
         ack-mode: MANUAL
     enable-http-invoke: true
     kafka-msg:
       json-msg-convert-config:
-        data: "[msg]"
+        data: "#root"
         schema: "'test_schema'"
         name: "'test_table'"
       type: JSON

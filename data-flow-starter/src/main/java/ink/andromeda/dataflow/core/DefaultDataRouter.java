@@ -55,10 +55,12 @@ public class DefaultDataRouter implements DataRouter {
     @Override
     public List<TransferEntity> routeAndProcess(SourceEntity sourceEntity) throws Exception {
         List<TransferEntity> transferEntities = new ArrayList<>(8);
-        List<DataFlow> flowList = route(sourceEntity);
+
         String parentTraceId = Optional.ofNullable(MDC.get("traceId")).orElse(shortTraceId());
         MDC.put("traceId", parentTraceId);
         log.info("starting process source entity: {}", sourceEntity);
+
+        List<DataFlow> flowList = route(sourceEntity);
         CountDownLatch countDownLatch = new CountDownLatch(flowList.size());
         for (DataFlow flow : flowList) {
             MDC.put("traceId", parentTraceId + "-" +  shortTraceId());
