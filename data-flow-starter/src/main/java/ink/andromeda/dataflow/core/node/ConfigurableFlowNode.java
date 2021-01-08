@@ -71,7 +71,6 @@ public class ConfigurableFlowNode implements FlowNode {
         copyFields(input, target);
         target.setData(new HashMap<>());
         try {
-
             Map<String, Object> root = new HashMap<>(4);
             StandardEvaluationContext context = expressionService.evaluationContext();
             context.setRootObject(root);
@@ -99,7 +98,7 @@ public class ConfigurableFlowNode implements FlowNode {
                 throw ex;
             }
         }
-        log.info("pass node: {}", getName());
+        log.debug("pass node: {}", getName());
         return target;
     }
 

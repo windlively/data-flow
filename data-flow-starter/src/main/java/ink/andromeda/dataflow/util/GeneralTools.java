@@ -397,6 +397,10 @@ public class GeneralTools {
         return UUID.randomUUID().toString().replace("-", "");
     }
 
+    public static String shortTraceId(){
+        return randomId().substring(16);
+    }
+
     public static void testDataSource(DataSource dataSource) throws SQLException {
         try (
                 Connection ignored = dataSource.getConnection();

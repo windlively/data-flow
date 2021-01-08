@@ -3,6 +3,7 @@ package ink.andromeda.dataflow.core.flow;
 import ink.andromeda.dataflow.core.Registry;
 import ink.andromeda.dataflow.core.SpringELExpressionService;
 import ink.andromeda.dataflow.core.node.resolver.DefaultConfigurationResolver;
+import ink.andromeda.dataflow.server.entity.RefreshCacheMessage;
 import ink.andromeda.dataflow.util.ConfigValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
@@ -14,6 +15,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -206,7 +208,10 @@ public class DefaultDataFlowManager extends ConfigurableDataFlowManager {
 
     public void reload(boolean cluster){
         if(cluster)
-            redisTemplate.convertAndSend("", "");
+            redisTemplate.convertAndSend("config-change", RefreshCacheMessage.builder()
+                    .cacheType("flow-config")
+                    .subExpression("")
+                    .build().toString().getBytes(StandardCharsets.UTF_8));
         else
             reload();
     }

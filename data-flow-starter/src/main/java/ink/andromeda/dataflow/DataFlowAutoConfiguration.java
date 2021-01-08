@@ -41,7 +41,6 @@ import java.util.*;
 import java.util.stream.Stream;
 
 import static ink.andromeda.dataflow.util.GeneralTools.GSON;
-import static ink.andromeda.dataflow.util.GeneralTools.conversionService;
 
 @Configuration
 @ConditionalOnProperty(name = "data-flow.enable", havingValue = "true", matchIfMissing = true)
@@ -98,7 +97,7 @@ public class DataFlowAutoConfiguration {
             RefreshCacheMessage refreshCacheMessage = GSON().fromJson(body, RefreshCacheMessage.class);
             switch (refreshCacheMessage.getCacheType()) {
                 case "flow-config":
-                    ((DefaultDataFlowManager) dataFlowManager).reload(true);
+                    dataFlowManager.reload();
             }
         }, new ChannelTopic("refresh-cache"));
         return container;

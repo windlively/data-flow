@@ -30,7 +30,7 @@ public class DataSourceDetermineAspect {
         if(!"".equals(switchSource.name()))
             name = switchSource.name();
         dynamicDataSource.changeLookupKey(name);
-        log.info("use datasource {}", name);
+        log.debug("use datasource {}", name);
         Object result = null;
         try {
             // 执行原方法

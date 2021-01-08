@@ -1,6 +1,7 @@
 package ink.andromeda.dataflow.server.canal;
 
 import com.alibaba.otter.canal.protocol.Message;
+import ink.andromeda.dataflow.core.SpringELExpressionService;
 import ink.andromeda.dataflow.server.KafkaConfig;
 import ink.andromeda.dataflow.server.RealTimeDataConsumer;
 import ink.andromeda.dataflow.core.DataRouter;
@@ -29,21 +30,25 @@ import java.util.stream.Collectors;
 @Configuration
 @ConditionalOnProperty(value = "data-flow.server.enable-kafka", havingValue = "true", matchIfMissing = true)
 @Slf4j
-public class CanalKafkaConfiguration {
+public class KafkaConsumerConfiguration {
 
-    public CanalKafkaConfiguration(DataRouter dataRouter,
-                                   DefaultServerConfig defaultServerConfig) {
+    public KafkaConsumerConfiguration(DataRouter dataRouter,
+                                      DefaultServerConfig defaultServerConfig,
+                                      SpringELExpressionService expressionService) {
         this.dataRouter = dataRouter;
         this.defaultServerConfig = defaultServerConfig;
+        this.expressionService = expressionService;
     }
 
     private final DataRouter dataRouter;
 
     private final DefaultServerConfig defaultServerConfig;
 
+    private final SpringELExpressionService expressionService;
+
     @Bean
     public BatchMessageListener<Long, byte[]> batchMessageListener(){
-        return new RealTimeDataConsumer(defaultServerConfig, dataRouter);
+        return new RealTimeDataConsumer(defaultServerConfig, dataRouter, expressionService);
     }
 
     @Bean

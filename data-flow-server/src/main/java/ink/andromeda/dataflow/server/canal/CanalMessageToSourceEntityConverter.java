@@ -38,7 +38,8 @@ public class CanalMessageToSourceEntityConverter implements Converter<Message, L
                             .schema(entry.getHeader().getSchemaName())
                             .timestamp(entry.getHeader().getExecuteTime())
                             .name(entry.getHeader().getTableName())
-                            .source("")
+                            .id(entry.getHeader().getLogfileOffset())
+                            .timestamp(entry.getHeader().getExecuteTime())
                             .build();
                     /*
                         // 一个RowData对应一条MySQL的行

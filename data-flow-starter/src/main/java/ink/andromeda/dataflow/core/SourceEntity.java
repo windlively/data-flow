@@ -10,22 +10,26 @@ import org.springframework.lang.Nullable;
 import java.io.Serializable;
 import java.util.*;
 
+import static ink.andromeda.dataflow.util.GeneralTools.toJSONString;
+
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class SourceEntity implements Cloneable, Serializable {
 
+    public static final String DEFAULT_FIELD_STR_VALUE = "__default";
+
     private long id;
 
     @Nullable
     private String key;
 
-    private String source = "";
+    private String source = DEFAULT_FIELD_STR_VALUE;
 
-    private String schema;
+    private String schema = DEFAULT_FIELD_STR_VALUE;
 
-    private String name;
+    private String name = DEFAULT_FIELD_STR_VALUE;
 
     private long timestamp;
 
@@ -72,5 +76,9 @@ public class SourceEntity implements Cloneable, Serializable {
                 .before(new HashMap<>(before))
                 .key(key)
                 .build();
+    }
+
+    public String toString(){
+        return toJSONString(this);
     }
 }

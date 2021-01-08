@@ -10,12 +10,13 @@ import org.slf4j.MDC;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-import static ink.andromeda.dataflow.util.GeneralTools.randomId;
+import static ink.andromeda.dataflow.util.GeneralTools.shortTraceId;
 
 /**
  * 默认的路由策略，根据source, schema, name匹配flow
@@ -55,11 +56,12 @@ public class DefaultDataRouter implements DataRouter {
     public List<TransferEntity> routeAndProcess(SourceEntity sourceEntity) throws Exception {
         List<TransferEntity> transferEntities = new ArrayList<>(8);
         List<DataFlow> flowList = route(sourceEntity);
-
+        String parentTraceId = Optional.ofNullable(MDC.get("traceId")).orElse(shortTraceId());
+        MDC.put("traceId", parentTraceId);
+        log.info("starting process source entity: {}", sourceEntity);
         CountDownLatch countDownLatch = new CountDownLatch(flowList.size());
-
         for (DataFlow flow : flowList) {
-            MDC.put("traceId", randomId());
+            MDC.put("traceId", parentTraceId + "-" +  shortTraceId());
             executorService.submit(() -> {
                 try {
                     transferEntities.add(flow.inflow(sourceEntity.clone()));
@@ -73,9 +75,7 @@ public class DefaultDataRouter implements DataRouter {
             });
             MDC.remove("traceId");
         }
-
         countDownLatch.await();
-
         return transferEntities;
     }
 }

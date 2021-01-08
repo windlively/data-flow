@@ -15,7 +15,7 @@ spring:
       uri: mongodb://data-flow:123456@127.0.0.1:27017/data-flow
   redis:
     port: 6380
-    password: 123456
+    password: 58603924715
     lettuce:
       pool:
         max-idle: 8
@@ -30,10 +30,10 @@ data-flow:
   server:
     enable-kafka: true
     listen-table-config:
-#      允许全部库表
-#      - schema: .*
-#        tables:
-#          - .*
+      #      允许全部库表
+      #      - schema: .*
+      #        tables:
+      #          - .*
       - schema: capital
         tables:
           - zfpt_capital_order

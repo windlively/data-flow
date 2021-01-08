@@ -47,6 +47,7 @@ public class ExportToRDBResolver extends DefaultConfigurationResolver {
         String targetDataSource = (String) ((Map<String, Object>) config).getOrDefault("target_data_source", "master");
         String targetSchema = (String) ((Map<String, Object>) config).get("target_schema");
         String targetTable = (String) ((Map<String, Object>) config).get("target_table");
+        boolean sqlLog = (boolean) ((Map<String, Object>) config).getOrDefault("sql_log", false);
 
         Map<String, Object> data = target.getData();
         String dataExpression;
@@ -78,11 +79,11 @@ public class ExportToRDBResolver extends DefaultConfigurationResolver {
                 Object original = commonJdbcDao.select(sql, targetDataSource, "map");
                 elapsedTime = System.currentTimeMillis() - timestamp;
 
-                log.info("select original sql [{}], result: {}, used time: {}ms", sql, original, elapsedTime);
+                if(sqlLog) log.info("select original sql [{}], result: {}, used time: {}ms", sql, original, elapsedTime);
 
                 if (original == null) {
                     Map<String, Object> insertConfig = (Map<String, Object>) ((Map<?, ?>) config).get("insert");
-                    insert(insertConfig, data, targetDataSource, targetSchema, targetTable);
+                    insert(insertConfig, data, targetDataSource, targetSchema, targetTable, sqlLog);
                 } else {
                     Map<String, Object> updateConfig = (Map<String, Object>) ((Map<?, ?>) config).get("update");
                     if ((sql = (String) updateConfig.get("sql")) != null) {
@@ -102,13 +103,13 @@ public class ExportToRDBResolver extends DefaultConfigurationResolver {
                     commonJdbcDao.update(sql);
                     elapsedTime = System.currentTimeMillis() - timestamp;
 
-                    log.info("update data sql: [{}], used time: {}ms", sql, elapsedTime);
+                    if(sqlLog) log.info("update data sql: [{}], used time: {}ms", sql, elapsedTime);
                 }
                 commonJdbcDao.setDataSource("master");
                 break;
             }
             case "insert": {
-                insert((Map<String, Object>) ((Map<?, ?>) config).get("insert"), data, targetDataSource, targetSchema, targetTable);
+                insert((Map<String, Object>) ((Map<?, ?>) config).get("insert"), data, targetDataSource, targetSchema, targetTable, sqlLog);
                 break;
             }
             default:
@@ -117,7 +118,7 @@ public class ExportToRDBResolver extends DefaultConfigurationResolver {
 
     }
 
-    private int insert(Map<String, Object> insertConfig, Map<String, Object> data, String dataSource, String schema, String table) {
+    private int insert(Map<String, Object> insertConfig, Map<String, Object> data, String dataSource, String schema, String table, boolean sqlLog) {
         String sql;
         if ((sql = (String) insertConfig.get("sql")) != null) {
             sql = Objects.requireNonNull(
@@ -135,7 +136,7 @@ public class ExportToRDBResolver extends DefaultConfigurationResolver {
         timestamp = System.currentTimeMillis();
         int i = commonJdbcDao.insert(sql);
         elapsedTime = System.currentTimeMillis() - timestamp;
-        log.info("insert data sql [{}], used time: {}ms", sql, elapsedTime);
+        if(sqlLog) log.info("insert data sql [{}], used time: {}ms", sql, elapsedTime);
         return i;
     }
 }
