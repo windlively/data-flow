@@ -49,8 +49,16 @@ public class Functions {
 
     public static void main(String[] args) {
 //        Stream.of(Functions.class.getMethods()).filter(m -> Modifier.isStatic(m.getModifiers())).forEach(m -> System.out.println(m.getName()));
+
+
+        System.out.println("你好#2020呀#~ 新年快乐".replaceAll(".*#(.+?)#.*", "$1"));
     }
 
+    /**
+     * 格式化日期
+     * @param date 源日期, {@link Date}或者{@link String}
+     * @param format 格式化格式
+     */
     public static String formatDate(Object date, String format){
         if(date instanceof String){
             return DateTime.parse((String) date).toString(format);
@@ -60,4 +68,12 @@ public class Functions {
         }
         throw new IllegalArgumentException("could not format date object " + date.getClass().getName());
     }
+
+    public static String takeFrom(String src, String left, String right){
+        return Optional.of(Optional.ofNullable(src).orElse(""))
+                .filter(s -> s.indexOf(left) < s.indexOf(right))
+                .map(s -> s.substring(s.indexOf(left) + 1, s.indexOf(right)))
+                .orElse(null);
+    }
+
 }

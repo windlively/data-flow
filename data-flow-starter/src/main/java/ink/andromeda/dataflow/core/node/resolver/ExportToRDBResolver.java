@@ -47,7 +47,7 @@ public class ExportToRDBResolver extends DefaultConfigurationResolver {
         String targetDataSource = (String) ((Map<String, Object>) config).getOrDefault("target_data_source", "master");
         String targetSchema = (String) ((Map<String, Object>) config).get("target_schema");
         String targetTable = (String) ((Map<String, Object>) config).get("target_table");
-        boolean sqlLog = (boolean) ((Map<String, Object>) config).getOrDefault("sql_log", false);
+        boolean sqlLog = (boolean) ((Map<String, Object>) config).getOrDefault("sql_log", true);
 
         Map<String, Object> data = target.getData();
         String dataExpression;

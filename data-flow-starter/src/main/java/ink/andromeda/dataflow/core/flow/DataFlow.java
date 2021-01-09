@@ -1,5 +1,6 @@
 package ink.andromeda.dataflow.core.flow;
 
+import ink.andromeda.dataflow.core.FilteredException;
 import ink.andromeda.dataflow.core.Registry;
 import ink.andromeda.dataflow.core.SourceEntity;
 import ink.andromeda.dataflow.core.TransferEntity;
@@ -61,6 +62,8 @@ public interface DataFlow extends Registry<FlowNode> {
         return getNodes().stream().reduce(FlowNode::then).map(n -> {
             try {
                 return n.apply(sourceEntity, transferEntity);
+            } catch (FilteredException e) {
+                throw e;
             } catch (Exception e) {
                 throw new IllegalStateException(e);
             }

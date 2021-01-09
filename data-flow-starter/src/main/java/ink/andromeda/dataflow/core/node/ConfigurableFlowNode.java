@@ -98,7 +98,7 @@ public class ConfigurableFlowNode implements FlowNode {
                 throw ex;
             }
         }
-        log.debug("pass node: {}", getName());
+        log.info("pass through node: {}", getName());
         return target;
     }
 

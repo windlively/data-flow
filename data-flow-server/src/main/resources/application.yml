@@ -9,6 +9,13 @@ multi-data-source:
         username: root
         connection-test-query: SELECT 1
         validation-timeout: 18800
+      - pool-name: common
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://localhost:3306/common
+        password: 123456789
+        username: root
+        connection-test-query: SELECT 1
+        validation-timeout: 18800
 spring:
   data:
     mongodb:
@@ -34,9 +41,9 @@ data-flow:
 #      - schema: .*
 #        tables:
 #          - .*
-      - schema: test_schema
+      - schema: weibo_spider
         tables:
-          - test_table
+          - weibo_spider
       - schema: capital
         tables:
           - zfpt_capital_order
@@ -88,8 +95,8 @@ data-flow:
     kafka-msg:
       json-msg-convert-config:
         data: "#root"
-        schema: "'test_schema'"
-        name: "'test_table'"
+        schema: "'weibo_spider'"
+        name: "'weibo_spider'"
       type: JSON
   mq-instances:
     - name: example_sink
