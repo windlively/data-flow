@@ -1,0 +1,56 @@
+{
+  "type": "object",
+  "fields": {
+    "type": {
+      "required": true,
+      "type": "string",
+      "value_reg": "(object|list|string|boolean)|(((object|list|string|boolean)\\|)+(object|list|string|boolean))"
+    },
+    "required": {
+      "type": "boolean"
+    },
+    "fields": {
+      "type": "object",
+      "reg_key": {
+        "\\w+": {
+          "type": "object",
+          "fields_ref": "fields"
+        }
+      }
+    },
+    "value_reg": {
+      "type": "string",
+      "value_reg": ".+"
+    },
+    "value_option": {
+      "type": "list",
+      "item": {
+        "type": "string"
+      }
+    },
+    "fields_ref": {
+      "type": "string",
+      "value_reg": "[\\w\\.]+"
+    },
+    "item": {
+      "type": "object",
+      "fields_ref": "fields"
+    },
+    "fields_option": {
+      "type": "string"
+    },
+    "reg_key": {
+      "type": "object",
+      "reg_key": {
+        ".+": {
+          "type": "object",
+          "fields_ref": "fields"
+        }
+      }
+    },
+    "node_regular": {
+      "type": "object",
+      "fields_ref": "fields"
+    }
+  }
+}

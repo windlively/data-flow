@@ -10,7 +10,7 @@
     "source": {
       "type": "string",
       "required": true,
-      "value_reg": "\\w*"
+      "value_reg": "\\w+"
     },
     "schema": {
       "type": "string",
@@ -62,7 +62,8 @@
               "value_option": ["list", "map", "object"]
             },
             "on_condition": {
-              "type": "string"
+              "type": "string",
+              "value_reg": ".+"
             },
             "data_source": {
               "type": "string",
@@ -101,6 +102,126 @@
         "reg_key": {
           "\\w+": {
             "type": "string"
+          }
+        }
+      },
+      "export_to_mp": {
+        "type": "object",
+        "fields": {
+          "data": {
+            "type": "string",
+            "value_reg": ".+"
+          },
+          "topic": {
+            "required": true,
+            "type": "string",
+            "value_reg": "\\w+"
+          },
+          "mq_name": {
+            "required": true,
+            "type": "string",
+            "value_reg": "\\w+"
+          },
+          "mq_type": {
+            "required": false,
+            "type": "string",
+            "value_option": ["kafka", "rocket"]
+          },
+          "tag": {
+            "required": false,
+            "type": "string",
+            "value_reg": "\\w+"
+          }
+        }
+      },
+      "export_to_rdb": {
+        "type": "object",
+        "fields": {
+          "method": {
+            "type": "string",
+            "value_option": ["upsert", "insert"]
+          },
+          "target_data_source": {
+            "type": "string",
+            "value_reg": "\\w+"
+          },
+          "target_schema": {
+            "required": true,
+            "type": "string",
+            "value_reg": "\\w+"
+          },
+          "target_table": {
+            "required": true,
+            "type": "string",
+            "value_reg": "\\w+"
+          },
+          "sql_log": {
+            "required": false,
+            "type": "boolean"
+          },
+          "data": {
+            "type": "string",
+            "value_reg": ".+"
+          },
+          "find_original": {
+            "type": "object",
+            "fields": {
+              "sql": {
+                "type": "string",
+                "value_reg": ".+"
+              },
+              "match_fields": {
+                "type": "list",
+                "item": {
+                  "type": "string",
+                  "value_reg": "\\w+"
+                }
+              }
+            }
+          },
+          "update": {
+            "type": "object",
+            "fields": {
+              "sql": {
+                "type": "string",
+                "value_reg": ".+"
+              },
+              "match_fields": {
+                "type": "list",
+                "item": {
+                  "type": "string",
+                  "value_reg": "\\w+"
+                }
+              },
+              "custom_fields": {
+                "type": "object",
+                "reg_key": {
+                  "\\w+": {
+                    "type": "string",
+                    "value_reg": ".+"
+                  }
+                }
+              }
+            }
+          },
+          "insert": {
+            "type": "string|boolean|list|object",
+            "required": true,
+            "fields": {
+              "sql": {
+                "type": "string",
+                "value_reg": ".+"
+              },
+              "custom_fields": {
+                "type": "object",
+                "reg_key": {
+                  "\\w+": {
+                    "type": "string",
+                    "value_reg": ".+"
+                  }
+                }
+              }
+            }
           }
         }
       },

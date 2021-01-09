@@ -99,9 +99,9 @@ data-flow:
         group-id: data-flow
         key-serializer: org.apache.kafka.common.serialization.StringSerializer
         value-serializer: org.apache.kafka.common.serialization.StringSerializer
-    - name: to_rocket
-      type: rocket
-      properties:
-        name-serv: localhost:8088
-        group-id: test
+#    - name: to_rocket
+#      type: rocket
+#      properties:
+#        name-serv: localhost:8088
+#        group-id: test
 

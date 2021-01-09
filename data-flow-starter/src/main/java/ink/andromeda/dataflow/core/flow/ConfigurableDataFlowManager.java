@@ -17,6 +17,7 @@ import org.springframework.lang.Nullable;
 
 import javax.annotation.PostConstruct;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
@@ -36,6 +37,9 @@ public abstract class ConfigurableDataFlowManager implements DataFlowManager {
     @Value("classpath:/config-regular/flow_config_regular.json")
     private Resource configRegularFile;
 
+    @Value("classpath:/config-regular/regular_template.json")
+    private Resource regularTemplateFile;
+
     protected final Map<String, List<DataFlow>> flowNamespaceIndexMap = new ConcurrentHashMap<>();
 
     protected final Map<String, DataFlow> flowNameIndexMap = new ConcurrentHashMap<>();
@@ -54,16 +58,30 @@ public abstract class ConfigurableDataFlowManager implements DataFlowManager {
 
     @PostConstruct
     protected void init(){
-        try (InputStream inputStream = configRegularFile.getInputStream()) {
+        try (InputStream inputStream = configRegularFile.getInputStream();
+            InputStream regularTemplateStream = regularTemplateFile.getInputStream();
+        ) {
             ByteArrayOutputStream os = new ByteArrayOutputStream();
             int data;
             while ((data = inputStream.read()) != -1) os.write(data);
             String str = os.toString(StandardCharsets.UTF_8.name());
-            Map<String, Object> template = GSON().fromJson(str, new TypeToken<Map<String, Object>>() {
+            Map<String, Object> flowConfigRegular = GSON().fromJson(str, new TypeToken<Map<String, Object>>() {
             }.getType());
-            flowConfigValidator = new JSONValidator(template);
-        } catch (Exception e) {
-            e.printStackTrace();
+            os.reset();
+
+            while ((data = regularTemplateStream.read()) != -1) os.write(data);
+            str = os.toString();
+            Map<String, Object> regularTemplate = GSON().fromJson(str, new TypeToken<Map<String, Object>>() {
+            }.getType());
+
+            LinkedHashMap<String, String> map = new JSONValidator(regularTemplate).validate(flowConfigRegular);
+
+            if(!map.isEmpty()){
+                throw new ConfigValidationException(map);
+            }
+
+            flowConfigValidator = new JSONValidator(flowConfigRegular);
+        } catch (IOException e) {
             log.error(e.getMessage(), e);
         }
         reload();
