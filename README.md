@@ -7,7 +7,7 @@
 ## 依赖环境
 - Java: 基于Java SE 8+ 开发
 - MongoDB: 用于存储程序的配置文件, 或者也可自行实现配置的增删改方式
-- Redis
+- Redis：用于集群管理
 - Kafka: 若消息从kafka接入(例如canal, ogg等工具)或者需要写入目标为Kafka, 则需要配置kafka
 - MySQL: 写入目标为MySQL时需要
 - 其他: 若数据需要写入到Oracle, SQLServer, Rocket, Rabbit等存储介质时, 需要对应配置
@@ -200,71 +200,128 @@ server:
 >       数据插入的配置, 
 >   - **export_to_mq** *object*
 >     将当前数据导出至MQ
->   - **data** *string*  
+>     - **data** *string*  
 >     SPEL表达式自定义导出数据, 不使用默认的结果数据  
+
+配置示例：
 ```json
-{
-    "_id" : "a_pay_flow_test", 
-    "source" : "",  
-    "name" : "a_pay_flow", 
-    "schema" : "electricity_payment",  
+  {
+    "_id" : "save_spider_result_flow",
+    "source" : "__default",
+    "name" : "weibo_spider",
+    "schema" : "weibo_spider",
     "node_list" : [ 
         {
-            "node_name" : "node1", 
-            "eval_context" : [ 
-                {
-                    "name" : "var1",
-                    "sql" : "SELECT * FROM test.notice LIMIT 1",
-                    "type" : "list",
-                    "data_source" : "master"
-                }
-            ],
+            "node_name" : "just_save",
+            "eval_context" : [],
             "simple_copy_fields" : true,
             "skip_if_exception" : false,
             "resolve_order" : [ 
-                "eval_context", 
                 "filter", 
+                "eval_context", 
                 "simple_copy_fields", 
                 "simple_convert", 
                 "additional_expression", 
                 "conditional_expression"
             ],
-            "export_to_mq" : {
-                "topic" : "flow-output",
-                "mq_name" : "example_sink"
-            }
-        },
-        {
-            "node_name" : "node2",
-            "simple_convert" : {
-                "bookId" : "[f4]",
-                "bookName" : "[f3]",
-                "bookAuthor" : "'佚名'",
-                "bookPrice" : "T(Math).random() * 10 + 20",
-                "bookInfo" : "'aaa'"
-            },
+            "filter" : "[nickname]==null",
+            "conditional_expression" : [ 
+                {
+                    "condition" : "[user_id] == null or [user_id] == ''",
+                    "expression" : "#res[user_id]=-1"
+                }
+            ],
             "export_to_rdb" : {
                 "method" : "upsert",
-                "target_schema" : "test",
-                "target_table" : "book",
+                "target_schema" : "weibo",
+                "target_table" : "weibo_spider_result",
+                "target_data_source" : "master",
+                "sql_log" : true,
                 "find_original" : {
                     "match_fields" : [ 
-                        "bookId"
+                        "id"
                     ]
                 },
                 "update" : {
                     "match_fields" : [ 
-                        "bookId"
+                        "id"
+                    ]
+                },
+                "insert" : {}
+            }
+        }, 
+        {
+            "node_name" : "save_to_news",
+            "resolve_order" : [ 
+                "filter", 
+                "eval_context", 
+                "simple_copy_fields", 
+                "simple_convert", 
+                "additional_expression", 
+                "conditional_expression"
+            ],
+            "eval_context" : [ 
+                {
+                    "name" : "user_info",
+                    "data_source" : "common",
+                    "sql" : "SELECT * FROM common.weibo_user WHERE id=${[user_id]}",
+                    "type" : "map"
+                }
+            ],
+            "simple_convert" : {
+                "id" : "[id]",
+                "content" : "[content]",
+                "create_time" : "new java.util.Date()",
+                "send_account" : "[user_info][nickname]",
+                "title" : "#takeFrom([content], '【', '】')"
+            },
+            "conditional_expression" : [ 
+                {
+                    "condition" : "[content] != null and (#res[title]==null or #res[title]=='')",
+                    "expression" : [ 
+                        {
+                            "condition" : "[content].indexOf('#') != [content].lastIndexOf('#')",
+                            "expression" : "#res[title]=[content].replaceAll(\".*#(.+?)#.*\", \"$1\")"
+                        }
+                    ]
+                }
+            ],
+            "export_to_rdb" : {
+                "method" : "upsert",
+                "target_schema" : "common",
+                "target_table" : "news",
+                "target_data_source" : "common",
+                "sql_log" : true,
+                "find_original" : {
+                    "match_fields" : [ 
+                        "id"
+                    ]
+                },
+                "update" : {
+                    "sql" : "UPDATE common.news SET title='${#res[title]}', send_account='${#res[send_account]}', content='${#res[content]}', update_time=NOW() WHERE id='${[id]}'",
+                    "match_fields" : [ 
+                        "id"
                     ]
                 },
                 "insert" : {
-                    "sql" : "insert into test.book values(DEFAULT, '${#res.data[bookName]}', '${#res.data[bookAuthor]}',${#res.data[bookPrice] * 10}, '${#res.data[bookInfo]+'01'}' )"
+                    "sql" : "INSERT INTO common.news VALUES('${#res[id]}', '${#res[title]}', '${#res[content]}', '${#res[send_account]}', '${#formatDate(#res[create_time], \"yyyy-MM-dd HH:mm:ss\")}', NOW())"
                 }
+            }
+        },{
+            "node_name": "to_kafka",
+            "export_to_mq":{
+                "mq_name": "example_sink",
+                "mq_type": "kafka",
+                "topic": "news"
             }
         }
     ]
 }
 ```
+### data-flow-demo  
+演示模块，可直接启动，不依赖额外的中间件，flow配置采用文件存储方式，可在resources目录下看到。
+### data-flow-view
+前端模块，用于项目监控以及配置管理等。
 
 ## 架构介绍
 ### 架构图
@@ -374,31 +431,43 @@ server:
   ```java
   @Override
   public List<TransferEntity> routeAndProcess(SourceEntity sourceEntity) throws Exception {
-      List<TransferEntity> transferEntities = new ArrayList<>(8);
-      List<DataFlow> flowList = route(sourceEntity);
+    List<TransferEntity> transferEntities = new ArrayList<>(8);
+    // 父级traceId
+    String parentTraceId = Optional.ofNullable(MDC.get("traceId")).orElse(shortTraceId());
+    MDC.put("traceId", parentTraceId);
+    log.info("starting process source entity: {}", sourceEntity);
 
-      CountDownLatch countDownLatch = new CountDownLatch(flowList.size());
-
-      for (DataFlow flow : flowList) {
-          MDC.put("traceId", randomId()); // 我所使用的线程池会记录父线程的traceId，因此可以写在外面
-          executorService.submit(() -> {
-              try {
-                  transferEntities.add(flow.inflow(sourceEntity.clone()));
-              }catch (FilteredException e){
-                  log.info(e.getMessage());
-              }catch (Exception e) {
-                  log.error(e.getMessage(), e);
-              }finally {
-                  countDownLatch.countDown();
-              }
-          });
-          MDC.remove("traceId");
-      }
-
-      countDownLatch.await();
-
-      return transferEntities;
+    List<DataFlow> flowList = route(sourceEntity);
+    CountDownLatch countDownLatch = new CountDownLatch(flowList.size());
+    for (DataFlow flow : flowList) {
+        // 子traceId，在一个flow处理过程中唯一，方便日志追踪
+        MDC.put("traceId", parentTraceId + "-" +  shortTraceId());
+        executorService.submit(() -> {
+            try {
+                transferEntities.add(flow.inflow(sourceEntity.clone()));
+            }catch (FilteredException e){
+                log.info(e.getMessage());
+            }catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }finally {
+                countDownLatch.countDown();
+            }
+        });
+        MDC.remove("traceId");
+    }
+    countDownLatch.await();
+    return transferEntities;
   }
   ```
 ### 附录
+#### 测试数据
+此部分测试针对data-flow-server模块，需要提供kafka、redis、mysql、mongo等中间件服务(data-flow-demo模块仅为项目演示，使用H2数据库，无需其他中间件)。
+- 数据源  
+  本项目开发时所用的测试数据源来自开源项目: [weiboSpider](https://github.com/dataabc/weiboSpider), 可在当前项目[doc/test/test-data-provider](doc/test/test-data-provider)下找到，使用此python程序爬取微博数据并向kafka推送，以此提供测试数据。也可通过其他方式。
+- mysql测试库表结构  
+  [doc/test/test_table.sql](doc/test/test_table.sql)，在mysql中执行即可
+- flow配置  
+  [doc/test/mongo-test-backup-data](doc/test/mongo-test-backup-data)，使用`mongorestore`命令恢复即可
+- application.yml配置，包含所需各中间件的配置，根据自己的配置修改  
+  [doc/test/application.yml](doc/test/application.yml)
 #### Docker下的Canal搭建

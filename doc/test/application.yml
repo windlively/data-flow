@@ -37,10 +37,10 @@ data-flow:
   server:
     enable-kafka: true
     listen-table-config:
-      #      允许全部库表
-      #      - schema: .*
-      #        tables:
-      #          - .*
+#      允许全部库表
+#      - schema: .*
+#        tables:
+#          - .*
       - schema: weibo_spider
         tables:
           - weibo_spider
@@ -111,3 +111,4 @@ data-flow:
 #      properties:
 #        name-serv: localhost:8088
 #        group-id: test
+
