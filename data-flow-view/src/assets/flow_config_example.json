@@ -421,6 +421,132 @@
     ]
   },
   {
+    "_id": "spider_user_flow_a",
+    "source": "__default",
+    "name": "weibo_spider",
+    "schema": "weibo_spider",
+    "node_list": [
+      {
+        "node_name": "node1",
+        "eval_context": [],
+        "skip_if_exception": false,
+        "simple_copy_fields": true,
+        "resolve_order": [
+          "filter",
+          "eval_context",
+          "simple_copy_fields",
+          "simple_convert",
+          "additional_expression",
+          "conditional_expression"
+        ],
+        "filter": "[nickname]!=null",
+        "simple_convert": {},
+        "export_to_rdb": {
+          "method": "upsert",
+          "target_schema": "common",
+          "target_table": "weibo_user",
+          "target_data_source": "common",
+          "sql_log": true,
+          "find_original": {
+            "match_fields": [
+              "id"
+            ]
+          },
+          "update": {
+            "match_fields": [
+              "id"
+            ]
+          },
+          "insert": {}
+        }
+      }
+    ]
+  },
+  {
+    "_id": "spider_user_flow_c",
+    "source": "__default",
+    "name": "weibo_spider",
+    "schema": "weibo_spider",
+    "node_list": [
+      {
+        "node_name": "node1",
+        "eval_context": [],
+        "skip_if_exception": false,
+        "simple_copy_fields": true,
+        "resolve_order": [
+          "filter",
+          "eval_context",
+          "simple_copy_fields",
+          "simple_convert",
+          "additional_expression",
+          "conditional_expression"
+        ],
+        "filter": "[nickname]!=null",
+        "simple_convert": {},
+        "export_to_rdb": {
+          "method": "upsert",
+          "target_schema": "common",
+          "target_table": "weibo_user",
+          "target_data_source": "common",
+          "sql_log": true,
+          "find_original": {
+            "match_fields": [
+              "id"
+            ]
+          },
+          "update": {
+            "match_fields": [
+              "id"
+            ]
+          },
+          "insert": {}
+        }
+      }
+    ]
+  },
+  {
+    "_id": "spider_user_flow_d",
+    "source": "__default",
+    "name": "weibo_spider",
+    "schema": "weibo_spider",
+    "node_list": [
+      {
+        "node_name": "node1",
+        "eval_context": [],
+        "skip_if_exception": false,
+        "simple_copy_fields": true,
+        "resolve_order": [
+          "filter",
+          "eval_context",
+          "simple_copy_fields",
+          "simple_convert",
+          "additional_expression",
+          "conditional_expression"
+        ],
+        "filter": "[nickname]!=null",
+        "simple_convert": {},
+        "export_to_rdb": {
+          "method": "upsert",
+          "target_schema": "common",
+          "target_table": "weibo_user",
+          "target_data_source": "common",
+          "sql_log": true,
+          "find_original": {
+            "match_fields": [
+              "id"
+            ]
+          },
+          "update": {
+            "match_fields": [
+              "id"
+            ]
+          },
+          "insert": {}
+        }
+      }
+    ]
+  },
+  {
     "_id": "demo_flow_1",
     "source": "demo",
     "name": "order_summary",
@@ -536,6 +662,14 @@
           "insert": {
             "sql": "INSERT INTO op_log_db.purchase_log VALUES(${#res[id]}, ${#res[book_id]}, ${#res[customer_id]}, '${#res[book_name]}', '${#res[customer_account_name]}', ${#res[count]}, ${#res[should_amount]}, ${#res[paid_amount]},${#res[discount]},'${#res[paid_time]}',NOW(),NOW())"
           }
+        }
+      },
+      {
+        "node_name": "to_kafka_9",
+        "export_to_mq": {
+          "mq_name": "example_sink",
+          "mq_type": "kafka",
+          "topic": "news"
         }
       }
     ]

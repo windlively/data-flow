@@ -19,7 +19,7 @@ import {MatButtonModule} from "@angular/material/button";
 import {MatDialogModule} from "@angular/material/dialog";
 import { FlowListComponent } from './flow-list/flow-list.component';
 import {NgxEchartsModule} from 'ngx-echarts';
-
+import "src/assets/echarts-theme/purple-passion.js"
 registerLocaleData(zh);
 
 @NgModule({
