@@ -10,13 +10,12 @@ import {MatDialog} from "@angular/material/dialog";
 })
 export class ToolButtonGroupComponent implements OnInit {
 
-  openToolButtonClass: string = '';
+  openToolButtonClass = '';
   toolButtonOpened: boolean;
 
-  toolButtonGroup:object[] = [
-    {animationStyle: '', name: 'toggle-control',icon: 'plus', color: '', ngClass: this.openToolButtonClass, description: '菜单'},
-    {animationStyle: '', name: 'logout', icon: 'logout', color: '', ngClass: '', description: '退出登录'},
-    // {animationStyle: '', name: 'app', icon: 'appstore', color: '', ngClass: ''},
+  toolButtonGroup: object[] = [
+    {animationStyle: '', name: 'toggle-control', icon: 'plus', color: '', ngClass: this.openToolButtonClass, description: '菜单'},
+    {animationStyle: '', name: 'flow-list', icon: 'partition', color: '', ngClass: '', description: 'Flow列表', routeLink: 'flow-list'},
     {animationStyle: '', name: 'edit', icon: 'edit', color: '', ngClass: '', description: '新建文章'},
     {animationStyle: '', name: 'profile', icon: 'profile', color: '', ngClass: '', description: '个人资料'}
   ];
@@ -26,11 +25,11 @@ export class ToolButtonGroupComponent implements OnInit {
               public router: Router) { }
 
   ngOnInit() {
-    //记录工具按钮的状态（是否打开）
+    // 记录工具按钮的状态（是否打开）
     this.toolButtonOpened = false;
-    let style = document.getElementsByTagName('style')[0];
+    const style = document.getElementsByTagName('style')[0];
     let keyframes = '';
-    //动态生成关键帧，用于右下角工具按钮的出现/消失动画
+    // 动态生成关键帧，用于右下角工具按钮的出现/消失动画
     for (let i = 1; i < this.toolButtonGroup.length; i++) {
       keyframes += `
           @keyframes hideToolButton-${i} {
@@ -46,7 +45,7 @@ export class ToolButtonGroupComponent implements OnInit {
                   opacity: 0;
                }
           }`;
-      keyframes +=`
+      keyframes += `
           @keyframes showToolButton-${i} {
               from {
                   visibility: visible;
@@ -60,18 +59,18 @@ export class ToolButtonGroupComponent implements OnInit {
                   opacity: 1;
                }
           }
-          `
+          `;
     }
     style.innerHTML = keyframes;
   }
 
-  //工具按钮点击
+  // 工具按钮点击
   toggleToolGroup = () => {
     if(this.toolButtonOpened){
-      //关闭时的动画
+      // 关闭时的动画
       this.openToolButtonClass = 'tool-button-close';
-      for(let i = 0; i < this.toolButtonGroup.length;i++) {
-        if(i == 0) continue;
+      for ( let i = 0; i < this.toolButtonGroup.length; i++) {
+        if (i === 0) { continue; }
         this.toolButtonGroup[i]['animationStyle'] = `hideToolButton-${i} .6s ease-out forwards`;
       }
     }else {
@@ -87,13 +86,10 @@ export class ToolButtonGroupComponent implements OnInit {
 
 
 
-  toolGroupButtonClick(buttonName: string) {
+  toolGroupButtonClick = (buttonName: string) => {
     switch (buttonName) {
       case 'toggle-control': this.toggleToolGroup(); break;
-      case 'app': break;
-      case 'logout': this.logout(); break;
-      case 'edit': this.newEssay(); break;
-      case 'profile': this.editProfile(); break;
+      default: this.router.navigateByUrl(buttonName);
     }
   }
 
@@ -101,7 +97,7 @@ export class ToolButtonGroupComponent implements OnInit {
 
   }
 
-  editProfile = ()=> {
+  editProfile = () => {
 
   };
 

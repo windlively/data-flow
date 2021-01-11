@@ -17,13 +17,16 @@ import {NzIconModule} from "ng-zorro-antd/icon";
 import {MatTooltipModule} from "@angular/material/tooltip";
 import {MatButtonModule} from "@angular/material/button";
 import {MatDialogModule} from "@angular/material/dialog";
+import { FlowListComponent } from './flow-list/flow-list.component';
+import {NgxEchartsModule} from 'ngx-echarts';
 
 registerLocaleData(zh);
 
 @NgModule({
   declarations: [
     AppComponent,
-    ToolButtonGroupComponent
+    ToolButtonGroupComponent,
+    FlowListComponent
   ],
   imports: [
     BrowserModule,
@@ -36,7 +39,10 @@ registerLocaleData(zh);
     NzIconModule,
     MatTooltipModule,
     MatButtonModule,
-    MatDialogModule
+    MatDialogModule,
+    NgxEchartsModule.forRoot({
+      echarts: () => import('echarts')
+    })
   ],
   providers: [{ provide: NZ_I18N, useValue: zh_CN }],
   bootstrap: [AppComponent]

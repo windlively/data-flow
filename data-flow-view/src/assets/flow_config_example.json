@@ -1,0 +1,543 @@
+[
+  {
+    "_id": "save_spider_result_flow",
+    "source": "__default",
+    "name": "weibo_spider",
+    "schema": "weibo_spider",
+    "node_list": [
+      {
+        "node_name": "just_save",
+        "eval_context": [],
+        "simple_copy_fields": true,
+        "skip_if_exception": false,
+        "resolve_order": [
+          "filter",
+          "eval_context",
+          "simple_copy_fields",
+          "simple_convert",
+          "additional_expression",
+          "conditional_expression"
+        ],
+        "filter": "[nickname]==null",
+        "conditional_expression": [
+          {
+            "condition": "[user_id] == null or [user_id] == ''",
+            "expression": "#res[user_id]=-1"
+          }
+        ],
+        "export_to_rdb": {
+          "method": "upsert",
+          "target_schema": "weibo",
+          "target_table": "weibo_spider_result",
+          "target_data_source": "master",
+          "sql_log": true,
+          "find_original": {
+            "match_fields": [
+              "id"
+            ]
+          },
+          "update": {
+            "match_fields": [
+              "id"
+            ]
+          },
+          "insert": {}
+        }
+      },
+      {
+        "node_name": "save_to_news",
+        "resolve_order": [
+          "filter",
+          "eval_context",
+          "simple_copy_fields",
+          "simple_convert",
+          "additional_expression",
+          "conditional_expression"
+        ],
+        "eval_context": [
+          {
+            "name": "user_info",
+            "data_source": "common",
+            "sql": "SELECT * FROM common.weibo_user WHERE id=${[user_id]}",
+            "type": "map"
+          }
+        ],
+        "simple_convert": {
+          "id": "[id]",
+          "content": "[content]",
+          "create_time": "new java.util.Date()",
+          "send_account": "[user_info][nickname]",
+          "title": "#takeFrom([content], '【', '】')"
+        },
+        "conditional_expression": [
+          {
+            "condition": "[content] != null and (#res[title]==null or #res[title]=='')",
+            "expression": [
+              {
+                "condition": "[content].indexOf('#') != [content].lastIndexOf('#')",
+                "expression": "#res[title]=[content].replaceAll(\".*#(.+?)#.*\", \"$1\")"
+              }
+            ]
+          }
+        ],
+        "export_to_rdb": {
+          "method": "upsert",
+          "target_schema": "common",
+          "target_table": "news",
+          "target_data_source": "common",
+          "sql_log": true,
+          "find_original": {
+            "match_fields": [
+              "id"
+            ]
+          },
+          "update": {
+            "sql": "UPDATE common.news SET title='${#res[title]}', send_account='${#res[send_account]}', content='${#res[content]}', update_time=NOW() WHERE id='${[id]}'",
+            "match_fields": [
+              "id"
+            ]
+          },
+          "insert": {
+            "sql": "INSERT INTO common.news VALUES('${#res[id]}', '${#res[title]}', '${#res[content]}', '${#res[send_account]}', '${#formatDate(#res[create_time], \"yyyy-MM-dd HH:mm:ss\")}', NOW())"
+          }
+        }
+      },
+      {
+        "node_name": "to_kafka",
+        "export_to_mq": {
+          "mq_name": "example_sink",
+          "mq_type": "kafka",
+          "topic": "news"
+        }
+      }
+    ]
+  },
+  {
+    "_id": "save_spider_result_flow_b",
+    "source": "__default",
+    "name": "weibo_spider",
+    "schema": "weibo_spider",
+    "node_list": [
+      {
+        "node_name": "just_save",
+        "eval_context": [],
+        "simple_copy_fields": true,
+        "skip_if_exception": false,
+        "resolve_order": [
+          "filter",
+          "eval_context",
+          "simple_copy_fields",
+          "simple_convert",
+          "additional_expression",
+          "conditional_expression"
+        ],
+        "filter": "[nickname]==null",
+        "conditional_expression": [
+          {
+            "condition": "[user_id] == null or [user_id] == ''",
+            "expression": "#res[user_id]=-1"
+          }
+        ],
+        "export_to_rdb": {
+          "method": "upsert",
+          "target_schema": "weibo",
+          "target_table": "weibo_spider_result",
+          "target_data_source": "master",
+          "sql_log": true,
+          "find_original": {
+            "match_fields": [
+              "id"
+            ]
+          },
+          "update": {
+            "match_fields": [
+              "id"
+            ]
+          },
+          "insert": {}
+        }
+      },
+      {
+        "node_name": "save_to_news",
+        "resolve_order": [
+          "filter",
+          "eval_context",
+          "simple_copy_fields",
+          "simple_convert",
+          "additional_expression",
+          "conditional_expression"
+        ],
+        "eval_context": [
+          {
+            "name": "user_info",
+            "data_source": "common",
+            "sql": "SELECT * FROM common.weibo_user WHERE id=${[user_id]}",
+            "type": "map"
+          }
+        ],
+        "simple_convert": {
+          "id": "[id]",
+          "content": "[content]",
+          "create_time": "new java.util.Date()",
+          "send_account": "[user_info][nickname]",
+          "title": "#takeFrom([content], '【', '】')"
+        },
+        "conditional_expression": [
+          {
+            "condition": "[content] != null and (#res[title]==null or #res[title]=='')",
+            "expression": [
+              {
+                "condition": "[content].indexOf('#') != [content].lastIndexOf('#')",
+                "expression": "#res[title]=[content].replaceAll(\".*#(.+?)#.*\", \"$1\")"
+              }
+            ]
+          }
+        ],
+        "export_to_rdb": {
+          "method": "upsert",
+          "target_schema": "common",
+          "target_table": "news",
+          "target_data_source": "common",
+          "sql_log": true,
+          "find_original": {
+            "match_fields": [
+              "id"
+            ]
+          },
+          "update": {
+            "sql": "UPDATE common.news SET title='${#res[title]}', send_account='${#res[send_account]}', content='${#res[content]}', update_time=NOW() WHERE id='${[id]}'",
+            "match_fields": [
+              "id"
+            ]
+          },
+          "insert": {
+            "sql": "INSERT INTO common.news VALUES('${#res[id]}', '${#res[title]}', '${#res[content]}', '${#res[send_account]}', '${#formatDate(#res[create_time], \"yyyy-MM-dd HH:mm:ss\")}', NOW())"
+          }
+        }
+      },
+      {
+        "node_name": "to_kafka",
+        "export_to_mq": {
+          "mq_name": "example_sink",
+          "mq_type": "kafka",
+          "topic": "news"
+        }
+      }
+    ]
+  },
+  {
+    "_id": "save_spider_result_flow_a",
+    "source": "__default",
+    "name": "weibo_spider",
+    "schema": "weibo_spider",
+    "node_list": [
+      {
+        "node_name": "just_save",
+        "eval_context": [],
+        "simple_copy_fields": true,
+        "skip_if_exception": false,
+        "resolve_order": [
+          "filter",
+          "eval_context",
+          "simple_copy_fields",
+          "simple_convert",
+          "additional_expression",
+          "conditional_expression"
+        ],
+        "filter": "[nickname]==null",
+        "conditional_expression": [
+          {
+            "condition": "[user_id] == null or [user_id] == ''",
+            "expression": "#res[user_id]=-1"
+          }
+        ],
+        "export_to_rdb": {
+          "method": "upsert",
+          "target_schema": "weibo",
+          "target_table": "weibo_spider_result",
+          "target_data_source": "master",
+          "sql_log": true,
+          "find_original": {
+            "match_fields": [
+              "id"
+            ]
+          },
+          "update": {
+            "match_fields": [
+              "id"
+            ]
+          },
+          "insert": {}
+        }
+      },
+      {
+        "node_name": "save_to_news",
+        "resolve_order": [
+          "filter",
+          "eval_context",
+          "simple_copy_fields",
+          "simple_convert",
+          "additional_expression",
+          "conditional_expression"
+        ],
+        "eval_context": [
+          {
+            "name": "user_info",
+            "data_source": "common",
+            "sql": "SELECT * FROM common.weibo_user WHERE id=${[user_id]}",
+            "type": "map"
+          }
+        ],
+        "simple_convert": {
+          "id": "[id]",
+          "content": "[content]",
+          "create_time": "new java.util.Date()",
+          "send_account": "[user_info][nickname]",
+          "title": "#takeFrom([content], '【', '】')"
+        },
+        "conditional_expression": [
+          {
+            "condition": "[content] != null and (#res[title]==null or #res[title]=='')",
+            "expression": [
+              {
+                "condition": "[content].indexOf('#') != [content].lastIndexOf('#')",
+                "expression": "#res[title]=[content].replaceAll(\".*#(.+?)#.*\", \"$1\")"
+              }
+            ]
+          }
+        ],
+        "export_to_rdb": {
+          "method": "upsert",
+          "target_schema": "common",
+          "target_table": "news",
+          "target_data_source": "common",
+          "sql_log": true,
+          "find_original": {
+            "match_fields": [
+              "id"
+            ]
+          },
+          "update": {
+            "sql": "UPDATE common.news SET title='${#res[title]}', send_account='${#res[send_account]}', content='${#res[content]}', update_time=NOW() WHERE id='${[id]}'",
+            "match_fields": [
+              "id"
+            ]
+          },
+          "insert": {
+            "sql": "INSERT INTO common.news VALUES('${#res[id]}', '${#res[title]}', '${#res[content]}', '${#res[send_account]}', '${#formatDate(#res[create_time], \"yyyy-MM-dd HH:mm:ss\")}', NOW())"
+          }
+        }
+      },
+      {
+        "node_name": "to_kafka_1",
+        "export_to_mq": {
+          "mq_name": "example_sink",
+          "mq_type": "kafka",
+          "topic": "news"
+        }
+      },
+      {
+        "node_name": "to_kafka_2",
+        "export_to_mq": {
+          "mq_name": "example_sink",
+          "mq_type": "kafka",
+          "topic": "news"
+        }
+      },
+      {
+        "node_name": "to_kafka_3",
+        "export_to_mq": {
+          "mq_name": "example_sink",
+          "mq_type": "kafka",
+          "topic": "news"
+        }
+      },
+      {
+        "node_name": "to_kafka_7",
+        "export_to_mq": {
+          "mq_name": "example_sink",
+          "mq_type": "kafka",
+          "topic": "news"
+        }
+      },
+      {
+        "node_name": "to_kafka_8",
+        "export_to_mq": {
+          "mq_name": "example_sink",
+          "mq_type": "kafka",
+          "topic": "news"
+        }
+      },
+      {
+        "node_name": "to_kafka_9",
+        "export_to_mq": {
+          "mq_name": "example_sink",
+          "mq_type": "kafka",
+          "topic": "news"
+        }
+      }
+    ]
+  },
+  {
+    "_id": "spider_user_flow",
+    "source": "__default",
+    "name": "weibo_spider",
+    "schema": "weibo_spider",
+    "node_list": [
+      {
+        "node_name": "node1",
+        "eval_context": [],
+        "skip_if_exception": false,
+        "simple_copy_fields": true,
+        "resolve_order": [
+          "filter",
+          "eval_context",
+          "simple_copy_fields",
+          "simple_convert",
+          "additional_expression",
+          "conditional_expression"
+        ],
+        "filter": "[nickname]!=null",
+        "simple_convert": {},
+        "export_to_rdb": {
+          "method": "upsert",
+          "target_schema": "common",
+          "target_table": "weibo_user",
+          "target_data_source": "common",
+          "sql_log": true,
+          "find_original": {
+            "match_fields": [
+              "id"
+            ]
+          },
+          "update": {
+            "match_fields": [
+              "id"
+            ]
+          },
+          "insert": {}
+        }
+      }
+    ]
+  },
+  {
+    "_id": "demo_flow_1",
+    "source": "demo",
+    "name": "order_summary",
+    "schema": "business_db",
+    "node_list": [
+      {
+        "node_name": "node1",
+        "eval_context": [],
+        "simple_convert": {
+          "create_time": "new java.util.Date()",
+          "outer_create_time": "[pay_time]"
+        },
+        "simple_copy_fields": true,
+        "conditional_expression": [
+          {
+            "condition": "true",
+            "expression": [
+              {
+                "condition": "false",
+                "expression": "111"
+              }
+            ]
+          }
+        ],
+        "skip_if_exception": false,
+        "resolve_order": [
+          "eval_context",
+          "filter",
+          "simple_copy_fields",
+          "simple_convert",
+          "additional_expression",
+          "conditional_expression"
+        ],
+        "export_to_rdb": {
+          "method": "upsert",
+          "target_schema": "origin_db",
+          "target_table": "origin_order",
+          "target_data_source": "origin",
+          "find_original": {
+            "match_fields": [
+              "id"
+            ]
+          },
+          "update": {
+            "match_fields": [
+              "id"
+            ]
+          },
+          "insert": {
+          }
+        }
+      }
+    ]
+  },
+  {
+    "_id": "demo_flow_2",
+    "source": "demo",
+    "name": "order_summary",
+    "schema": "business_db",
+    "node_list": [
+      {
+        "node_name": "node1",
+        "eval_context": [
+          {
+            "name": "bookInfo",
+            "data_source": "master",
+            "sql": "SELECT * FROM business_db.book_info WHERE id=${[book_id]}",
+            "type": "map"
+          },
+          {
+            "name": "customerInfo",
+            "data_source": "master",
+            "sql": "SELECT * FROM business_db.customer_info WHERE id=${[customer_id]}",
+            "type": "map"
+          }
+        ],
+        "simple_convert": {
+          "id": "[id]",
+          "book_id": "[book_id]",
+          "customer_id": "[customer_id]",
+          "book_name": "[bookInfo][name]",
+          "customer_account_name": "[customerInfo][account_name]",
+          "count": "[count]",
+          "should_amount": "[count] * [bookInfo][price]",
+          "paid_amount": "[amount]",
+          "paid_time": "#formatDate([pay_time],'yyyy-MM-dd HH:mm:ss.SSS')",
+          "discount": "#res[should_amount]-#res[paid_amount]",
+          "create_time": "[create_time]"
+        },
+        "simple_copy_fields": false,
+        "conditional_expression": [
+        ],
+        "skip_if_exception": false,
+        "resolve_order": [
+          "eval_context",
+          "filter",
+          "simple_copy_fields",
+          "simple_convert",
+          "additional_expression",
+          "conditional_expression"
+        ],
+        "export_to_rdb": {
+          "method": "upsert",
+          "target_schema": "op_log_db",
+          "target_table": "purchase_log",
+          "target_data_source": "op_log",
+          "find_original": {
+            "sql": "SELECT * FROM op_log_db.purchase_log WHERE id=${#res[id]}"
+          },
+          "update": {
+            "sql": "UPDATE op_log_db.purchase_log SET book_id=${#res[book_id]}, customer_id=${#res[customer_id]}, book_name='${#res[book_name]}', customer_account_name='${#res[customer_account_name]}', count=${#res[count]}, should_amount=${#res[should_amount]}, paid_amount=${#res[paid_amount]}, discount=${#res[discount]}, paid_time='${#res[paid_time]}',update_time=NOW() WHERE id=${#res[id]}"
+          },
+          "insert": {
+            "sql": "INSERT INTO op_log_db.purchase_log VALUES(${#res[id]}, ${#res[book_id]}, ${#res[customer_id]}, '${#res[book_name]}', '${#res[customer_account_name]}', ${#res[count]}, ${#res[should_amount]}, ${#res[paid_amount]},${#res[discount]},'${#res[paid_time]}',NOW(),NOW())"
+          }
+        }
+      }
+    ]
+  }
+]
