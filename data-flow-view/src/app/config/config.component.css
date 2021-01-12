@@ -1,0 +1,17 @@
+table {
+  width: 100%;
+}
+.mat-header-row{
+  background-color: #9933ff89;
+}
+
+@supports (backdrop-filter: blur(2px)) {
+  .mat-header-row{
+    backdrop-filter: blur(5px);
+  }
+}
+
+.mat-form-field {
+  font-size: 14px;
+  width: 100%;
+}

@@ -23,6 +23,12 @@ import "src/assets/echarts-theme/purple-passion.js";
 import { ConfigComponent } from './config/config.component'
 import {MatTabsModule} from '@angular/material/tabs';
 import {AppService} from './app.service';
+import {MatFormFieldModule} from "@angular/material/form-field";
+import {MatTableModule} from "@angular/material/table";
+import {MatInputModule} from "@angular/material/input";
+import {MatPaginatorModule} from '@angular/material/paginator';
+import {MatSortModule} from '@angular/material/sort';
+import {MatCheckboxModule} from '@angular/material/checkbox';
 registerLocaleData(zh);
 
 @NgModule({
@@ -47,7 +53,13 @@ registerLocaleData(zh);
     NgxEchartsModule.forRoot({
       echarts: () => import('echarts')
     }),
-    MatTabsModule
+    MatTabsModule,
+    MatFormFieldModule,
+    MatTableModule,
+    MatInputModule,
+    MatPaginatorModule,
+    MatSortModule,
+    MatCheckboxModule
   ],
   providers: [{ provide: NZ_I18N, useValue: zh_CN }, AppService],
   bootstrap: [AppComponent]

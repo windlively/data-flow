@@ -91,10 +91,13 @@ export class FlowListComponent implements OnInit {
         // extraCssText: `max-width: 600px; max-height: ${height}px;word-wrap:break-word;`,
         confine: true,
         enterable: true,
-        borderWidth: 0,
-        zlevel: 2000
+        borderWidth: 0
       },
-      animationDurationUpdate: 1500,
+      animationDurationUpdate: 2000,
+      animationDelay: function (idx) {
+        // 越往后的数据延迟越大
+        return idx * 100;
+      },
       animationEasingUpdate: 'quinticInOut',
       series: [
         {
