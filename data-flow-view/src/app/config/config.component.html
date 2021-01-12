@@ -1,0 +1,14 @@
+<mat-tab-group style="padding: 10px" headerPosition="above">
+  <mat-tab label="Flow Config">
+    <div>
+      <div style="display: flex; width: 60px">
+
+      </div>
+      <div *ngFor="let c of app.allFlowConfigList">
+        {{c['_id']}}: {{c['source']}}.{{c['schema']}}.{{c['name']}}
+      </div>
+    </div>
+  </mat-tab>
+  <mat-tab label="Second"> Content 2 </mat-tab>
+  <mat-tab label="Third"> Content 3 </mat-tab>
+</mat-tab-group>

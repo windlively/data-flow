@@ -16,7 +16,7 @@ export class ToolButtonGroupComponent implements OnInit {
   toolButtonGroup: object[] = [
     {animationStyle: '', name: 'toggle-control', icon: 'plus', color: '', ngClass: this.openToolButtonClass, description: '菜单'},
     {animationStyle: '', name: 'flow-list', icon: 'partition', color: '', ngClass: '', description: 'Flow列表', routeLink: 'flow-list'},
-    {animationStyle: '', name: 'edit', icon: 'edit', color: '', ngClass: '', description: '新建文章'},
+    {animationStyle: '', name: 'config', icon: 'setting', color: '', ngClass: '', description: '配置管理'},
     {animationStyle: '', name: 'profile', icon: 'profile', color: '', ngClass: '', description: '个人资料'}
   ];
 

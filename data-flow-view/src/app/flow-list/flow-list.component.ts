@@ -2,6 +2,7 @@ import {Component, OnInit} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Tools} from '../tools';
 import {EChartsOption} from 'echarts';
+import {AppService} from '../app.service';
 
 
 const svgIcons = {
@@ -26,25 +27,25 @@ const svgIcons = {
 })
 export class FlowListComponent implements OnInit {
 
-  constructor(public http: HttpClient) {
+  constructor(public http: HttpClient,
+              public appService: AppService) {
   }
 
   chartOptionList = [];
 
   ngOnInit(): void {
-    this.loadFlows();
+    this.drawFlowChart(this.appService.allFlowConfigList)
+    this.appService.allFlowConfigListSubject.subscribe( (data: []) => this.drawFlowChart(data));
   }
 
-  loadFlows = () => {
-    this.http.get('/assets/flow_config_example.json').subscribe((data: object[]) => {
-      const flowGroupList = Tools.groupBy(data, o => [o['source'], o['schema'], o['name']].join('.'));
-      const chartOptions = {};
-      for (const namespace of Object.keys(flowGroupList)) {
-        chartOptions[namespace] = this.drawOneNamespaceFlow(namespace, flowGroupList[namespace]);
-        this.chartOptionList.push(chartOptions[namespace]);
-      }
-      console.log(this.chartOptionList);
-    });
+  drawFlowChart = (flowConfigList: Object[]) => {
+    const flowGroupList = Tools.groupBy(flowConfigList, o => [o['source'], o['schema'], o['name']].join('.'));
+    const chartOptions = {};
+    for (const namespace of Object.keys(flowGroupList)) {
+      chartOptions[namespace] = this.drawOneNamespaceFlow(namespace, flowGroupList[namespace]);
+      this.chartOptionList.push(chartOptions[namespace]);
+    }
+    console.log(this.chartOptionList);
   };
 
   getFlowNodeResolverIcon = (resolverName: string): string => {
@@ -113,7 +114,6 @@ export class FlowListComponent implements OnInit {
           },
           data: [],
           links: [],
-
         }],
       initOpts: {
         height: height,

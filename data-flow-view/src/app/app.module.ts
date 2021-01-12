@@ -19,14 +19,18 @@ import {MatButtonModule} from "@angular/material/button";
 import {MatDialogModule} from "@angular/material/dialog";
 import { FlowListComponent } from './flow-list/flow-list.component';
 import {NgxEchartsModule} from 'ngx-echarts';
-import "src/assets/echarts-theme/purple-passion.js"
+import "src/assets/echarts-theme/purple-passion.js";
+import { ConfigComponent } from './config/config.component'
+import {MatTabsModule} from '@angular/material/tabs';
+import {AppService} from './app.service';
 registerLocaleData(zh);
 
 @NgModule({
   declarations: [
     AppComponent,
     ToolButtonGroupComponent,
-    FlowListComponent
+    FlowListComponent,
+    ConfigComponent
   ],
   imports: [
     BrowserModule,
@@ -42,9 +46,10 @@ registerLocaleData(zh);
     MatDialogModule,
     NgxEchartsModule.forRoot({
       echarts: () => import('echarts')
-    })
+    }),
+    MatTabsModule
   ],
-  providers: [{ provide: NZ_I18N, useValue: zh_CN }],
+  providers: [{ provide: NZ_I18N, useValue: zh_CN }, AppService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
