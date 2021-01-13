@@ -1,4 +1,14 @@
 /* You can add global styles to this file, and also import other style files */
 
-html, body { height: 100%; background-color: #fafafa}
+html, body {
+  height: 100%;
+  /*background-color: #fafafa*/
+}
+@font-face {
+  font-family: Hack;
+  src: url("assets/fonts/Hack-Regular.ttf");
+}
+.json-code{
+  font-family: Hack, sans-serif;
+}
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

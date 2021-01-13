@@ -5,40 +5,29 @@ import {FlowConfig} from '../model/flow-config';
 import {MatPaginator} from '@angular/material/paginator';
 import {MatSort} from '@angular/material/sort';
 import {SelectionModel} from '@angular/cdk/collections';
+import {animate, state, style, transition, trigger} from '@angular/animations';
 
-export interface PeriodicElement {
-  name: string;
-  position: number;
-  weight: number;
-  symbol: string;
-}
 
-export class FlowInfo{
-
-  flow_id: string;
-  source: string;
-  schema: string;
-  name: string
-
-}
-
-const ELEMENT_DATA: PeriodicElement[] = [
-  {position: 1, name: 'Hydrogen', weight: 1.0079, symbol: 'H'},
-  {position: 2, name: 'Helium', weight: 4.0026, symbol: 'He'},
-  {position: 3, name: 'Lithium', weight: 6.941, symbol: 'Li'},
-  {position: 4, name: 'Beryllium', weight: 9.0122, symbol: 'Be'},
-  {position: 5, name: 'Boron', weight: 10.811, symbol: 'B'},
-  {position: 6, name: 'Carbon', weight: 12.0107, symbol: 'C'},
-  {position: 7, name: 'Nitrogen', weight: 14.0067, symbol: 'N'},
-  {position: 8, name: 'Oxygen', weight: 15.9994, symbol: 'O'},
-  {position: 9, name: 'Fluorine', weight: 18.9984, symbol: 'F'},
-  {position: 10, name: 'Neon', weight: 20.1797, symbol: 'Ne'},
-];
+// export class FlowInfo{
+//
+//   flow_id: string;
+//   source: string;
+//   schema: string;
+//   name: string
+//
+// }
 
 @Component({
   selector: 'app-config',
   templateUrl: './config.component.html',
-  styleUrls: ['./config.component.css']
+  styleUrls: ['./config.component.css'],
+  animations: [
+    trigger('detailExpand', [
+      state('collapsed', style({height: '0px', minHeight: '0'})),
+      state('expanded', style({height: '*'})),
+      transition('expanded <=> collapsed', animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)')),
+    ]),
+  ],
 })
 export class ConfigComponent implements OnInit, AfterViewInit {
 
@@ -48,26 +37,28 @@ export class ConfigComponent implements OnInit, AfterViewInit {
 
   }
 
-  displayedColumns: string[] = ['flow_id', 'source', 'schema', 'name', 'select'];
-  dataSource: MatTableDataSource<FlowInfo> = new MatTableDataSource<FlowInfo>([]);
+  displayedColumns: string[] = ['_id', 'source', 'schema', 'name'];
+  dataSource: MatTableDataSource<FlowConfig> = new MatTableDataSource<FlowConfig>([]);
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sort: MatSort;
 
+  tableExpandedRow: FlowConfig | null;
 
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
-  flowListToDataSource = (flowList: FlowConfig[]): MatTableDataSource<FlowInfo> => {
-    return new MatTableDataSource<FlowInfo>(flowList.map((c) => {
-      const info: FlowInfo = new FlowInfo();
-      info.flow_id = c._id
-      info.name = c.name
-      info.source = c.source
-      info.schema = c.schema
-      return info
-    }))
+  flowListToDataSource = (flowList: FlowConfig[]): MatTableDataSource<FlowConfig> => {
+    // return new MatTableDataSource<FlowConfig>(flowList.map((c) => {
+    //   const info: F = new FlowInfo();
+    //   info.flow_id = c._id
+    //   info.name = c.name
+    //   info.source = c.source
+    //   info.schema = c.schema
+    //   return info
+    // }))
+    return new MatTableDataSource<FlowConfig>(flowList)
   }
 
   initTable = (flowList: FlowConfig[]) => {
@@ -81,7 +72,11 @@ export class ConfigComponent implements OnInit, AfterViewInit {
     this.app.allFlowConfigListSubject.subscribe(s => this.initTable(s))
   }
 
-  selection = new SelectionModel<FlowInfo>(true, []);
+  selection = new SelectionModel<FlowConfig>(true, []);
+
+  getSelectFlowIdList = (): string[] => {
+    return (this.selection? this.selection.selected : []).map(f => f['flow_id'])
+  }
 
   /** Whether the number of selected elements matches the total number of rows. */
   isAllSelected() {
@@ -98,11 +93,15 @@ export class ConfigComponent implements OnInit, AfterViewInit {
   }
 
   /** The label for the checkbox on the passed row */
-  checkboxLabel(row?: FlowInfo): string {
+  checkboxLabel(row?: FlowConfig): string {
     if (!row) {
       return `${this.isAllSelected() ? 'select' : 'deselect'} all`;
     }
-    return `${this.selection.isSelected(row) ? 'deselect' : 'select'} row ${row.flow_id}`;
+    return `${this.selection.isSelected(row) ? 'deselect' : 'select'} row ${row._id}`;
+  }
+
+  deleteFlows = (flowIds: string[]) => {
+
   }
 
 }

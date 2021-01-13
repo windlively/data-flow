@@ -29,6 +29,9 @@ import {MatInputModule} from "@angular/material/input";
 import {MatPaginatorModule} from '@angular/material/paginator';
 import {MatSortModule} from '@angular/material/sort';
 import {MatCheckboxModule} from '@angular/material/checkbox';
+import {MatButtonToggleModule} from '@angular/material/button-toggle';
+import {MatRippleModule} from '@angular/material/core';
+import { PrettyJSONPipe } from './pipe/pretty-json.pipe';
 registerLocaleData(zh);
 
 @NgModule({
@@ -36,7 +39,8 @@ registerLocaleData(zh);
     AppComponent,
     ToolButtonGroupComponent,
     FlowListComponent,
-    ConfigComponent
+    ConfigComponent,
+    PrettyJSONPipe
   ],
   imports: [
     BrowserModule,
@@ -59,7 +63,9 @@ registerLocaleData(zh);
     MatInputModule,
     MatPaginatorModule,
     MatSortModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    MatButtonToggleModule,
+    MatRippleModule
   ],
   providers: [{ provide: NZ_I18N, useValue: zh_CN }, AppService],
   bootstrap: [AppComponent]

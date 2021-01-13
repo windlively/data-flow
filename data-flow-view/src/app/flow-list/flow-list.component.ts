@@ -221,7 +221,10 @@ export class FlowListComponent implements OnInit {
             symbol: `image://${this.getFlowNodeResolverIcon(resolverName)}`,
             tooltip: {
               formatter: JSON.stringify(flowNode[resolverName], null, '\t')
-                  .replace(/\n/g, '<br>').replace(/\t/g, '&nbsp;&nbsp;')
+                  .replace(/\n/g, '<br>').replace(/\t/g, '&nbsp;&nbsp;'),
+              textStyle: {
+                fontFamily: 'Hack'
+              }
             }
           });
           chartLinks.push({
