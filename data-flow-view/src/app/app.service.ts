@@ -17,8 +17,8 @@ export class AppService implements OnInit{
   }
 
   refreshAllFlowConfigList = () => {
+    this.allFlowConfigList = []
     this.http.get('/assets/flow_config_example.json').subscribe((data: FlowConfig[]) => {
-      // this.allFlowConfigList = data;
       for(let i = 0; i < 3; i ++){
         let k = 0
         for (let f of data){
@@ -28,7 +28,6 @@ export class AppService implements OnInit{
           k ++
         }
       }
-
       this.allFlowConfigListSubject.next(this.allFlowConfigList)
     });
   }

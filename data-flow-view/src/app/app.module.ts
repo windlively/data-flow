@@ -32,6 +32,9 @@ import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MatRippleModule} from '@angular/material/core';
 import { PrettyJSONPipe } from './pipe/pretty-json.pipe';
+import { FlowConfigComponent } from './config/flow-config/flow-config.component';
+import {NzCodeEditorModule} from 'ng-zorro-antd/code-editor';
+import { FlowConfigEditDialogComponent } from './config/flow-config/flow-config-edit-dialog/flow-config-edit-dialog.component';
 registerLocaleData(zh);
 
 @NgModule({
@@ -40,7 +43,9 @@ registerLocaleData(zh);
     ToolButtonGroupComponent,
     FlowListComponent,
     ConfigComponent,
-    PrettyJSONPipe
+    PrettyJSONPipe,
+    FlowConfigComponent,
+    FlowConfigEditDialogComponent
   ],
   imports: [
     BrowserModule,
@@ -65,7 +70,8 @@ registerLocaleData(zh);
     MatSortModule,
     MatCheckboxModule,
     MatButtonToggleModule,
-    MatRippleModule
+    MatRippleModule,
+    NzCodeEditorModule
   ],
   providers: [{ provide: NZ_I18N, useValue: zh_CN }, AppService],
   bootstrap: [AppComponent]
