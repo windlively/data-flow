@@ -12,3 +12,14 @@ html, body {
   font-family: Hack, sans-serif;
 }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+#flow-config-edit-dialog.mat-dialog-container{
+  /*background-color: #fafafa90;*/
+  /*backdrop-filter: blur(3px);*/
+}
+#flow-config-monaco-editor .monaco-editor{
+  background-color: unset;
+}
+.minimap-slider {
+  opacity: 0;
+  transition: opacity 100ms linear;
+}

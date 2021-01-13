@@ -5747,6 +5747,11 @@ ngx-echarts@^6.0.0:
   dependencies:
     tslib "^2.0.0"
 
+ngx-monaco-editor@9.0.0:
+  version "9.0.0"
+  resolved "https://registry.npm.taobao.org/ngx-monaco-editor/download/ngx-monaco-editor-9.0.0.tgz#bb69784606f549e369cee3f483ecf26bab2fcc97"
+  integrity sha1-u2l4Rgb1SeNpzuP0g+zya6svzJc=
+
 nice-try@^1.0.4:
   version "1.0.5"
   resolved "https://registry.npm.taobao.org/nice-try/download/nice-try-1.0.5.tgz?cache=0&sync_timestamp=1602353679182&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fnice-try%2Fdownload%2Fnice-try-1.0.5.tgz#a3378a7696ce7d223e88fc9b764bd7ef1089e366"

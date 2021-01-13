@@ -6,6 +6,8 @@ import {MatSort} from '@angular/material/sort';
 import {SelectionModel} from '@angular/cdk/collections';
 import {AppService} from '../../app.service';
 import {animate, state, style, transition, trigger} from '@angular/animations';
+import {MatDialog} from '@angular/material/dialog';
+import {FlowConfigEditDialogComponent} from './flow-config-edit-dialog/flow-config-edit-dialog.component';
 
 @Component({
   selector: 'app-flow-config',
@@ -21,7 +23,8 @@ import {animate, state, style, transition, trigger} from '@angular/animations';
 })
 export class FlowConfigComponent implements OnInit, AfterViewInit {
 
-  constructor(public app: AppService) { }
+  constructor(public app: AppService,
+              public dialog: MatDialog) { }
 
   ngOnInit(): void {
   }
@@ -78,6 +81,17 @@ export class FlowConfigComponent implements OnInit, AfterViewInit {
 
   deleteFlows = (flowIds: string[]) => {
 
+  }
+
+  editFlowConfig = (flowConfig: FlowConfig) => {
+    this.dialog.open(FlowConfigEditDialogComponent, {
+      width: '95vw',
+      height: '90vh',
+      maxWidth: '92vw',
+      disableClose: true,
+      data: flowConfig,
+      id: 'flow-config-edit-dialog'
+    })
   }
 
 }

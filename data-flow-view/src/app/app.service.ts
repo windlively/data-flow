@@ -3,6 +3,7 @@ import {HttpClient} from '@angular/common/http';
 import {Subject} from 'rxjs';
 import {FlowConfig} from './model/flow-config';
 
+declare var monaco
 @Injectable({
   providedIn: 'root'
 })

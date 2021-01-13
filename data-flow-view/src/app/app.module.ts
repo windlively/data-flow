@@ -33,8 +33,9 @@ import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MatRippleModule} from '@angular/material/core';
 import { PrettyJSONPipe } from './pipe/pretty-json.pipe';
 import { FlowConfigComponent } from './config/flow-config/flow-config.component';
-import {NzCodeEditorModule} from 'ng-zorro-antd/code-editor';
 import { FlowConfigEditDialogComponent } from './config/flow-config/flow-config-edit-dialog/flow-config-edit-dialog.component';
+import {MonacoEditorModule} from 'ngx-monaco-editor';
+import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 registerLocaleData(zh);
 
 @NgModule({
@@ -58,7 +59,6 @@ registerLocaleData(zh);
     NzIconModule,
     MatTooltipModule,
     MatButtonModule,
-    MatDialogModule,
     NgxEchartsModule.forRoot({
       echarts: () => import('echarts')
     }),
@@ -71,7 +71,9 @@ registerLocaleData(zh);
     MatCheckboxModule,
     MatButtonToggleModule,
     MatRippleModule,
-    NzCodeEditorModule
+    MonacoEditorModule.forRoot(),
+    MatDialogModule,
+    MatSlideToggleModule
   ],
   providers: [{ provide: NZ_I18N, useValue: zh_CN }, AppService],
   bootstrap: [AppComponent]

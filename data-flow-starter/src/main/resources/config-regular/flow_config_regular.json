@@ -205,7 +205,7 @@
             }
           },
           "insert": {
-            "type": "string|boolean|list|object",
+            "type": "object",
             "required": true,
             "fields": {
               "sql": {
