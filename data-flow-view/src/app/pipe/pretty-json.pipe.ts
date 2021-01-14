@@ -10,7 +10,6 @@ export class PrettyJSONPipe implements PipeTransform {
     if(convertLineBreak){
       s = s.replace(/\n/g, '<br>')
     }
-    console.log(s);
     return s;
   }
 

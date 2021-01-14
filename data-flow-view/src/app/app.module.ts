@@ -11,7 +11,7 @@ import { NZ_I18N } from 'ng-zorro-antd/i18n';
 import { zh_CN } from 'ng-zorro-antd/i18n';
 import { registerLocaleData } from '@angular/common';
 import zh from '@angular/common/locales/zh';
-import { FormsModule } from '@angular/forms';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import {NzIconModule} from "ng-zorro-antd/icon";
 import {MatTooltipModule} from "@angular/material/tooltip";
@@ -30,12 +30,14 @@ import {MatPaginatorModule} from '@angular/material/paginator';
 import {MatSortModule} from '@angular/material/sort';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
-import {MatRippleModule} from '@angular/material/core';
+import {ErrorStateMatcher, MatOptionModule, MatRippleModule, ShowOnDirtyErrorStateMatcher} from '@angular/material/core';
 import { PrettyJSONPipe } from './pipe/pretty-json.pipe';
 import { FlowConfigComponent } from './config/flow-config/flow-config.component';
-import { FlowConfigEditDialogComponent } from './config/flow-config/flow-config-edit-dialog/flow-config-edit-dialog.component';
+import { FlowConfigEditDialogComponent } from './config/flow-config/flow-config-edit-dialog.component';
 import {MonacoEditorModule} from 'ngx-monaco-editor';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
+import { ConfirmDialogComponent } from './dialog/confirm-dialog.component';
+import {MatAutocompleteModule} from '@angular/material/autocomplete';
 registerLocaleData(zh);
 
 @NgModule({
@@ -46,7 +48,8 @@ registerLocaleData(zh);
     ConfigComponent,
     PrettyJSONPipe,
     FlowConfigComponent,
-    FlowConfigEditDialogComponent
+    FlowConfigEditDialogComponent,
+    ConfirmDialogComponent
   ],
   imports: [
     BrowserModule,
@@ -73,9 +76,16 @@ registerLocaleData(zh);
     MatRippleModule,
     MonacoEditorModule.forRoot(),
     MatDialogModule,
-    MatSlideToggleModule
+    MatSlideToggleModule,
+    MatOptionModule,
+    ReactiveFormsModule,
+    MatAutocompleteModule
   ],
-  providers: [{ provide: NZ_I18N, useValue: zh_CN }, AppService],
+  providers: [
+    { provide: NZ_I18N, useValue: zh_CN },
+    AppService,
+    {provide: ErrorStateMatcher, useClass: ShowOnDirtyErrorStateMatcher}
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

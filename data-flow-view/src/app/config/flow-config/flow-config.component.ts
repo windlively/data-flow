@@ -7,7 +7,7 @@ import {SelectionModel} from '@angular/cdk/collections';
 import {AppService} from '../../app.service';
 import {animate, state, style, transition, trigger} from '@angular/animations';
 import {MatDialog} from '@angular/material/dialog';
-import {FlowConfigEditDialogComponent} from './flow-config-edit-dialog/flow-config-edit-dialog.component';
+import {FlowConfigEditDialogComponent} from './flow-config-edit-dialog.component';
 
 @Component({
   selector: 'app-flow-config',
