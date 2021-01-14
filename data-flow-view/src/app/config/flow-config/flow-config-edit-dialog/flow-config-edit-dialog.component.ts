@@ -10,7 +10,8 @@ import IEditor = monaco.editor.IEditor;
       .mat-dialog-title {
         display: flex;
         justify-content: space-between;
-        height: 60px;
+        align-items: center;
+        padding: 10px;
       }
 
       ngx-monaco-editor {
@@ -29,12 +30,41 @@ import IEditor = monaco.editor.IEditor;
       .mat-dialog-container {
 
       }
+
+      .flow-namespace {
+        margin-left: 10px;
+        font-size: 16px;
+      }
+      .flow-config-meta-input-group{
+        font-size: 18px;
+      }
+      .flow-config-meta-input{
+        margin-right: 20px;
+        width: 160px;
+      }
     </style>
     <div mat-dialog-title>
-      <div>
-        {{initFlowConfig._id}}
+      <div class="flow-config-meta-input-group">
+        <mat-form-field class="flow-config-meta-input" style="width: 300px;">
+          <mat-label>_id</mat-label>
+          <input matInput [(ngModel)]="currentFlowConfig._id">
+        </mat-form-field>
+        <mat-form-field class="flow-config-meta-input">
+          <mat-label>source</mat-label>
+          <input matInput [(ngModel)]="currentFlowConfig.source">
+        </mat-form-field>
+        <mat-form-field class="flow-config-meta-input">
+          <mat-label>schema</mat-label>
+          <input matInput [(ngModel)]="currentFlowConfig.schema">
+        </mat-form-field>
+        <mat-form-field class="flow-config-meta-input">
+          <mat-label>name</mat-label>
+          <input matInput [(ngModel)]="currentFlowConfig.name">
+        </mat-form-field>
+
       </div>
       <div>
+        <button mat-fab style="margin-right: 20px" color="primary"><i nz-icon nzType="save" nzTheme="outline"></i></button>
         <button mat-fab color="primary" mat-dialog-close><i nz-icon nzType="close" nzTheme="outline"></i></button>
       </div>
     </div>
@@ -63,11 +93,24 @@ export class FlowConfigEditDialogComponent implements OnInit {
     cursorSmoothCaretAnimation: true
   };
 
-  editorContent: string = JSON.stringify(this.initFlowConfig, null, '\t');
+  editorContent: string;
+
+  currentFlowConfig: FlowConfig;
 
   editorInstance: IEditor;
 
   ngOnInit(): void {
+
+    // 复制一份配置对象，不影响原有实例
+    this.currentFlowConfig = JSON.parse(JSON.stringify(this.initFlowConfig));
+
+    // this.currentFlowConfig.source = undefined;
+    // this.currentFlowConfig.schema = undefined;
+    // this.currentFlowConfig.name = undefined;
+    // this.currentFlowConfig._id = undefined;
+
+
+    this.editorContent = JSON.stringify(this.currentFlowConfig, null, '\t');
 
   }
 
