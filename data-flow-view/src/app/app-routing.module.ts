@@ -13,12 +13,18 @@ const routes: Routes = [
   {
     path: 'flow-list',
     component: FlowListComponent,
-    pathMatch: 'full'
+    pathMatch: 'full',
+    data: {
+      name: 'flow-list'
+    }
   },
   {
     path: 'config',
     component: ConfigComponent,
-    pathMatch: 'full'
+    pathMatch: 'full',
+    data: {
+      name: 'config'
+    }
   },
   {
     path: '**',

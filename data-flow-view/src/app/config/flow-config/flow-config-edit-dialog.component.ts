@@ -6,7 +6,7 @@ import {ConfirmDialogComponent} from '../../dialog/confirm-dialog.component';
 import {distinct, map, startWith} from 'rxjs/operators';
 import {Form, FormControl, Validators} from '@angular/forms';
 import {Observable} from 'rxjs';
-import {AppErrorStateMatcher, AppService} from '../../app.service';
+import {AppErrorStateMatcher, AppService} from '../../service/app.service';
 
 @Component({
   selector: 'app-flow-config-edit-dialog',
@@ -44,9 +44,16 @@ import {AppErrorStateMatcher, AppService} from '../../app.service';
     </style>
     <div mat-dialog-title>
       <div class="flow-config-meta-input-group">
+
         <mat-form-field class="flow-config-meta-input" style="width: 300px;">
           <mat-label>_id</mat-label>
-          <input matInput [(ngModel)]="currentFlowConfig._id">
+          <input matInput [formControl]="flowIdInputFormControl">
+          <mat-error *ngIf="flowIdInputFormControl.hasError('required')">
+            必填
+          </mat-error>
+          <mat-error *ngIf="flowIdInputFormControl.hasError('pattern')">
+            请输入字母、数字、下划线的组合(regex: \w+)
+          </mat-error>
         </mat-form-field>
 
         <mat-form-field *ngFor="let input of inputList " class="flow-config-meta-input">
@@ -79,7 +86,9 @@ import {AppErrorStateMatcher, AppService} from '../../app.service';
       <mat-slide-toggle (change)="editorInstance.updateOptions({readOnly: $event.checked})">只读</mat-slide-toggle>
     </div>
     <ngx-monaco-editor #editor id="flow-config-monaco-editor" style="" (onInit)="editorInit($event)" [options]="monacoEditorOption"
-                       [(ngModel)]="editorContent"></ngx-monaco-editor>
+                       [(ngModel)]="editorContent">
+      <mat-spinner></mat-spinner>
+    </ngx-monaco-editor>
   `
 })
 export class FlowConfigEditDialogComponent implements OnInit {
@@ -109,9 +118,11 @@ export class FlowConfigEditDialogComponent implements OnInit {
 
   editorInstance: IEditor;
 
-  sourceInputFormControl = new FormControl();
-  schemaInputFormControl = new FormControl();
-  nameInputFormControl = new FormControl();
+
+  flowIdInputFormControl = new FormControl('', [
+    Validators.required,
+    Validators.pattern(/^\w+$/)
+  ]);
 
   inputList: {
     name: string,
@@ -143,12 +154,16 @@ export class FlowConfigEditDialogComponent implements OnInit {
 
     this.editorContent = JSON.stringify(this.currentFlowConfig, null, '\t');
 
+    this.flowIdInputFormControl.setValue(this.currentFlowConfig._id, {
+      emitModelToViewChange: true,
+      emitViewToModelChange: true
+    });
     for (const i of this.inputList) {
       const formControl = new FormControl('', [
         Validators.required,
         Validators.pattern(/^\w+$/)
-      ])
-      i.formControl = formControl
+      ]);
+      i.formControl = formControl;
       formControl.setValue(this.currentFlowConfig[i.name], {
         emitViewToModelChange: true,
         emitModelToViewChange: true
@@ -193,6 +208,7 @@ export class FlowConfigEditDialogComponent implements OnInit {
   };
 
   save = () => {
+
     console.log(this.currentFlowConfig);
   };
 

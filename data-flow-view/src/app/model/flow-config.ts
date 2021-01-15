@@ -1,4 +1,3 @@
-import {FlowNode} from './flow-node';
 
 export interface FlowConfig{
 

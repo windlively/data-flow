@@ -23,3 +23,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   opacity: 0;
   transition: opacity 100ms linear;
 }
+.mat-progress-bar-background.mat-progress-bar-element,
+.mat-progress-bar-buffer.mat-progress-bar-element{
+  display: none;
+}

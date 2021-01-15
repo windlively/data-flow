@@ -25,6 +25,18 @@
     position: relative;
     width: 100vw;
   }
+
+  .loading-bar{
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 12;
+    height: 3px;
+  }
+
+
 </style>
 <nav class="nav">
   <div style="margin: 10px">
@@ -48,8 +60,9 @@
     </svg>
   </div>
   <h1 class="title">Data Flow Manager</h1>
+  <mat-progress-bar *ngIf="app.showLoadingBarSubject | async" class="loading-bar" mode="query"></mat-progress-bar>
 </nav>
-<div class="body">
-  <router-outlet></router-outlet>
+<div class="body" [@routerTransition]="getState(o)">
+  <router-outlet  #o="outlet"></router-outlet>
 </div>
 <app-tool-button-group></app-tool-button-group>

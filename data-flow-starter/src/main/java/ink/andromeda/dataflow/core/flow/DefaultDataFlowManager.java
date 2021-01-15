@@ -70,7 +70,7 @@ public class DefaultDataFlowManager extends ConfigurableDataFlowManager {
     }
 
     @Override
-    protected int addFlowConfig(@NonNull List<Map<String, Object>> configs) {
+    public int addFlowConfig(@NonNull List<Map<String, Object>> configs) {
         /*
             // 非原子性操作
             int c = 0;
@@ -85,7 +85,7 @@ public class DefaultDataFlowManager extends ConfigurableDataFlowManager {
     }
 
     @Override
-    protected int addFlowConfig(Map<String, Object> config) {
+    public int addFlowConfig(Map<String, Object> config) {
         checkInsertFlowConfig(config);
         return mongoTemplate.insert(config, FLOW_COLLECTION_NAME).size();
     }
@@ -116,7 +116,7 @@ public class DefaultDataFlowManager extends ConfigurableDataFlowManager {
     }
 
     @Override
-    protected int updateFlowConfig(String flowName, Map<String, Object> update) {
+    public int updateFlowConfig(String flowName, Map<String, Object> update) {
         Document query = new Document();
         query.put("_id", flowName);
 
@@ -129,7 +129,7 @@ public class DefaultDataFlowManager extends ConfigurableDataFlowManager {
     }
 
     @Override
-    protected int deleteFlowConfig(String source, String schema, String name) {
+    public int deleteFlowConfig(String source, String schema, String name) {
         Document query = new Document();
         query.put("schema", schema);
         query.put("source", source);
@@ -139,13 +139,13 @@ public class DefaultDataFlowManager extends ConfigurableDataFlowManager {
     }
 
     @Override
-    protected int deleteFlowConfig(String flowName) {
+    public int deleteFlowConfig(String flowName) {
         return (int) mongoTemplate.remove(Query.query(Criteria.where("_id").is(flowName)), FLOW_COLLECTION_NAME)
                 .getDeletedCount();
     }
 
     @Override
-    protected int addNodeConfig(String flowName, Map<String, Object> nodeConfig) {
+    public int addNodeConfig(String flowName, Map<String, Object> nodeConfig) {
         Map<String, Object> flowConfig = getFlowConfig(flowName);
         Assert.notNull(flowConfig, String.format("flow '%s' not exist", flowName));
 
@@ -167,7 +167,7 @@ public class DefaultDataFlowManager extends ConfigurableDataFlowManager {
     }
 
     @Override
-    protected int updateNodeConfig(String flowName, String nodeName, Map<String, Object> update) {
+    public int updateNodeConfig(String flowName, String nodeName, Map<String, Object> update) {
         Map<String, Object> flowConfig = getFlowConfig(flowName);
         Assert.notNull(flowConfig, String.format("flow '%s' not exist", flowName));
         Object nodes = Optional.ofNullable(flowConfig.get("node_list"))
@@ -188,7 +188,7 @@ public class DefaultDataFlowManager extends ConfigurableDataFlowManager {
     }
 
     @Override
-    protected int deleteNodeConfig(String flowName, String nodeName) {
+    public int deleteNodeConfig(String flowName, String nodeName) {
         Map<String, Object> flowConfig = getFlowConfig(flowName);
         Assert.notNull(flowConfig, String.format("flow '%s' not exist", flowName));
         Object nodes = Optional.ofNullable(flowConfig.get("node_list"))

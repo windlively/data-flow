@@ -16,5 +16,15 @@ public class DataFlowProperties {
     @NestedConfigurationProperty
     private MqInstanceConfig[] mqInstances;
 
+    private HttpOptions httpOptions;
+
+    @Data
+    public static class HttpOptions{
+
+        private boolean enableFlowConfig = true;
+
+        private boolean enableMonitor = true;
+
+    }
 
 }

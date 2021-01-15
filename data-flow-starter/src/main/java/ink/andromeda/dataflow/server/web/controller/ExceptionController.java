@@ -1,4 +1,4 @@
-package ink.andromeda.dataflow.web.controller;
+package ink.andromeda.dataflow.server.web.controller;
 
 import ink.andromeda.dataflow.server.entity.HttpResult;
 import lombok.extern.slf4j.Slf4j;

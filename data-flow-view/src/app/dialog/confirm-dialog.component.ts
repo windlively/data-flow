@@ -8,7 +8,7 @@ import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
     <div mat-dialog-content *ngIf="data && data['msg']">
       {{data['msg']}}
     </div>
-    <div mat-dialog-actions>
+    <div mat-dialog-actions style="width: 100%; display: flex; justify-content: space-between">
       <button mat-button [mat-dialog-close]="false" cdkFocusInitial>No</button>
       <button mat-button [mat-dialog-close]="true">Yes</button>
     </div>

@@ -4,7 +4,7 @@ import {FlowConfig} from '../../model/flow-config';
 import {MatPaginator} from '@angular/material/paginator';
 import {MatSort} from '@angular/material/sort';
 import {SelectionModel} from '@angular/cdk/collections';
-import {AppService} from '../../app.service';
+import {AppService} from '../../service/app.service';
 import {animate, state, style, transition, trigger} from '@angular/animations';
 import {MatDialog} from '@angular/material/dialog';
 import {FlowConfigEditDialogComponent} from './flow-config-edit-dialog.component';
@@ -47,8 +47,7 @@ export class FlowConfigComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.initTable(this.app.allFlowConfigList)
-    this.app.allFlowConfigListSubject.subscribe(s => this.initTable(s))
+    this.app.allFlowConfigList.subscribe(s => this.initTable(s))
   }
 
   selection = new SelectionModel<FlowConfig>(true, []);

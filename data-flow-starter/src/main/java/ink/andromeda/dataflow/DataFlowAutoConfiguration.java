@@ -11,6 +11,7 @@ import ink.andromeda.dataflow.datasource.DataSourceDetermineAspect;
 import ink.andromeda.dataflow.datasource.DynamicDataSource;
 import ink.andromeda.dataflow.datasource.dao.CommonJdbcDao;
 import ink.andromeda.dataflow.datasource.dao.DefaultCommonJdbcDao;
+import ink.andromeda.dataflow.interceptor.HttpInterceptor;
 import ink.andromeda.dataflow.server.entity.RefreshCacheMessage;
 import ink.andromeda.dataflow.util.GeneralTools;
 import lombok.extern.slf4j.Slf4j;
@@ -29,8 +30,11 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.lang.NonNull;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.Assert;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -46,7 +50,7 @@ import static ink.andromeda.dataflow.util.GeneralTools.GSON;
 @ConditionalOnProperty(name = "data-flow.enable", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(DataFlowProperties.class)
 @Slf4j
-public class DataFlowAutoConfiguration {
+public class DataFlowAutoConfiguration implements WebMvcConfigurer {
 
     private final DataFlowProperties dataFlowProperties;
     private final ApplicationContext applicationContext;
@@ -296,4 +300,10 @@ public class DataFlowAutoConfiguration {
         return new DefaultCommonJdbcDao(new DynamicDataSource());
     }
 
+    @Override
+    public void addInterceptors(@NonNull InterceptorRegistry registry) {
+        registry.addInterceptor(new HttpInterceptor())
+                .addPathPatterns("/data-flow/**")
+                .excludePathPatterns("/**");
+    }
 }
