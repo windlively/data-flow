@@ -1,8 +1,8 @@
 package ink.andromeda.dataflow.server;
 
 import com.google.common.collect.Lists;
+import ink.andromeda.dataflow.interceptor.HttpInvokeInterceptor;
 import ink.andromeda.dataflow.server.entity.DefaultServerConfig;
-import ink.andromeda.dataflow.server.web.FlowHttpInterceptor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -53,8 +53,7 @@ public class DataFlowApplication implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(@NonNull InterceptorRegistry registry) {
-        registry.addInterceptor(new FlowHttpInterceptor(defaultServerConfig))
-                .addPathPatterns("/data-flow/**")
-                .excludePathPatterns("/**");
+        registry.addInterceptor(new HttpInvokeInterceptor(defaultServerConfig.isEnableHttpInvoke(),"server not enable http invoke"))
+                .addPathPatterns("/**");
     }
 }

@@ -44,7 +44,6 @@ export class FlowListComponent implements OnInit {
       chartOptions[namespace] = this.drawOneNamespaceFlow(namespace, flowGroupList[namespace]);
       this.chartOptionList.push(chartOptions[namespace]);
     }
-    console.log(this.chartOptionList);
   };
 
   getFlowNodeResolverIcon = (resolverName: string): string => {

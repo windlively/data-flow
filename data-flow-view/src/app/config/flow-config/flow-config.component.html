@@ -1,9 +1,20 @@
 <div class="main-content">
   <div style="" class="operation-button-group">
-    <button mat-fab class="operation-button" matTooltip="新增配置"><i nz-icon nzType="plus"></i></button>
+    <button mat-fab class="operation-button" matTooltip="新增配置" (click)="addFlowConfig()">
+      <i nz-icon nzType="plus"></i>
+    </button>
+
     <button mat-fab class="operation-button" matTooltip="删除所选配置" (click)="deleteFlows(getSelectFlowIdList())"><i
       nz-icon nzType="delete"></i></button>
-    <button mat-fab class="operation-button" matTooltip="刷新配置列表" (click)="app.refreshAllFlowConfigList()"><i nz-icon nzType="sync"></i></button>
+
+    <button mat-fab class="operation-button" matTooltip="刷新配置列表" (click)="app.refreshAllFlowConfigList()">
+      <i nz-icon nzType="sync"></i>
+    </button>
+
+    <button mat-fab class="operation-button" matTooltip="刷新服务端配置(使最新配置生效)" (click)="reloadServerFlow()">
+      <i nz-icon nzType="cloud-sync" nzTheme="outline"></i>
+    </button>
+
   </div>
   <mat-form-field>
     <mat-label>Filter</mat-label>

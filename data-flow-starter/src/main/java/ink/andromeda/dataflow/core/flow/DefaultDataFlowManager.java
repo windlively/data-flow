@@ -6,6 +6,7 @@ import ink.andromeda.dataflow.core.node.resolver.DefaultConfigurationResolver;
 import ink.andromeda.dataflow.server.entity.RefreshCacheMessage;
 import ink.andromeda.dataflow.util.ConfigValidationException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -19,6 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static ink.andromeda.dataflow.server.entity.RefreshCacheMessage.TOPIC_NAME;
 import static ink.andromeda.dataflow.util.GeneralTools.checkNotEmpty;
 
 @Slf4j
@@ -87,13 +89,13 @@ public class DefaultDataFlowManager extends ConfigurableDataFlowManager {
     @Override
     public int addFlowConfig(Map<String, Object> config) {
         checkInsertFlowConfig(config);
-        return mongoTemplate.insert(config, FLOW_COLLECTION_NAME).size();
+        return mongoTemplate.getCollection(FLOW_COLLECTION_NAME).insertOne(new Document(config)).wasAcknowledged() ? 1 : 0;
     }
 
     private void checkInsertFlowConfig(Map<String ,Object> flowConfig){
         validateFlowConfig(flowConfig);
         String flowName = (String) flowConfig.get("_id");
-        if(mongoTemplate.find(Query.query(Criteria.where("_id").is(flowName)), Document.class).size() > 0){
+        if(mongoTemplate.find(Query.query(Criteria.where("_id").is(flowName)), Document.class, FLOW_COLLECTION_NAME).size() > 0){
             throw new IllegalArgumentException(String.format(
                     "flow '%s' already exists", flowName
             ));
@@ -117,13 +119,15 @@ public class DefaultDataFlowManager extends ConfigurableDataFlowManager {
 
     @Override
     public int updateFlowConfig(String flowName, Map<String, Object> update) {
+        Assert.isTrue(StringUtils.isNoneEmpty(flowName), "flow name is null");
+
         Document query = new Document();
         query.put("_id", flowName);
 
         if(mongoTemplate.getCollection(FLOW_COLLECTION_NAME).countDocuments(query) < 1){
             throw new IllegalArgumentException(String.format("flow '%s' not exists", flowName));
         }
-
+        validateFlowConfig(update);
         return (int) mongoTemplate.getCollection(FLOW_COLLECTION_NAME)
                 .replaceOne(query,  new Document(update)).getModifiedCount();
     }
@@ -208,10 +212,10 @@ public class DefaultDataFlowManager extends ConfigurableDataFlowManager {
 
     public void reload(boolean cluster){
         if(cluster)
-            redisTemplate.convertAndSend("config-change", RefreshCacheMessage.builder()
+            redisTemplate.convertAndSend(TOPIC_NAME, RefreshCacheMessage.builder()
                     .cacheType("flow-config")
                     .subExpression("")
-                    .build().toString().getBytes(StandardCharsets.UTF_8));
+                    .build().toString());
         else
             reload();
     }

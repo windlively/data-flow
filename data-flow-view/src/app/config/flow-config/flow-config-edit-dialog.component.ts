@@ -3,10 +3,11 @@ import {MAT_DIALOG_DATA, MatDialog, MatDialogRef} from '@angular/material/dialog
 import {FlowConfig} from '../../model/flow-config';
 import IEditor = monaco.editor.IEditor;
 import {ConfirmDialogComponent} from '../../dialog/confirm-dialog.component';
-import {distinct, map, startWith} from 'rxjs/operators';
-import {Form, FormControl, Validators} from '@angular/forms';
+import {map, startWith} from 'rxjs/operators';
+import {FormControl, Validators} from '@angular/forms';
 import {Observable} from 'rxjs';
 import {AppErrorStateMatcher, AppService} from '../../service/app.service';
+import {HttpClient} from '@angular/common/http';
 
 @Component({
   selector: 'app-flow-config-edit-dialog',
@@ -17,6 +18,7 @@ import {AppErrorStateMatcher, AppService} from '../../service/app.service';
         justify-content: space-between;
         align-items: center;
         padding: 10px;
+        margin-bottom: 0;
       }
 
       ngx-monaco-editor {
@@ -34,20 +36,25 @@ import {AppErrorStateMatcher, AppService} from '../../service/app.service';
       }
 
       .flow-config-meta-input-group {
-        font-size: 18px;
+        font-size: 16px;
       }
 
       .flow-config-meta-input {
         margin-right: 20px;
         width: 160px;
       }
+
+      .flow-id-content h2{
+        margin: 0;
+      }
+
     </style>
     <div mat-dialog-title>
-      <div class="flow-config-meta-input-group">
-
-        <mat-form-field class="flow-config-meta-input" style="width: 300px;">
+      <div [ngSwitch]="data.type" class="flow-id-content">
+        <h2 *ngSwitchCase="'update'">{{currentFlowConfig._id}}</h2>
+        <mat-form-field *ngSwitchCase="'new'" style="width: 300px;">
           <mat-label>_id</mat-label>
-          <input matInput [formControl]="flowIdInputFormControl">
+          <input matInput [formControl]="flowIdInputFormControl" (ngModelChange)="currentFlowConfig._id=$event">
           <mat-error *ngIf="flowIdInputFormControl.hasError('required')">
             必填
           </mat-error>
@@ -55,35 +62,39 @@ import {AppErrorStateMatcher, AppService} from '../../service/app.service';
             请输入字母、数字、下划线的组合(regex: \w+)
           </mat-error>
         </mat-form-field>
-
-        <mat-form-field *ngFor="let input of inputList " class="flow-config-meta-input">
-          <mat-label>{{input.name}}</mat-label>
-          <input matInput
-                 [formControl]="input.formControl"
-                 (ngModelChange)="currentFlowConfig[input.name] = $event"
-                 [errorStateMatcher]="input.matcher"
-                 [matAutocomplete]="autocomplete">
-          <mat-autocomplete autoActiveFirstOption #autocomplete="matAutocomplete">
-            <mat-option *ngFor="let option of input.inputFilteredOptions | async" [value]="option">
-              {{option}}
-            </mat-option>
-          </mat-autocomplete>
-          <mat-error *ngIf="input.formControl.hasError('required')">
-            必填
-          </mat-error>
-          <mat-error *ngIf="input.formControl.hasError('pattern')">
-            请输入字母、数字、下划线的组合(regex: \w+)
-          </mat-error>
-        </mat-form-field>
-
       </div>
       <div>
-        <button mat-fab style="margin-right: 20px" color="primary" (click)="save()"><i nz-icon nzType="save" nzTheme="outline"></i></button>
-        <button mat-fab color="primary" (click)="close()"><i nz-icon nzType="close" nzTheme="outline"></i></button>
+        <button mat-button style="margin-right: 20px" color="primary" (click)="save()"><i nz-icon nzType="save" nzTheme="outline"></i></button>
+        <button mat-button color="primary" (click)="close()"><i nz-icon nzType="close" nzTheme="outline"></i></button>
       </div>
     </div>
-    <div style="height: 60px">
-      <mat-slide-toggle (change)="editorInstance.updateOptions({readOnly: $event.checked})">只读</mat-slide-toggle>
+    <div class="flow-config-meta-input-group">
+
+
+      <mat-slide-toggle class="flow-config-meta-input" (change)="editorInstance.updateOptions({readOnly: $event.checked})">
+        只读
+      </mat-slide-toggle>
+
+      <mat-form-field *ngFor="let input of inputList " class="flow-config-meta-input">
+        <mat-label>{{input.name}}</mat-label>
+        <input matInput
+               [formControl]="input.formControl"
+               (ngModelChange)="currentFlowConfig[input.name] = $event"
+               [errorStateMatcher]="input.matcher"
+               [matAutocomplete]="autocomplete">
+        <mat-autocomplete autoActiveFirstOption #autocomplete="matAutocomplete">
+          <mat-option *ngFor="let option of input.inputFilteredOptions | async" [value]="option">
+            {{option}}
+          </mat-option>
+        </mat-autocomplete>
+        <mat-error *ngIf="input.formControl.hasError('required')">
+          必填
+        </mat-error>
+        <mat-error *ngIf="input.formControl.hasError('pattern')">
+          请输入字母、数字、下划线的组合(regex: \w+)
+        </mat-error>
+      </mat-form-field>
+
     </div>
     <ngx-monaco-editor #editor id="flow-config-monaco-editor" style="" (onInit)="editorInit($event)" [options]="monacoEditorOption"
                        [(ngModel)]="editorContent">
@@ -93,10 +104,14 @@ import {AppErrorStateMatcher, AppService} from '../../service/app.service';
 })
 export class FlowConfigEditDialogComponent implements OnInit {
 
-  constructor(@Inject(MAT_DIALOG_DATA) public initFlowConfig: FlowConfig,
+  constructor(@Inject(MAT_DIALOG_DATA) public data: {
+                type: string,
+                initFlowConfig: FlowConfig
+              },
               public matDialogRef: MatDialogRef<FlowConfigEditDialogComponent>,
               public dialog: MatDialog,
-              public app: AppService) {
+              public app: AppService,
+              public http: HttpClient) {
 
   }
 
@@ -114,10 +129,9 @@ export class FlowConfigEditDialogComponent implements OnInit {
   editorContent: string;
 
   // 复制一份配置对象，不影响原有实例
-  currentFlowConfig: FlowConfig = JSON.parse(JSON.stringify(this.initFlowConfig));
+  currentFlowConfig: FlowConfig = JSON.parse(JSON.stringify(this.data.initFlowConfig));
 
   editorInstance: IEditor;
-
 
   flowIdInputFormControl = new FormControl('', [
     Validators.required,
@@ -181,7 +195,7 @@ export class FlowConfigEditDialogComponent implements OnInit {
     //   base: 'vs',
     //   inherit: true,
     //   rules: [
-    //     { token: '', background: '#000000'}
+    //     { token: '', background: '#00000000'}
     //   ],
     //   encodedTokensColors: [],
     //   colors: {
@@ -194,6 +208,82 @@ export class FlowConfigEditDialogComponent implements OnInit {
     // });
     // monaco.editor.setTheme('my-theme');
   };
+
+
+  private updateConfig = () => {
+    for (const i of this.inputList) {
+      if (!!!i.formControl.valid) {
+        this.app.showSnackBar(i.formControl.errors.toString());
+        return;
+      }
+    }
+
+    try {
+      const update: FlowConfig = JSON.parse(this.editorContent);
+      this.currentFlowConfig.node_list = update.node_list;
+
+      this.dialog.open(ConfirmDialogComponent, {
+        width: '600px',
+        data: {
+          title: '确认更新配置：',
+          msg: JSON.stringify(this.currentFlowConfig, null, '  ')
+        }
+      }).afterClosed().subscribe(s => {
+        if(!!s){
+          this.http.put('/flow-config', this.currentFlowConfig).subscribe(s => {
+            this.app.showSnackBar(`更新${s}条配置`);
+            this.app.refreshAllFlowConfigList();
+            this.matDialogRef.close()
+          })
+        }else {
+          this.app.showSnackBar('您取消了保存操作')
+        }
+      })
+
+      ;
+    } catch (e) {
+      this.app.showSnackBar(e['message']);
+    }
+  };
+
+  private addConfig = () => {
+    if(!!!this.flowIdInputFormControl.valid){
+      console.log(this.flowIdInputFormControl.errors)
+      this.app.showSnackBar(`_id填写错误: ${JSON.stringify(this.flowIdInputFormControl.errors)}`);
+      return;
+    }
+    for (const i of this.inputList) {
+      if (!!!i.formControl.valid) {
+        this.app.showSnackBar(`${i.name}填写错误: ${JSON.stringify(i.formControl.errors)}`);
+        return;
+      }
+    }
+
+    try {
+      const flowConfig: FlowConfig = JSON.parse(this.editorContent);
+      this.currentFlowConfig.node_list = flowConfig.node_list
+      this.dialog.open(ConfirmDialogComponent, {
+        width: '600px',
+        data: {
+          title: '确认新增配置：',
+          msg: JSON.stringify(this.currentFlowConfig, null, '  ')
+        }
+      }).afterClosed().subscribe(s => {
+        if(!!s) {
+          this.http.post('/flow-config', this.currentFlowConfig).subscribe(s => {
+            this.app.showSnackBar(`插入${s}条配置`);
+            this.app.refreshAllFlowConfigList()
+            this.matDialogRef.close()
+          })
+        }else {
+          this.app.showSnackBar('您取消了保存操作')
+        }
+      })
+
+    }catch (e) {
+      this.app.showSnackBar(e['message'])
+    }
+  }
 
   close = () => {
     this.dialog.open(ConfirmDialogComponent, {
@@ -208,8 +298,14 @@ export class FlowConfigEditDialogComponent implements OnInit {
   };
 
   save = () => {
-
-    console.log(this.currentFlowConfig);
+    switch (this.data.type) {
+      case 'update':
+        this.updateConfig();
+        break;
+      case 'new':
+        this.addConfig();
+        break;
+    }
   };
 
   private _filter(value: string, options: string[]): string[] {

@@ -1,5 +1,6 @@
 package ink.andromeda.dataflow.interceptor;
 
+import ink.andromeda.dataflow.exception.InterfaceInterceptedException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
@@ -8,12 +9,24 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @Slf4j
-public class HttpInterceptor implements HandlerInterceptor {
+public class HttpInvokeInterceptor implements HandlerInterceptor {
+
+    private final boolean enable;
+
+    private final String msgOnIntercepted;
+
+    public HttpInvokeInterceptor(boolean enable, String msgOnIntercepted) {
+        this.enable = enable;
+        this.msgOnIntercepted = msgOnIntercepted;
+    }
+
+    public HttpInvokeInterceptor(boolean enable){
+        this(enable, "http invoke not enabled");
+    }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object o) throws Exception {
-//        log.info("收到Http请求: {}", request.getRequestURL());
-
+        if(!enable) throw new InterfaceInterceptedException(request.getMethod() + " " + request.getRequestURI(), msgOnIntercepted);
         return true;
     }
  

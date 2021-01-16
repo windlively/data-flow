@@ -42,8 +42,6 @@ import {MatProgressSpinnerModule, MatSpinner} from '@angular/material/progress-s
 import {DataFlowInterceptor} from './interceptor/data-flow.interceptor';
 import {MatProgressBarModule} from '@angular/material/progress-bar';
 import {MAT_SNACK_BAR_DEFAULT_OPTIONS, MatSnackBarModule} from '@angular/material/snack-bar';
-import {animate, group, query, stagger, style, transition, trigger} from '@angular/animations';
-
 registerLocaleData(zh);
 
 
@@ -102,13 +100,12 @@ registerLocaleData(zh);
     {
       provide: ErrorStateMatcher, useClass: ShowOnDirtyErrorStateMatcher
     },
-    {
-      provide: MAT_SNACK_BAR_DEFAULT_OPTIONS, useValue: {
-        horizontalPosition: 'right',
-        verticalPosition: 'top',
-        duration: 2000
-      }
-    },
+    // {
+    //   provide: MAT_SNACK_BAR_DEFAULT_OPTIONS, useValue: {
+    //     horizontalPosition: 'right',
+    //     verticalPosition: 'top',
+    //   }
+    // },
   ],
   bootstrap: [AppComponent]
 })

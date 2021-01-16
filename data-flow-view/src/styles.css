@@ -14,8 +14,14 @@ html, body {
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 #flow-config-edit-dialog.mat-dialog-container{
   /*background-color: #fafafa90;*/
+  /*backdrop-filter: blur(5px);*/
+}
+
+.blur-background{
+  /*background-color: #fafafa90;*/
   /*backdrop-filter: blur(3px);*/
 }
+
 #flow-config-monaco-editor .monaco-editor{
   background-color: unset;
 }
@@ -23,7 +29,13 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   opacity: 0;
   transition: opacity 100ms linear;
 }
+.cdk-overlay-backdrop{
+  /*backdrop-filter: blur(5px);*/
+}
 .mat-progress-bar-background.mat-progress-bar-element,
 .mat-progress-bar-buffer.mat-progress-bar-element{
   display: none;
+}
+.snack-bar-container{
+  line-break: anywhere;
 }

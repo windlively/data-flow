@@ -13,7 +13,6 @@ public class ExceptionController {
 
     @ExceptionHandler(Exception.class)
     public HttpResult<?> exception(Exception ex){
-        ex.printStackTrace();
         log.error("{}", ex.getMessage(), ex);
         return HttpResult.FAILED(ex.toString());
     }

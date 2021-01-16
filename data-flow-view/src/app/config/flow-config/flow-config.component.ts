@@ -8,6 +8,8 @@ import {AppService} from '../../service/app.service';
 import {animate, state, style, transition, trigger} from '@angular/animations';
 import {MatDialog} from '@angular/material/dialog';
 import {FlowConfigEditDialogComponent} from './flow-config-edit-dialog.component';
+import {ConfirmDialogComponent} from '../../dialog/confirm-dialog.component';
+import {HttpClient} from '@angular/common/http';
 
 @Component({
   selector: 'app-flow-config',
@@ -24,7 +26,8 @@ import {FlowConfigEditDialogComponent} from './flow-config-edit-dialog.component
 export class FlowConfigComponent implements OnInit, AfterViewInit {
 
   constructor(public app: AppService,
-              public dialog: MatDialog) { }
+              public dialog: MatDialog,
+              public http: HttpClient) { }
 
   ngOnInit(): void {
   }
@@ -53,7 +56,7 @@ export class FlowConfigComponent implements OnInit, AfterViewInit {
   selection = new SelectionModel<FlowConfig>(true, []);
 
   getSelectFlowIdList = (): string[] => {
-    return (this.selection? this.selection.selected : []).map(f => f['flow_id'])
+    return (this.selection? this.selection.selected : []).map(f => f['_id'])
   }
 
   /** Whether the number of selected elements matches the total number of rows. */
@@ -79,18 +82,65 @@ export class FlowConfigComponent implements OnInit, AfterViewInit {
   }
 
   deleteFlows = (flowIds: string[]) => {
-
+    if(!!!flowIds || flowIds.length === 0){
+      this.app.showSnackBar('未选择任何条目')
+      return
+    }
+    this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: '确认删除以下flow？',
+        msg: flowIds.join('\n')
+      }
+    }).afterClosed().subscribe(s => {
+      if(s) {
+        this.http.delete('flow-config', {
+          params: {flowIds}
+        }).subscribe(s => {
+          this.app.showSnackBar(`删除${s}条配置`)
+          this.app.refreshAllFlowConfigList()
+        })
+      }
+    })
   }
 
-  editFlowConfig = (flowConfig: FlowConfig) => {
+  reloadServerFlow = () => {
+    this.http.get('/flow-config/reload').subscribe(s => {
+      if(s){
+        this.app.showSnackBar('server reload flow success')
+      }else {
+        this.app.showSnackBar('server reload none flow')
+      }
+    })
+  }
+
+  editFlowConfig = (flowConfig: FlowConfig) => this.openEditor(flowConfig, 'update')
+
+  addFlowConfig = () => {
+    const flowConfig: FlowConfig = {
+      _id: "",
+      source: "__default",
+      schema: "__default",
+      name: "__default",
+      node_list: [
+
+      ]
+    }
+    this.openEditor(flowConfig, 'new')
+  }
+
+  private openEditor = (flowConfig: FlowConfig, type: string) => {
     this.dialog.open(FlowConfigEditDialogComponent, {
       width: '95vw',
       height: '90vh',
       maxWidth: '92vw',
       disableClose: true,
-      data: flowConfig,
+      autoFocus: false,
+      data: {
+        type: type,
+        initFlowConfig: flowConfig
+      },
       id: 'flow-config-edit-dialog'
     })
   }
-
 }

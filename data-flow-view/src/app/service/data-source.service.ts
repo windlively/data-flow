@@ -11,7 +11,7 @@ export class DataSourceService {
   constructor(private http: HttpClient) { }
 
   public getAllFlowConfig(): Observable<any>{
-    return this.http.get('/data-flow/flow-config/all')
+    return this.http.get('/flow-config')
   }
 
 }

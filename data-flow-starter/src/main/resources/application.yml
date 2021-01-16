@@ -4,7 +4,3 @@ spring:
 server:
   servlet:
     context-path: /data-flow
-data-flow:
-  http-options:
-    enable-flow-config: true
-    enable-monitor: true

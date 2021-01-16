@@ -70,6 +70,7 @@ export class AppService implements OnInit{
     this.snackBar.open(msg, null, config ? config : {
       horizontalPosition: 'right',
       verticalPosition: 'top',
+      panelClass: 'snack-bar-container',
       duration: 2000
     })
   }

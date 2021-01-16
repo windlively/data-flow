@@ -21,9 +21,10 @@
   }
 
   div.body {
-    top: 60px;
     position: relative;
     width: 100vw;
+    height: 100%;
+    overflow: auto;
   }
 
   .loading-bar{
@@ -62,7 +63,8 @@
   <h1 class="title">Data Flow Manager</h1>
   <mat-progress-bar *ngIf="app.showLoadingBarSubject | async" class="loading-bar" mode="query"></mat-progress-bar>
 </nav>
-<div class="body" [@routerTransition]="getState(o)">
-  <router-outlet  #o="outlet"></router-outlet>
+<div class="body">
+  <div style="height: 60px"></div>
+  <router-outlet></router-outlet>
 </div>
 <app-tool-button-group></app-tool-button-group>

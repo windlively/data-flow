@@ -22,4 +22,6 @@ public class RefreshCacheMessage {
         return toJSONString(this);
     }
 
+    public static final String TOPIC_NAME = "refresh-cache";
+
 }

@@ -60,3 +60,6 @@ multi-data-source:
       master: classpath:h2/init_schema_business_db.sql
       op_log: classpath:h2/init_schema_op_log_db.sql
       origin: classpath:h2/init_schema_origin_db.sql
+server:
+  servlet:
+    context-path: /data-flow

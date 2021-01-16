@@ -1,4 +1,4 @@
-import {Injectable, Injector} from '@angular/core';
+import {Injectable} from '@angular/core';
 import {
   HttpRequest,
   HttpHandler,
@@ -18,13 +18,14 @@ export class DataFlowInterceptor implements HttpInterceptor {
   constructor(
     private snackBar: MatSnackBar,
     public app: AppService
-  ) {}
+  ) {
+  }
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    this.app.showLoadingBarSubject.next(true)
-    this.processingHttpCount ++;
+    this.app.showLoadingBarSubject.next(true);
+    this.processingHttpCount++;
     return next.handle(req.clone({
-      url: req.url
+      url: `/data-flow${req.url.startsWith('/') ? req.url : '/' + req.url}`
     }))
       .pipe(
         debounceTime(1000),
@@ -47,11 +48,11 @@ export class DataFlowInterceptor implements HttpInterceptor {
           }
           return of(event);
         }), catchError((err: HttpErrorResponse) => {
-          this.snackBar.open(err.message);
-          console.error(err.message)
+          this.app.showSnackBar(err.message);
+          console.error(err.message);
           return throwError(err);
         }), finalize(() => {
-          setTimeout(() => this.app.showLoadingBarSubject.next(--this.processingHttpCount !== 0), 2000)
+          setTimeout(() => this.app.showLoadingBarSubject.next(--this.processingHttpCount !== 0), 2000);
         }));
   }
 }

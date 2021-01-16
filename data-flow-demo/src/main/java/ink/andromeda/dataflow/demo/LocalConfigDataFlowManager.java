@@ -36,7 +36,7 @@ public class LocalConfigDataFlowManager extends ConfigurableDataFlowManager {
     private Resource[] flowConfigResources;
 
     @Override
-    protected List<Map<String, Object>> getFlowConfig() {
+    public List<Map<String, Object>> getFlowConfig() {
         return Stream.of(flowConfigResources)
                 .filter(s -> Objects.nonNull(s.getFilename()))
                 .filter(s -> s.getFilename().matches("^sync-config-[\\w-]+?.json$"))
@@ -59,52 +59,52 @@ public class LocalConfigDataFlowManager extends ConfigurableDataFlowManager {
     }
 
     @Override
-    protected List<Map<String, Object>> getFlowConfig(String source, String schema, String name) {
+    public List<Map<String, Object>> getFlowConfig(String source, String schema, String name) {
         return null;
     }
 
     @Override
-    protected Map<String, Object> getFlowConfig(String flowName) {
+    public Map<String, Object> getFlowConfig(String flowName) {
         return null;
     }
 
     @Override
-    protected int addFlowConfig(List<Map<String, Object>> configs) {
+    public int addFlowConfig(List<Map<String, Object>> configs) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    protected int addFlowConfig(Map<String, Object> config) {
+    public int addFlowConfig(Map<String, Object> config) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    protected int updateFlowConfig(String flowName, Map<String, Object> update) {
+    public int updateFlowConfig(String flowName, Map<String, Object> update) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    protected int deleteFlowConfig(String source, String schema, String name) {
+    public int deleteFlowConfig(String source, String schema, String name) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    protected int deleteFlowConfig(String flowName) {
+    public int deleteFlowConfig(String flowName) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    protected int addNodeConfig(String flowName, Map<String, Object> nodeConfig) {
+    public int addNodeConfig(String flowName, Map<String, Object> nodeConfig) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    protected int updateNodeConfig(String flowName, String nodeName, Map<String, Object> update) {
+    public int updateNodeConfig(String flowName, String nodeName, Map<String, Object> update) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    protected int deleteNodeConfig(String flowName, String nodeName) {
+    public int deleteNodeConfig(String flowName, String nodeName) {
         throw new UnsupportedOperationException();
     }
 }

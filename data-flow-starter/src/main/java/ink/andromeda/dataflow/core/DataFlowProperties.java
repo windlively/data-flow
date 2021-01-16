@@ -16,7 +16,8 @@ public class DataFlowProperties {
     @NestedConfigurationProperty
     private MqInstanceConfig[] mqInstances;
 
-    private HttpOptions httpOptions;
+    @NestedConfigurationProperty
+    private HttpOptions httpOptions = new HttpOptions();
 
     @Data
     public static class HttpOptions{

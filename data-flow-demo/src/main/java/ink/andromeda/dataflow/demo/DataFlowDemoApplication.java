@@ -16,6 +16,7 @@ import org.springframework.kafka.listener.KafkaListenerErrorHandler;
 import org.springframework.kafka.listener.ListenerExecutionFailedException;
 import org.springframework.messaging.Message;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import java.util.Properties;
 
@@ -24,10 +25,12 @@ import java.util.Properties;
                 RabbitAutoConfiguration.class,
                 MongoAutoConfiguration.class,
                 RedisAutoConfiguration.class
-        }
+        },
+        scanBasePackages = "ink.andromeda.dataflow"
 )
 @Slf4j
 @EnableScheduling
+@EnableSwagger2
 public class DataFlowDemoApplication {
 
     public static void main(String[] args) {

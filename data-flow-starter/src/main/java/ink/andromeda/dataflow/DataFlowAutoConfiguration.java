@@ -2,19 +2,26 @@ package ink.andromeda.dataflow;
 
 import com.zaxxer.hikari.HikariDataSource;
 import ink.andromeda.dataflow.core.*;
+import ink.andromeda.dataflow.core.flow.ConfigurableDataFlowManager;
 import ink.andromeda.dataflow.core.flow.DataFlowManager;
 import ink.andromeda.dataflow.core.flow.DefaultDataFlowManager;
-import ink.andromeda.dataflow.core.mq.*;
+import ink.andromeda.dataflow.core.mq.KafkaInstance;
+import ink.andromeda.dataflow.core.mq.MessageQueueContainer;
+import ink.andromeda.dataflow.core.mq.RocketInstance;
+import ink.andromeda.dataflow.core.mq.SimpleMessageQueueContainer;
 import ink.andromeda.dataflow.core.node.resolver.*;
 import ink.andromeda.dataflow.datasource.DataSourceConfig;
 import ink.andromeda.dataflow.datasource.DataSourceDetermineAspect;
 import ink.andromeda.dataflow.datasource.DynamicDataSource;
 import ink.andromeda.dataflow.datasource.dao.CommonJdbcDao;
 import ink.andromeda.dataflow.datasource.dao.DefaultCommonJdbcDao;
-import ink.andromeda.dataflow.interceptor.HttpInterceptor;
+import ink.andromeda.dataflow.interceptor.HttpInvokeInterceptor;
 import ink.andromeda.dataflow.server.entity.RefreshCacheMessage;
+import ink.andromeda.dataflow.server.service.impl.DefaultConfigService;
+import ink.andromeda.dataflow.server.service.FlowConfigService;
 import ink.andromeda.dataflow.util.GeneralTools;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -35,6 +42,12 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.Assert;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import springfox.documentation.builders.ApiInfoBuilder;
+import springfox.documentation.builders.PathSelectors;
+import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.service.ApiInfo;
+import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spring.web.plugins.Docket;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -44,6 +57,7 @@ import java.sql.Statement;
 import java.util.*;
 import java.util.stream.Stream;
 
+import static ink.andromeda.dataflow.server.entity.RefreshCacheMessage.TOPIC_NAME;
 import static ink.andromeda.dataflow.util.GeneralTools.GSON;
 
 @Configuration
@@ -101,9 +115,15 @@ public class DataFlowAutoConfiguration implements WebMvcConfigurer {
             RefreshCacheMessage refreshCacheMessage = GSON().fromJson(body, RefreshCacheMessage.class);
             switch (refreshCacheMessage.getCacheType()) {
                 case "flow-config":
-                    dataFlowManager.reload();
+                    if(StringUtils.isNoneEmpty(refreshCacheMessage.getSubExpression())){
+                        Stream.of(refreshCacheMessage.getSubExpression().split(","))
+                                .map(String::trim)
+                                .forEach(dataFlowManager::reload);
+                    }else {
+                        dataFlowManager.reload();
+                    }
             }
-        }, new ChannelTopic("refresh-cache"));
+        }, new ChannelTopic(TOPIC_NAME));
         return container;
     }
 
@@ -223,22 +243,22 @@ public class DataFlowAutoConfiguration implements WebMvcConfigurer {
                 }
 
             });
-            if(dataSourceConfig().getInitSqlScript() != null && !dataSourceConfig().getInitSqlScript().isEmpty()){
+            if (dataSourceConfig().getInitSqlScript() != null && !dataSourceConfig().getInitSqlScript().isEmpty()) {
                 dataSourceConfig().getInitSqlScript().forEach(
                         (k, v) -> {
                             DataSource dataSource = dataSourceMap.get(k);
-                            if(dataSource != null){
+                            if (dataSource != null) {
                                 try (
                                         Connection connection = dataSource.getConnection();
                                         Statement statement = connection.createStatement();
                                         Scanner scanner = new Scanner(v.getInputStream());
                                 ) {
                                     StringBuilder script = new StringBuilder();
-                                    while (scanner.hasNextLine()){
+                                    while (scanner.hasNextLine()) {
                                         script.append(scanner.nextLine()).append("\n");
                                     }
                                     statement.execute(script.toString());
-                                    log.info("execute init sql script for datasource {} : {}",k , script);
+                                    log.info("execute init sql script for datasource {} : {}", k, script);
                                 } catch (SQLException | IOException ex) {
                                     log.error(ex.getMessage(), ex);
                                 }
@@ -296,14 +316,58 @@ public class DataFlowAutoConfiguration implements WebMvcConfigurer {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(name = "multi-data-source.enable", havingValue = "false")
-    CommonJdbcDao commonJdbcDao(){
+    CommonJdbcDao commonJdbcDao() {
         return new DefaultCommonJdbcDao(new DynamicDataSource());
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    FlowConfigService flowConfigService(ConfigurableDataFlowManager dataFlowManager,
+                                        RedisTemplate<String, String> redisTemplate){
+        return new DefaultConfigService(dataFlowManager, redisTemplate);
     }
 
     @Override
     public void addInterceptors(@NonNull InterceptorRegistry registry) {
-        registry.addInterceptor(new HttpInterceptor())
-                .addPathPatterns("/data-flow/**")
-                .excludePathPatterns("/**");
+        registry.addInterceptor(new HttpInvokeInterceptor(dataFlowProperties.getHttpOptions().isEnableFlowConfig(), "server not enable to access flow config interface"))
+                .addPathPatterns("/flow-config/**");
+        registry.addInterceptor(new HttpInvokeInterceptor(dataFlowProperties.getHttpOptions().isEnableMonitor(), "server not enable to access monitor interface"))
+                .addPathPatterns("/monitor/**");
+    }
+
+    @Bean
+    public Docket createRestApi() {
+        return new Docket(DocumentationType.SWAGGER_2)
+                .apiInfo(apiInfo())//调用apiInfo方法,创建一个ApiInfo实例,里面是展示在文档页面信息内容
+                .select()
+                .apis(RequestHandlerSelectors.basePackage("ink.andromeda.dataflow"))
+                .paths(PathSelectors.any())
+                .build();
+    }
+
+    private ApiInfo apiInfo() {
+        return new ApiInfoBuilder()
+                .title("data-flow")
+                .version("1.0.0")
+                .description("API 描述")
+                .build();
+    }
+
+
+    public static Random random = new Random();
+
+    public static long getVideo() {
+        return random.nextInt(20);
+    }
+
+    public static long getAudio() {
+        return random.nextInt(20);
+    }
+
+    public static void main(String[] args) {
+        List<List<Long>> list = new ArrayList<>();
+        for (int i = 0; i < 15; i++)
+            list.add(Arrays.asList(getVideo(), getAudio()));
+        System.out.println(list);
     }
 }

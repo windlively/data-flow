@@ -5,24 +5,24 @@ multi-data-source:
       - pool-name: master
         driver-class-name: com.mysql.cj.jdbc.Driver
         jdbc-url: jdbc:mysql://localhost:3306/
-        password: 123456789
+        password: 58603924715
         username: root
         connection-test-query: SELECT 1
         validation-timeout: 18800
       - pool-name: common
         driver-class-name: com.mysql.cj.jdbc.Driver
         jdbc-url: jdbc:mysql://localhost:3306/common
-        password: 123456789
+        password: 58603924715
         username: root
         connection-test-query: SELECT 1
         validation-timeout: 18800
 spring:
   data:
     mongodb:
-      uri: mongodb://data-flow:123456@127.0.0.1:27017/data-flow
+      uri: mongodb://data-flow:data-flow@127.0.0.1:27017/data-flow
   redis:
     port: 6380
-    password: 123456
+    password: 58603924715
     lettuce:
       pool:
         max-idle: 8
@@ -98,6 +98,9 @@ data-flow:
         schema: "'weibo_spider'"
         name: "'weibo_spider'"
       type: JSON
+  http-options:
+    enable-flow-config: true
+    enable-monitor: true
   mq-instances:
     - name: example_sink
       type: kafka

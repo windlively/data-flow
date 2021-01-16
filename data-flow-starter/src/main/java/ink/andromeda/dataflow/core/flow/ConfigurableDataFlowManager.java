@@ -187,6 +187,7 @@ public abstract class ConfigurableDataFlowManager implements DataFlowManager {
         );
         flowList.removeIf(f -> Objects.equals(f.getName(), flow.getName()));
         flowList.add(flow);
+        log.info("reload flow: {}", flow.getName());
     }
 
     /**
@@ -195,7 +196,7 @@ public abstract class ConfigurableDataFlowManager implements DataFlowManager {
      *
      * @return JSON形式的配置
      */
-    protected abstract List<Map<String, Object>> getFlowConfig();
+    public abstract List<Map<String, Object>> getFlowConfig();
 
     /**
      * 获取某个namespace下的flow配置
@@ -205,7 +206,7 @@ public abstract class ConfigurableDataFlowManager implements DataFlowManager {
      * @param name   表名称
      * @return JSON形式的配置
      */
-    protected abstract List<Map<String, Object>> getFlowConfig(String source, String schema, String name);
+    public abstract List<Map<String, Object>> getFlowConfig(String source, String schema, String name);
 
     /**
      * 根据flowName获取flow配置
@@ -213,7 +214,7 @@ public abstract class ConfigurableDataFlowManager implements DataFlowManager {
      * @param flowName flow名称
      * @return JSON配置
      */
-    @Nullable protected abstract Map<String, Object> getFlowConfig(String flowName);
+    @Nullable public abstract Map<String, Object> getFlowConfig(String flowName);
 
     /**
      * 根据namespace批量添加flow配置
@@ -221,7 +222,7 @@ public abstract class ConfigurableDataFlowManager implements DataFlowManager {
      * @param configs JSON配置内容
      * @return 新增条数
      */
-    protected abstract int addFlowConfig(List<Map<String, Object>> configs);
+    public abstract int addFlowConfig(List<Map<String, Object>> configs);
 
     /**
      * 新增一个flow配置
@@ -229,7 +230,7 @@ public abstract class ConfigurableDataFlowManager implements DataFlowManager {
      * @param config flow配置
      * @return 新增条数
      */
-    protected abstract int addFlowConfig(Map<String, Object> config);
+    public abstract int addFlowConfig(Map<String, Object> config);
 
     /**
      * 更新一个flow配置
@@ -238,7 +239,7 @@ public abstract class ConfigurableDataFlowManager implements DataFlowManager {
      * @param update   新的flow配置
      * @return 更新条数
      */
-    protected abstract int updateFlowConfig(String flowName, Map<String, Object> update);
+    public abstract int updateFlowConfig(String flowName, Map<String, Object> update);
 
     /**
      * 删除给定namespace下的flow配置
@@ -248,7 +249,7 @@ public abstract class ConfigurableDataFlowManager implements DataFlowManager {
      * @param name   表名称
      * @return 删除数量
      */
-    protected abstract int deleteFlowConfig(String source, String schema, String name);
+    public abstract int deleteFlowConfig(String source, String schema, String name);
 
     /**
      * 删除flow配置
@@ -256,7 +257,7 @@ public abstract class ConfigurableDataFlowManager implements DataFlowManager {
      * @param flowName flow名称
      * @return 删除数量
      */
-    protected abstract int deleteFlowConfig(String flowName);
+    public abstract int deleteFlowConfig(String flowName);
 
     /**
      * 为flow新增一个节点配置
@@ -265,7 +266,7 @@ public abstract class ConfigurableDataFlowManager implements DataFlowManager {
      * @param nodeConfig 新节点配置
      * @return 新增节点数
      */
-    protected abstract int addNodeConfig(String flowName, Map<String, Object> nodeConfig);
+    public abstract int addNodeConfig(String flowName, Map<String, Object> nodeConfig);
 
     /**
      * 更新flow节点配置
@@ -275,7 +276,7 @@ public abstract class ConfigurableDataFlowManager implements DataFlowManager {
      * @param update   该节点新配置
      * @return 更新的节点数量
      */
-    protected abstract int updateNodeConfig(String flowName, String nodeName, Map<String, Object> update);
+    public abstract int updateNodeConfig(String flowName, String nodeName, Map<String, Object> update);
 
     /**
      * 更新指定位置的flow节点配置
@@ -286,7 +287,7 @@ public abstract class ConfigurableDataFlowManager implements DataFlowManager {
      * @param update    该节点新配置
      * @return 更新数量
      */
-    protected int updateNodeConfig(String flowName, int nodeIndex, Map<String, Object> update) {
+    public int updateNodeConfig(String flowName, int nodeIndex, Map<String, Object> update) {
         throw new UnsupportedOperationException();
     }
 
@@ -298,7 +299,7 @@ public abstract class ConfigurableDataFlowManager implements DataFlowManager {
      * @param nodeName 节点名称
      * @return 删除的额节点个数
      */
-    protected abstract int deleteNodeConfig(String flowName, String nodeName);
+    public abstract int deleteNodeConfig(String flowName, String nodeName);
 
     /**
      * 删除一个flow指定位置的节点配置
@@ -307,7 +308,7 @@ public abstract class ConfigurableDataFlowManager implements DataFlowManager {
      * @param nodeIndex 节点位置
      * @return 删除的节点数量
      */
-    protected int deleteNodeConfig(String flowName, int nodeIndex) {
+    public int deleteNodeConfig(String flowName, int nodeIndex) {
         throw new UnsupportedOperationException();
     }
 
@@ -318,7 +319,7 @@ public abstract class ConfigurableDataFlowManager implements DataFlowManager {
      * @param nodeName 节点名称
      * @return 节点配置
      */
-    protected Map<String, Object> getNodeConfig(String flowName, String nodeName) {
+    public Map<String, Object> getNodeConfig(String flowName, String nodeName) {
         //noinspection unchecked
         return Optional.ofNullable((List<Map<String, Object>>) getFlowConfig(flowName).get("node_list"))
                 .orElse(Collections.emptyList())
