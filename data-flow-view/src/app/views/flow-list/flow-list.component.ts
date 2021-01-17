@@ -1,8 +1,8 @@
 import {Component, OnInit} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {Tools} from '../tools';
+import {Tools} from '../../tools';
 import {EChartsOption} from 'echarts';
-import {AppService} from '../service/app.service';
+import {AppService} from '../../service/app.service';
 
 
 const svgIcons = {

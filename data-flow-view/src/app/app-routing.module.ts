@@ -1,7 +1,8 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
-import {FlowListComponent} from './flow-list/flow-list.component';
-import {ConfigComponent} from './config/config.component';
+import {FlowListComponent} from './views/flow-list/flow-list.component';
+import {ConfigComponent} from './views/config/config.component';
+import {MonitorComponent} from './views/monitor/monitor.component';
 
 
 const routes: Routes = [
@@ -25,6 +26,11 @@ const routes: Routes = [
     data: {
       name: 'config'
     }
+  },
+  {
+    path: 'monitor',
+    component: MonitorComponent,
+    pathMatch: 'full'
   },
   {
     path: '**',

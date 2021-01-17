@@ -54,9 +54,12 @@
             <div class="table-row-detail"
                  [@detailExpand]="element == tableExpandedRow ? 'expanded' : 'collapsed'">
               <div>
-                <button mat-button style="color: #9933ff;" (click)="editFlowConfig(element)">编辑此配置</button>
+                <button mat-button style="color: #9933ff;" (click)="editFlowConfig(element)">编辑</button>
               </div>
-              <div class="flow-config-preview json-code" [innerText]="element | prettyJSON: false: '  '"></div>
+              <div>
+                <button mat-button style="color: #9933ff;" (click)="deleteFlows([element['_id']])">删除</button>
+              </div>
+<!--              <div class="flow-config-preview json-code" [innerText]="element | prettyJSON: false: '  '"></div>-->
             </div>
           </td>
         </ng-container>

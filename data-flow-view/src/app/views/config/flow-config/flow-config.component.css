@@ -37,6 +37,11 @@ tr.element-row:hover {
   overflow: hidden;
   white-space: pre-wrap;
   word-break: break-word;
+  display: flex;
+}
+
+.table-row-detail button{
+  margin: 5px;
 }
 
 table .flow-config-preview{

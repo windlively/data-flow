@@ -1,12 +1,12 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialog, MatDialogRef} from '@angular/material/dialog';
-import {FlowConfig} from '../../model/flow-config';
+import {FlowConfig} from '../../../model/flow-config';
 import IEditor = monaco.editor.IEditor;
-import {ConfirmDialogComponent} from '../../dialog/confirm-dialog.component';
+import {ConfirmDialogComponent} from '../../../dialog/confirm-dialog.component';
 import {map, startWith} from 'rxjs/operators';
 import {FormControl, Validators} from '@angular/forms';
 import {Observable} from 'rxjs';
-import {AppErrorStateMatcher, AppService} from '../../service/app.service';
+import {AppErrorStateMatcher, AppService} from '../../../service/app.service';
 import {HttpClient} from '@angular/common/http';
 
 @Component({

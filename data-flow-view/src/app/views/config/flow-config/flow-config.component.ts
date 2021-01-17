@@ -1,14 +1,14 @@
 import {AfterViewInit, Component, OnInit, ViewChild} from '@angular/core';
 import {MatTableDataSource} from '@angular/material/table';
-import {FlowConfig} from '../../model/flow-config';
+import {FlowConfig} from '../../../model/flow-config';
 import {MatPaginator} from '@angular/material/paginator';
 import {MatSort} from '@angular/material/sort';
 import {SelectionModel} from '@angular/cdk/collections';
-import {AppService} from '../../service/app.service';
+import {AppService} from '../../../service/app.service';
 import {animate, state, style, transition, trigger} from '@angular/animations';
 import {MatDialog} from '@angular/material/dialog';
 import {FlowConfigEditDialogComponent} from './flow-config-edit-dialog.component';
-import {ConfirmDialogComponent} from '../../dialog/confirm-dialog.component';
+import {ConfirmDialogComponent} from '../../../dialog/confirm-dialog.component';
 import {HttpClient} from '@angular/common/http';
 
 @Component({

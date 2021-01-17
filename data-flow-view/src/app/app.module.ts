@@ -17,10 +17,9 @@ import {NzIconModule} from 'ng-zorro-antd/icon';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {MatButtonModule} from '@angular/material/button';
 import {MatDialogModule} from '@angular/material/dialog';
-import {FlowListComponent} from './flow-list/flow-list.component';
+import {FlowListComponent} from './views/flow-list/flow-list.component';
 import {NgxEchartsModule} from 'ngx-echarts';
-import 'src/assets/echarts-theme/purple-passion.js';
-import {ConfigComponent} from './config/config.component';
+import {ConfigComponent} from './views/config/config.component';
 import {MatTabsModule} from '@angular/material/tabs';
 import {AppService} from './service/app.service';
 import {MatFormFieldModule} from '@angular/material/form-field';
@@ -32,8 +31,8 @@ import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {ErrorStateMatcher, MatOptionModule, MatRippleModule, ShowOnDirtyErrorStateMatcher} from '@angular/material/core';
 import {PrettyJSONPipe} from './pipe/pretty-json.pipe';
-import {FlowConfigComponent} from './config/flow-config/flow-config.component';
-import {FlowConfigEditDialogComponent} from './config/flow-config/flow-config-edit-dialog.component';
+import {FlowConfigComponent} from './views/config/flow-config/flow-config.component';
+import {FlowConfigEditDialogComponent} from './views/config/flow-config/flow-config-edit-dialog.component';
 import {MonacoEditorModule} from 'ngx-monaco-editor';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {ConfirmDialogComponent} from './dialog/confirm-dialog.component';
@@ -42,6 +41,8 @@ import {MatProgressSpinnerModule, MatSpinner} from '@angular/material/progress-s
 import {DataFlowInterceptor} from './interceptor/data-flow.interceptor';
 import {MatProgressBarModule} from '@angular/material/progress-bar';
 import {MAT_SNACK_BAR_DEFAULT_OPTIONS, MatSnackBarModule} from '@angular/material/snack-bar';
+import {MonitorComponent} from './views/monitor/monitor.component';
+import {NzGridModule} from 'ng-zorro-antd/grid';
 registerLocaleData(zh);
 
 
@@ -54,7 +55,8 @@ registerLocaleData(zh);
     PrettyJSONPipe,
     FlowConfigComponent,
     FlowConfigEditDialogComponent,
-    ConfirmDialogComponent
+    ConfirmDialogComponent,
+    MonitorComponent
   ],
   imports: [
     BrowserModule,
@@ -87,7 +89,8 @@ registerLocaleData(zh);
     MatAutocompleteModule,
     MatProgressSpinnerModule,
     MatProgressBarModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    NzGridModule
   ],
   providers: [
     AppService,
@@ -100,12 +103,12 @@ registerLocaleData(zh);
     {
       provide: ErrorStateMatcher, useClass: ShowOnDirtyErrorStateMatcher
     },
-    // {
-    //   provide: MAT_SNACK_BAR_DEFAULT_OPTIONS, useValue: {
-    //     horizontalPosition: 'right',
-    //     verticalPosition: 'top',
-    //   }
-    // },
+    {
+      provide: MAT_SNACK_BAR_DEFAULT_OPTIONS, useValue: {
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+      }
+    },
   ],
   bootstrap: [AppComponent]
 })
