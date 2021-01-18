@@ -11,6 +11,8 @@ public class DataFlowProperties {
 
     public static final String REDIS_KEY_PREFIX = "data-flow:";
 
+    public static final String REDIS_INSTANCE_REGISTER_KEY = DataFlowProperties.REDIS_KEY_PREFIX + "monitor:instance";
+
     private String defaultMqType = "kafka";
 
     private boolean enable;

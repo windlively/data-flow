@@ -52,7 +52,7 @@ public class DataFlowDemoApplication implements DisposableBean, InitializingBean
                 //.redisExecProvider(customRedisExec) //com.github.kstyrc (not com.orange.redis-embedded)
                 .setting("maxmemory 128M") //maxheap 128M
                 .build();
-        redisServer.start();
+//        redisServer.start();
     }
 
     public static void main(String[] args) {

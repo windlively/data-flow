@@ -30,6 +30,7 @@ public interface DataRouter {
             transferEntities.add(flow.inflow(sourceEntity.clone()));
             getStatusCollector().successOne(flow.getName(), sourceEntity);
         }
+        getStatusCollector().processOneMsg(sourceEntity);
         return transferEntities;
     };
 

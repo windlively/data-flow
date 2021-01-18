@@ -17,11 +17,15 @@ import ink.windlively.dataflow.datasource.dao.CommonJdbcDao;
 import ink.windlively.dataflow.datasource.dao.DefaultCommonJdbcDao;
 import ink.windlively.dataflow.interceptor.HttpInvokeInterceptor;
 import ink.windlively.dataflow.monitor.AppStatusCollector;
+import ink.windlively.dataflow.monitor.AppStatusProvider;
 import ink.windlively.dataflow.monitor.impl.AsyncAppStatusCollector;
 import ink.windlively.dataflow.monitor.impl.ClusterAppStatusCollector;
+import ink.windlively.dataflow.monitor.impl.ClusterAppStatusProvider;
 import ink.windlively.dataflow.server.entity.RefreshCacheMessage;
+import ink.windlively.dataflow.server.service.FlowMonitorService;
 import ink.windlively.dataflow.server.service.impl.DefaultConfigService;
 import ink.windlively.dataflow.server.service.FlowConfigService;
+import ink.windlively.dataflow.server.service.impl.DefaultMonitorService;
 import ink.windlively.dataflow.util.GeneralTools;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -329,6 +333,18 @@ public class DataFlowAutoConfiguration implements WebMvcConfigurer {
     FlowConfigService flowConfigService(ConfigurableDataFlowManager dataFlowManager,
                                         RedisTemplate<String, String> redisTemplate){
         return new DefaultConfigService(dataFlowManager, redisTemplate);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    AppStatusProvider appStatusProvider(RedisTemplate<String, String> redisTemplate){
+        return new ClusterAppStatusProvider(redisTemplate);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    FlowMonitorService flowMonitorService(AppStatusProvider appStatusProvider){
+        return new DefaultMonitorService(appStatusProvider);
     }
 
     @Override

@@ -28,14 +28,20 @@ public class ClusterAppStatusCollector implements AppStatusCollector, Initializi
             instanceName = localHost.getHostName() + "@" + localHost.getHostAddress();
             log.info("current instance name {}", instanceName);
             redisPrefix = DataFlowProperties.REDIS_KEY_PREFIX + "monitor:" + instanceName + ":";
+            redisTemplate.opsForHash().increment(DataFlowProperties.REDIS_INSTANCE_REGISTER_KEY, instanceName, 1);
         } catch (UnknownHostException e) {
             throw new IllegalStateException(e);
         }
     }
 
     @Override
-    public void receiveOne(SourceEntity sourceEntity) {
+    public void receiveOneMsg(SourceEntity sourceEntity) {
         redisHashIncrOne(redisPrefix + "receive", genNameSpace(sourceEntity));
+    }
+
+    @Override
+    public void processOneMsg(SourceEntity sourceEntity) {
+        redisHashIncrOne(redisPrefix + "processed-msg", genNameSpace(sourceEntity));
     }
 
     @Override

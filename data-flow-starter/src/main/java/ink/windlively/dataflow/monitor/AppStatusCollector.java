@@ -9,7 +9,9 @@ import org.springframework.lang.Nullable;
  */
 public interface AppStatusCollector {
 
-    default void receiveOne(SourceEntity sourceEntity) {}
+    default void receiveOneMsg(SourceEntity sourceEntity) {}
+
+    default void processOneMsg(SourceEntity sourceEntity) {}
 
     default void inflowOne(String flowName, SourceEntity sourceEntity) {}
 

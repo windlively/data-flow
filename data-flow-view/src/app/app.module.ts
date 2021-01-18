@@ -43,6 +43,7 @@ import {MatProgressBarModule} from '@angular/material/progress-bar';
 import {MAT_SNACK_BAR_DEFAULT_OPTIONS, MatSnackBarModule} from '@angular/material/snack-bar';
 import {MonitorComponent} from './views/monitor/monitor.component';
 import {NzGridModule} from 'ng-zorro-antd/grid';
+import {CoreRateChartComponent} from './views/monitor/chart-component/core-rate-chart.component';
 registerLocaleData(zh);
 
 
@@ -56,7 +57,8 @@ registerLocaleData(zh);
     FlowConfigComponent,
     FlowConfigEditDialogComponent,
     ConfirmDialogComponent,
-    MonitorComponent
+    MonitorComponent,
+    CoreRateChartComponent
   ],
   imports: [
     BrowserModule,

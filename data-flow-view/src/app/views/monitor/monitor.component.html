@@ -1,8 +1,9 @@
 <mat-tab-group>
   <mat-tab label="集群数据">
     <nz-row>
-      <nz-col nzXl="12" nzMd="24" nzSm="24">1</nz-col>
-      <nz-col nzXl="12" nzMd="24" nzSm="24">2</nz-col>
+      <nz-col nzSpan="24">
+        <core-chart-rate-chart [is-cluster]="true"></core-chart-rate-chart>
+      </nz-col>
     </nz-row>
   </mat-tab>
 

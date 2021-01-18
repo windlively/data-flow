@@ -48,7 +48,7 @@ public class DefaultDataRouter implements DataRouter {
     @Override
     public List<DataFlow> route(SourceEntity sourceEntity) {
 
-        getStatusCollector().receiveOne(sourceEntity);
+        getStatusCollector().receiveOneMsg(sourceEntity);
 
         List<DataFlow> flowList = dataFlowManager.getFlow(
                 sourceEntity.getSource(),
@@ -112,6 +112,7 @@ public class DefaultDataRouter implements DataRouter {
             MDC.remove("traceId");
         }
         countDownLatch.await();
+        getStatusCollector().processOneMsg(sourceEntity);
         return transferEntities;
     }
 }

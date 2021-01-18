@@ -25,8 +25,8 @@ public class AsyncAppStatusCollector implements AppStatusCollector {
     }
 
     @Override
-    public void receiveOne(SourceEntity sourceEntity) {
-        executor.execute(() -> realCollector.receiveOne(sourceEntity));
+    public void receiveOneMsg(SourceEntity sourceEntity) {
+        executor.execute(() -> realCollector.receiveOneMsg(sourceEntity));
     }
 
     @Override
