@@ -1,5 +1,6 @@
 package ink.windlively.dataflow.server.service.impl;
 
+import ink.windlively.dataflow.monitor.AppStatusData;
 import ink.windlively.dataflow.monitor.AppStatusProvider;
 import ink.windlively.dataflow.server.service.FlowMonitorService;
 
@@ -18,8 +19,8 @@ public class DefaultMonitorService implements FlowMonitorService {
     public DefaultMonitorService(AppStatusProvider statusProvider){
         this.statusProvider = statusProvider;
 
-        clusterStatisticCountSuppliers.put("flow_successful", () -> statusProvider.getReceiveMsgCount().values().stream().reduce(Long::sum).orElse(0L));
-        clusterStatisticCountSuppliers.put("processed_msg", () -> statusProvider.getReceiveMsgCount().values().stream().reduce(Long::sum).orElse(0L));
+        clusterStatisticCountSuppliers.put("flow_successful", () -> statusProvider.getMsgReceivedCount().values().stream().reduce(Long::sum).orElse(0L));
+        clusterStatisticCountSuppliers.put("processed_msg", () -> statusProvider.getMsgReceivedCount().values().stream().reduce(Long::sum).orElse(0L));
     }
 
     @Override
@@ -27,5 +28,10 @@ public class DefaultMonitorService implements FlowMonitorService {
         return statisticItem.stream()
                 .filter(clusterStatisticCountSuppliers::containsKey)
                 .collect(Collectors.toMap(s -> s, s -> clusterStatisticCountSuppliers.get(s).get()));
+    }
+
+    @Override
+    public AppStatusData getClusterFullStatusData() {
+        return statusProvider.getAppStatusData();
     }
 }

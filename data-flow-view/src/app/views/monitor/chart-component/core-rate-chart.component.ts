@@ -4,6 +4,7 @@ import {interval, Subscription} from 'rxjs';
 import {switchMap} from 'rxjs/operators';
 import {DataSourceService} from '../../../service/data-source.service';
 import {AppService} from '../../../service/app.service';
+import {AppStatusData} from '../../../model/app-status-data';
 
 @Component({
   selector: 'core-chart-rate-chart',
@@ -11,9 +12,9 @@ import {AppService} from '../../../service/app.service';
     <div echarts style="height: 400px" [options]="clusterRateChartOption" (chartInit)="echartsInstance = $event"></div>
   `
 })
-export class CoreRateChartComponent implements OnInit, OnDestroy{
+export class CoreRateChartComponent implements OnInit, OnDestroy {
 
-  @Input("is-cluster")
+  @Input('is-cluster')
   private isCluster: boolean = true;
 
   @Input('instance-name')
@@ -22,10 +23,12 @@ export class CoreRateChartComponent implements OnInit, OnDestroy{
   public echartsInstance;
 
   constructor(public dataSource: DataSourceService,
-              private app: AppService) {}
+              private app: AppService) {
+  }
 
   // 集群的处理速率图表
   clusterRateChartOption: EChartsOption = {
+    animation: true,
     title: {
       text: '处理速率'
     },
@@ -47,9 +50,8 @@ export class CoreRateChartComponent implements OnInit, OnDestroy{
       }
     },
     xAxis: {
-      type: 'category',
+      type: 'time',
       boundaryGap: false,
-      data: []
     },
     yAxis: {
       type: 'value'
@@ -67,7 +69,7 @@ export class CoreRateChartComponent implements OnInit, OnDestroy{
         data: []
       }
     ]
-  }
+  };
 
   ngOnInit(): void {
     this.startClusterRateChart();
@@ -76,60 +78,78 @@ export class CoreRateChartComponent implements OnInit, OnDestroy{
   private subscription: Subscription;
 
   startClusterRateChart = () => {
-    this.refreshRateChartOption()
+    this.refreshRateChartOption();
 
     let lastData = null;
     this.subscription = interval(1000).pipe(
-      switchMap(() => this.dataSource.getClusterCountStatistics())
+      switchMap(() => this.dataSource.getClusterAppStatusData())
     ).subscribe(s => {
-      this.refreshRateChartOption(s, lastData)
+      this.refreshRateChartOption(s, lastData);
       lastData = s;
     }, e => {
-      this.app.showSnackBar(e['message'])
-    })
-  }
+      this.app.showSnackBar(e['message']);
+    });
+  };
 
-  refreshRateChartOption = (currentData?, lastData?) => {
+  getTimeStr = (date: Date) => `${[date.getFullYear(), date.getMonth() + 1, date.getDate()].join('/')} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
 
-    if(!currentData){
-      const xAxisData = new Array(60);
-      xAxisData.fill("00:00:00")
-      this.clusterRateChartOption.xAxis['data'] = xAxisData
+  refreshRateChartOption = (currentData?: AppStatusData, lastData?: AppStatusData) => {
+
+    const now = new Date();
+    const date = this.getTimeStr(now);
+
+    if (!currentData) {
+
+      const timestamp = now.getMilliseconds();
 
       const flowRateData = new Array(60);
-      flowRateData.fill(0)
-      this.clusterRateChartOption.series[0].data = flowRateData
-
+      this.clusterRateChartOption.series[0].data = flowRateData;
       const msgRateData = new Array(60);
-      msgRateData.fill(0);
-      this.clusterRateChartOption.series[1].data = msgRateData
+      this.clusterRateChartOption.series[1].data = msgRateData;
 
+      for (let i = 0; i < 59; i++) {
+        // flowRateData.push([this.getTimeStr(new Date(timestamp - i * 1000)), 0]);
+        // msgRateData.push([this.getTimeStr(new Date(timestamp - i * 1000)), 0]);
+      }
+
+      return;
+
+    }
+    if (!!!lastData) {
       return;
     }
 
-    if(!!!lastData) return
+    const flowRateData: any[] = this.clusterRateChartOption.series[0].data;
+    const msgRateData: any[] = this.clusterRateChartOption.series[1].data;
 
-    const flowRateData: number[] = this.clusterRateChartOption.series[0].data;
-    const msgRateData: number[] = this.clusterRateChartOption.series[1].data;
+    flowRateData.push({
+      name: date,
+      value: [date, Object.values(currentData.successfulCount).reduce((s1, s2) => s1 + s2) - Object.values(lastData.successfulCount).reduce((s1, s2) => s1 + s2)]
+    });
 
-
-    console.log(currentData, lastData);
     flowRateData.shift();
-    flowRateData.push(currentData['flow_successful'] - lastData['flow_successful'])
-
+    
+    msgRateData.push({
+      name: date,
+      value: [date, Object.values(currentData.msgProcessedCount).reduce((s1, s2) => s1 + s2) - Object.values(lastData.msgProcessedCount).reduce((s1, s2) => s1 + s2)]
+    });
     msgRateData.shift();
-    msgRateData.push(currentData['processed_msg'] - lastData['processed_msg'])
 
-    this.clusterRateChartOption.xAxis['data'].shift();
-    this.clusterRateChartOption.xAxis['data'].push(new Date().toDateString())
+    // this.clusterRateChartOption.xAxis['data'].shift();
+    // this.clusterRateChartOption.xAxis['data'].push(date)
 
 
-    if(this.echartsInstance) {
-      this.echartsInstance.setOption(this.clusterRateChartOption);
+    if (this.echartsInstance) {
+      this.echartsInstance.setOption({
+        series: [
+          {data: flowRateData},
+          {data: msgRateData}
+        ]
+      });
     }
-  }
+  };
 
   ngOnDestroy(): void {
-    this.subscription.unsubscribe()
+    this.subscription.unsubscribe();
   }
 }

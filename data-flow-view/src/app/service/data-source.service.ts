@@ -1,6 +1,7 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
+import {AppStatusData} from '../model/app-status-data';
 
 @Injectable({
   providedIn: 'root'
@@ -28,8 +29,12 @@ export class DataSourceService {
     return this.http.get('/monitor/cluster/msg-processed-count')
   }
 
-  public getClusterCountStatistics(): Observable<{flow_successful: number, processed_msg}> {
+  public getClusterCountStatistics(): Observable<any> {
     return this.http.get('/monitor/cluster/statistics', {params: {item: ['processed_msg', 'flow_successful']}})
+  }
+
+  public getClusterAppStatusData(): Observable<AppStatusData> {
+    return this.http.get('/monitor/cluster/full-status-data')
   }
 
 }

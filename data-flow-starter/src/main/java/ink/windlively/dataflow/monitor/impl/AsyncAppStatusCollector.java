@@ -48,4 +48,9 @@ public class AsyncAppStatusCollector implements AppStatusCollector {
     public void failedOne(String flowName, SourceEntity sourceEntity, @Nullable FlowFailInfo failInfo) {
         executor.execute(() -> realCollector.failedOne(flowName, sourceEntity, failInfo));
     }
+
+    @Override
+    public void processOneMsg(SourceEntity sourceEntity) {
+        executor.execute(() -> realCollector.processOneMsg(sourceEntity));
+    }
 }
