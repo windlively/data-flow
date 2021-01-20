@@ -33,7 +33,7 @@ export class DataSourceService {
     return this.http.get('/monitor/cluster/statistics', {params: {item: ['processed_msg', 'flow_successful']}})
   }
 
-  public getClusterAppStatusData(): Observable<AppStatusData> {
+  public getClusterAppStatusData(): Observable<any> {
     return this.http.get('/monitor/cluster/full-status-data')
   }
 

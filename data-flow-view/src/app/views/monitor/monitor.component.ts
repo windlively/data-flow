@@ -6,6 +6,7 @@ import {Component, OnInit} from '@angular/core';
   templateUrl: 'monitor.component.html'
 })
 export class MonitorComponent implements OnInit{
+
   ngOnInit(): void {
   }
 

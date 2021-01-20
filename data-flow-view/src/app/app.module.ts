@@ -44,6 +44,9 @@ import {MAT_SNACK_BAR_DEFAULT_OPTIONS, MatSnackBarModule} from '@angular/materia
 import {MonitorComponent} from './views/monitor/monitor.component';
 import {NzGridModule} from 'ng-zorro-antd/grid';
 import {CoreRateChartComponent} from './views/monitor/chart-component/core-rate-chart.component';
+import {ReceiveMsgTotalChartComponent} from './views/monitor/chart-component/receive-msg-total-chart.component';
+import {StatisticsTemplateComponent} from './views/monitor/statistics-template.component';
+import {FlowStatisticsChartComponent} from './views/monitor/chart-component/flow-statistics-chart.component';
 registerLocaleData(zh);
 
 
@@ -58,7 +61,10 @@ registerLocaleData(zh);
     FlowConfigEditDialogComponent,
     ConfirmDialogComponent,
     MonitorComponent,
-    CoreRateChartComponent
+    CoreRateChartComponent,
+    ReceiveMsgTotalChartComponent,
+    StatisticsTemplateComponent,
+    FlowStatisticsChartComponent
   ],
   imports: [
     BrowserModule,

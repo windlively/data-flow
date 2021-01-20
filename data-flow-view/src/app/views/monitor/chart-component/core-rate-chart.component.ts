@@ -1,4 +1,4 @@
-import {Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {EChartsOption} from 'echarts';
 import {interval, Subscription} from 'rxjs';
 import {switchMap} from 'rxjs/operators';
@@ -9,7 +9,7 @@ import {AppStatusData} from '../../../model/app-status-data';
 @Component({
   selector: 'core-chart-rate-chart',
   template: `
-    <div echarts style="height: 400px" [options]="clusterRateChartOption" (chartInit)="echartsInstance = $event"></div>
+    <div echarts style="height: 400px" [options]="clusterRateChartOption" (chartInit)="echartsInstance = $event; echartsInstanceInit.emit($event)"></div>
   `
 })
 export class CoreRateChartComponent implements OnInit, OnDestroy {
@@ -19,6 +19,9 @@ export class CoreRateChartComponent implements OnInit, OnDestroy {
 
   @Input('instance-name')
   private instanceName?: string;
+
+  @Output("instance-init")
+  public echartsInstanceInit: EventEmitter<any> = new EventEmitter<any>()
 
   public echartsInstance;
 
@@ -30,7 +33,8 @@ export class CoreRateChartComponent implements OnInit, OnDestroy {
   clusterRateChartOption: EChartsOption = {
     animation: true,
     title: {
-      text: '处理速率'
+      text: '处理速率',
+      left: '3%'
     },
     tooltip: {
       trigger: 'axis'
@@ -58,38 +62,23 @@ export class CoreRateChartComponent implements OnInit, OnDestroy {
     },
     series: [
       {
-        smooth: true,
         name: 'Flow处理速率',
         type: 'line',
-        data: []
+        data: [],
+        color: '#7cb4cc',
       },
       {
         name: '消息处理速率',
         type: 'line',
-        data: []
+        data: [],
+        color: '#9b8bba',
       }
     ]
   };
 
   ngOnInit(): void {
-    this.startClusterRateChart();
-  }
-
-  private subscription: Subscription;
-
-  startClusterRateChart = () => {
     this.refreshRateChartOption();
-
-    let lastData = null;
-    this.subscription = interval(1000).pipe(
-      switchMap(() => this.dataSource.getClusterAppStatusData())
-    ).subscribe(s => {
-      this.refreshRateChartOption(s, lastData);
-      lastData = s;
-    }, e => {
-      this.app.showSnackBar(e['message']);
-    });
-  };
+  }
 
   getTimeStr = (date: Date) => `${[date.getFullYear(), date.getMonth() + 1, date.getDate()].join('/')} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
 
@@ -100,7 +89,7 @@ export class CoreRateChartComponent implements OnInit, OnDestroy {
 
     if (!currentData) {
 
-      const timestamp = now.getMilliseconds();
+      const timestamp = now.getTime()
 
       const flowRateData = new Array(60);
       this.clusterRateChartOption.series[0].data = flowRateData;
@@ -108,8 +97,8 @@ export class CoreRateChartComponent implements OnInit, OnDestroy {
       this.clusterRateChartOption.series[1].data = msgRateData;
 
       for (let i = 0; i < 59; i++) {
-        // flowRateData.push([this.getTimeStr(new Date(timestamp - i * 1000)), 0]);
-        // msgRateData.push([this.getTimeStr(new Date(timestamp - i * 1000)), 0]);
+        flowRateData.push([this.getTimeStr(new Date(timestamp - i * 1000)), 0]);
+        msgRateData.push([this.getTimeStr(new Date(timestamp - i * 1000)), 0]);
       }
 
       return;
@@ -128,7 +117,7 @@ export class CoreRateChartComponent implements OnInit, OnDestroy {
     });
 
     flowRateData.shift();
-    
+
     msgRateData.push({
       name: date,
       value: [date, Object.values(currentData.msgProcessedCount).reduce((s1, s2) => s1 + s2) - Object.values(lastData.msgProcessedCount).reduce((s1, s2) => s1 + s2)]
@@ -150,6 +139,5 @@ export class CoreRateChartComponent implements OnInit, OnDestroy {
   };
 
   ngOnDestroy(): void {
-    this.subscription.unsubscribe();
   }
 }
