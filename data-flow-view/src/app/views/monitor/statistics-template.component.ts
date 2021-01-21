@@ -1,5 +1,5 @@
-import {Component, OnInit, ViewChild} from '@angular/core';
-import {interval} from 'rxjs';
+import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {interval, Subscription} from 'rxjs';
 import {switchMap} from 'rxjs/operators';
 import {HttpClient} from '@angular/common/http';
 import {AppService} from '../../service/app.service';
@@ -22,7 +22,7 @@ import {FlowStatisticsChartComponent} from './chart-component/flow-statistics-ch
     </div>
   `
 })
-export class StatisticsTemplateComponent implements OnInit{
+export class StatisticsTemplateComponent implements OnInit, OnDestroy{
 
   constructor(public http: HttpClient,
               public app: AppService,
@@ -36,11 +36,12 @@ export class StatisticsTemplateComponent implements OnInit{
   @ViewChild('flowStatisticsChart')
   public flowStatisticChart: FlowStatisticsChartComponent;
 
+  public interval: Subscription;
+
   ngOnInit(): void {
 
     let lastAppStatusData = null
-
-    interval(1000).pipe(
+    this.interval = interval(1000).pipe(
       switchMap(() => this.dataSource.getClusterAppStatusData())
     ).subscribe(s => {
       this.rateChartComponent.refreshRateChartOption(s, lastAppStatusData)
@@ -51,6 +52,10 @@ export class StatisticsTemplateComponent implements OnInit{
       this.app.showSnackBar(e['message']);
     });
 
+  }
+
+  ngOnDestroy(): void {
+    this.interval.unsubscribe();
   }
 
 

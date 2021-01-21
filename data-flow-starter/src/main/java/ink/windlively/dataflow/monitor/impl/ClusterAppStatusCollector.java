@@ -8,9 +8,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.lang.Nullable;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static ink.windlively.dataflow.monitor.StatisticFields.*;
 
@@ -25,14 +30,25 @@ public class ClusterAppStatusCollector implements AppStatusCollector, Initializi
 
     public final static String MONITOR_REDIS_KEY_PREFIX = DataFlowProperties.REDIS_KEY_PREFIX + "monitor:";
 
+    public final String redisActiveKey;
+
+    public final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
+
     public ClusterAppStatusCollector(RedisTemplate<String, String> redisTemplate) {
         this.redisTemplate = redisTemplate;
         try {
             InetAddress localHost = InetAddress.getLocalHost();
             instanceName = localHost.getHostName() + "@" + localHost.getHostAddress();
             log.info("current instance name {}", instanceName);
+            // 监控数据的key前缀
             redisPrefix = MONITOR_REDIS_KEY_PREFIX + instanceName + ":";
+            // 当前实例活动监测的key
+            redisActiveKey = MONITOR_REDIS_KEY_PREFIX + "active-instance:" + instanceName;
+            // 向redis保存当前实例名称，不会删除
             redisTemplate.opsForHash().increment(DataFlowProperties.REDIS_INSTANCE_REGISTER_KEY, instanceName, 1);
+            // 心跳检测
+            redisTemplate.opsForValue().set(redisActiveKey, "active", 2, TimeUnit.MINUTES);
+            executorService.scheduleWithFixedDelay(this::heartbeats, 0, 10, TimeUnit.SECONDS);
         } catch (UnknownHostException e) {
             throw new IllegalStateException(e);
         }
@@ -74,11 +90,15 @@ public class ClusterAppStatusCollector implements AppStatusCollector, Initializi
 
     }
 
-    private void redisHashIncrOne(String key, String hashKey){
+    private void redisHashIncrOne(String key, String hashKey) {
         redisTemplate.opsForHash().increment(key, hashKey, 1);
     }
 
-    private static String genNameSpace(SourceEntity sourceEntity){
+    private static String genNameSpace(SourceEntity sourceEntity) {
         return String.join(".", sourceEntity.getSource(), sourceEntity.getSchema(), sourceEntity.getName());
+    }
+
+    private void heartbeats() {
+        redisTemplate.expire(redisActiveKey, 2, TimeUnit.MINUTES);
     }
 }

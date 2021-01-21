@@ -3,12 +3,12 @@ package ink.windlively.dataflow.monitor.impl;
 import ink.windlively.dataflow.core.DataFlowProperties;
 import ink.windlively.dataflow.monitor.AppStatusData;
 import ink.windlively.dataflow.monitor.AppStatusProvider;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static ink.windlively.dataflow.monitor.StatisticFields.*;
@@ -33,7 +33,18 @@ public class ClusterAppStatusProvider implements AppStatusProvider {
 
     @Override
     public List<String> getActiveInstances() {
-        return null;
+        Set<String> keys = new HashSet<>();
+        try (
+                RedisConnection connection = Objects.requireNonNull(redisTemplate.getConnectionFactory()).getConnection();
+        ) {
+            ScanOptions scanOptions = ScanOptions.scanOptions()
+                    .match(DataFlowProperties.REDIS_ACTIVE_INSTANCE_KEY_PREFIX + "*")
+                    .count(100)
+                    .build();
+            Cursor<byte[]> cursor = connection.scan(scanOptions);
+            while (cursor.hasNext()) keys.add(new String(cursor.next()));
+            return keys.stream().map(s -> s.substring(s.lastIndexOf(":") + 1)).collect(Collectors.toList());
+        }
     }
 
     @Override
@@ -41,39 +52,6 @@ public class ClusterAppStatusProvider implements AppStatusProvider {
         return redisTemplate.opsForHash().keys(DataFlowProperties.REDIS_INSTANCE_REGISTER_KEY)
                 .stream()
                 .map(s -> (String) s).collect(Collectors.toList());
-    }
-
-    @Override
-    public Map<String, Long> getMsgReceivedCount() {
-        Map<String, Long> result = new HashMap<>();
-
-        // 未提供实例名称，获取所有机器的数据
-        if (instanceName.get() == null) {
-            getAllInstances().forEach(instance -> mergeRedisHashMap(MONITOR_REDIS_KEY_PREFIX + instance + ":" + STC_FIELD_MSG_RECEIVED, result));
-            return result;
-        }
-
-        String instance = instanceName.get();
-        return redisTemplate.opsForHash()
-                .entries(MONITOR_REDIS_KEY_PREFIX + instance + ":" + STC_FIELD_MSG_RECEIVED)
-                .entrySet()
-                .stream()
-                .collect(Collectors.toMap(e -> (String) e.getKey(), e -> (Long) e.getValue()));
-
-    }
-
-    @Override
-    public Map<String, Long> getFlowSuccessCount() {
-        Map<String, Long> result = new HashMap<>();
-        if (instanceName.get() == null) {
-            getAllInstances().forEach(instance -> mergeRedisHashMap(MONITOR_REDIS_KEY_PREFIX + instance + ":" + STC_FIELD_SUCCESSFUL, result));
-        }
-        String instance = instanceName.get();
-        return redisTemplate.opsForHash()
-                .entries(MONITOR_REDIS_KEY_PREFIX + instance + ":" + STC_FIELD_SUCCESSFUL)
-                .entrySet()
-                .stream()
-                .collect(Collectors.toMap(e -> (String) e.getKey(), e -> (Long) e.getValue()));
     }
 
     @Override

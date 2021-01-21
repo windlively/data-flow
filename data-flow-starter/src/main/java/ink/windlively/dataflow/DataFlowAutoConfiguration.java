@@ -45,6 +45,8 @@ import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.lang.NonNull;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.Assert;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -70,6 +72,8 @@ import static ink.windlively.dataflow.util.GeneralTools.GSON;
 @Configuration
 @ConditionalOnProperty(name = "data-flow.enable", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(DataFlowProperties.class)
+@EnableScheduling
+@EnableAsync
 @Slf4j
 public class DataFlowAutoConfiguration implements WebMvcConfigurer {
 

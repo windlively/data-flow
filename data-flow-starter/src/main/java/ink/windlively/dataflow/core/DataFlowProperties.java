@@ -13,6 +13,8 @@ public class DataFlowProperties {
 
     public static final String REDIS_INSTANCE_REGISTER_KEY = DataFlowProperties.REDIS_KEY_PREFIX + "monitor:instance";
 
+    public static final String REDIS_ACTIVE_INSTANCE_KEY_PREFIX = DataFlowProperties.REDIS_KEY_PREFIX + "monitor:active-instance";
+
     private String defaultMqType = "kafka";
 
     private boolean enable;
