@@ -1,7 +1,5 @@
 import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {EChartsOption} from 'echarts';
-import {interval, Subscription} from 'rxjs';
-import {switchMap} from 'rxjs/operators';
 import {DataSourceService} from '../../../service/data-source.service';
 import {AppService} from '../../../service/app.service';
 import {AppStatusData} from '../../../model/app-status-data';

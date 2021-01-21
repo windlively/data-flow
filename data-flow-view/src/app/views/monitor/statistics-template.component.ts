@@ -6,7 +6,6 @@ import {AppService} from '../../service/app.service';
 import {DataSourceService} from '../../service/data-source.service';
 import {CoreRateChartComponent} from './chart-component/core-rate-chart.component';
 import {ReceiveMsgTotalChartComponent} from './chart-component/receive-msg-total-chart.component';
-import View from 'echarts/lib/coord/View';
 import {FlowStatisticsChartComponent} from './chart-component/flow-statistics-chart.component';
 
 @Component({
