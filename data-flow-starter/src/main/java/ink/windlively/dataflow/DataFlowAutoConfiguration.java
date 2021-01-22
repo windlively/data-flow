@@ -364,7 +364,7 @@ public class DataFlowAutoConfiguration implements WebMvcConfigurer {
         return new Docket(DocumentationType.SWAGGER_2)
                 .apiInfo(apiInfo())//调用apiInfo方法,创建一个ApiInfo实例,里面是展示在文档页面信息内容
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("ink.andromeda.dataflow"))
+                .apis(RequestHandlerSelectors.basePackage("ink.windlively.dataflow"))
                 .paths(PathSelectors.any())
                 .build();
     }

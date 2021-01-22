@@ -10,10 +10,14 @@ import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.Properties;
 
 @Slf4j
@@ -55,5 +59,15 @@ public class DataFlowApplication implements WebMvcConfigurer {
     public void addInterceptors(@NonNull InterceptorRegistry registry) {
         registry.addInterceptor(new HttpInvokeInterceptor(defaultServerConfig.isEnableHttpInvoke(),"server not enable http invoke"))
                 .addPathPatterns("/**");
+        if (!defaultServerConfig.isModifyConfigWithHttp()) {
+            registry.addInterceptor(new HandlerInterceptor() {
+                @Override
+                public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) throws Exception {
+                    if (!request.getMethod().equals("GET"))
+                        throw new IllegalStateException("You have no authority.");
+                    return true;
+                }
+            }).addPathPatterns("/**");
+        }
     }
 }

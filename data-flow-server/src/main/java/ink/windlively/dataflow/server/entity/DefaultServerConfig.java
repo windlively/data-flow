@@ -16,6 +16,8 @@ public class DefaultServerConfig {
 
     private boolean enableHttpInvoke = true;
 
+    private boolean modifyConfigWithHttp = true;
+
     private List<Map<String, Object>> listenTableConfig;
 
     @NestedConfigurationProperty
