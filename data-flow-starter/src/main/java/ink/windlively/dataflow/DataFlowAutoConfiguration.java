@@ -51,6 +51,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.Assert;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.socket.config.annotation.EnableWebSocket;
+import org.springframework.web.socket.server.standard.ServerEndpointExporter;
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
@@ -74,6 +76,7 @@ import static ink.windlively.dataflow.util.GeneralTools.GSON;
 @EnableConfigurationProperties(DataFlowProperties.class)
 @EnableScheduling
 @EnableAsync
+@EnableWebSocket
 @Slf4j
 public class DataFlowAutoConfiguration implements WebMvcConfigurer {
 
@@ -382,6 +385,12 @@ public class DataFlowAutoConfiguration implements WebMvcConfigurer {
     public AppStatusCollector appStatusCollector(RedisTemplate<String, String> redisTemplate){
         ClusterAppStatusCollector clusterAppStatusCollector = new ClusterAppStatusCollector(redisTemplate);
         return new AsyncAppStatusCollector(clusterAppStatusCollector);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public ServerEndpointExporter serverEndpointExporter(){
+        return new ServerEndpointExporter();
     }
 
 }

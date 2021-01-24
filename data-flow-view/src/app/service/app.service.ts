@@ -84,3 +84,5 @@ export class AppErrorStateMatcher implements ErrorStateMatcher {
     return !!(control && control.invalid && (control.dirty || control.touched || isSubmitted));
   }
 }
+
+export const wsServer = "ws://localhost:10022/data-flow/ws"

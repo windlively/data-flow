@@ -65,23 +65,25 @@ export class ReceiveMsgTotalChartComponent {
     const namespacesSet = new Set(Object.keys(receiveMap).concat(Object.keys(processMap)));
     const receive = [];
     const process = [];
-    const namespaces = []
+    const namespaces = [];
     for (const i of namespacesSet) {
-      receive.push(receiveMap[i]?receiveMap[i]:0);
-      process.push(processMap[i]?processMap[i]:0)
-      namespaces.push(i)
+      receive.push(receiveMap[i] ? receiveMap[i] : 0);
+      process.push(processMap[i] ? processMap[i] : 0);
+      namespaces.push(i);
     }
-    this.echartsInstance.setOption({
-        xAxis: {
-          data: namespaces,
-        },
-        series: [{
-          data: receive
-        },{
-          data: process
-        }]
-      }
-    );
+    if (this.echartsInstance) {
+      this.echartsInstance.setOption({
+          xAxis: {
+            data: namespaces,
+          },
+          series: [{
+            data: receive
+          }, {
+            data: process
+          }]
+        }
+      );
+    }
   };
 
 }

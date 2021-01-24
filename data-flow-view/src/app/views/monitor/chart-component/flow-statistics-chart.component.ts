@@ -5,10 +5,10 @@ import {AppStatusData} from '../../../model/app-status-data';
 @Component({
   selector: 'flow-statistics-chart',
   template: `
-  <div echarts [options]="chartOption" (chartInit)="chartInstance = $event"></div>
+    <div echarts [options]="chartOption" (chartInit)="chartInstance = $event"></div>
   `
 })
-export class FlowStatisticsChartComponent{
+export class FlowStatisticsChartComponent {
 
   chartOption: EChartsOption = {
     title: {
@@ -70,32 +70,34 @@ export class FlowStatisticsChartComponent{
     const successfulMap = statusData.successfulCount;
     const failureMap = statusData.failureCount;
 
-    const flowNames = []
-    const inflowData = []
-    const successfulData = []
-    const failureData = []
+    const flowNames = [];
+    const inflowData = [];
+    const successfulData = [];
+    const failureData = [];
 
-    for(const fName of new Set(Object.keys(inflowMap).concat(Object.keys(successfulMap)).concat(Object.keys(failureMap)))){
+    for (const fName of new Set(Object.keys(inflowMap).concat(Object.keys(successfulMap)).concat(Object.keys(failureMap)))) {
 
       flowNames.push(fName);
-      inflowData.push(inflowMap[fName] ? inflowMap[fName] : 0)
-      successfulData.push(successfulMap[fName] ? successfulMap[fName] : 0)
-      failureData.push(failureMap[fName] ? failureMap[fName] : 0)
+      inflowData.push(inflowMap[fName] ? inflowMap[fName] : 0);
+      successfulData.push(successfulMap[fName] ? successfulMap[fName] : 0);
+      failureData.push(failureMap[fName] ? failureMap[fName] : 0);
 
     }
 
-    this.chartInstance.setOption(
-      {
-        yAxis: {
-          data: flowNames
-        },
-        series: [
-          {data: inflowData},
-          {data: successfulData},
-          {data: failureData}
-        ]
-      }
-    )
+    if (this.chartInstance) {
+      this.chartInstance.setOption(
+        {
+          yAxis: {
+            data: flowNames
+          },
+          series: [
+            {data: inflowData},
+            {data: successfulData},
+            {data: failureData}
+          ]
+        }
+      );
+    }
 
 
   }

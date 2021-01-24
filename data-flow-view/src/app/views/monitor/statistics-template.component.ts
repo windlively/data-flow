@@ -1,12 +1,14 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {interval, Subscription} from 'rxjs';
-import {switchMap} from 'rxjs/operators';
+import {map, switchMap} from 'rxjs/operators';
 import {HttpClient} from '@angular/common/http';
-import {AppService} from '../../service/app.service';
+import {AppService, wsServer} from '../../service/app.service';
 import {DataSourceService} from '../../service/data-source.service';
 import {CoreRateChartComponent} from './chart-component/core-rate-chart.component';
 import {ReceiveMsgTotalChartComponent} from './chart-component/receive-msg-total-chart.component';
 import {FlowStatisticsChartComponent} from './chart-component/flow-statistics-chart.component';
+import {WebSocketSubject} from 'rxjs/internal-compatibility';
+import {AppStatusData} from '../../model/app-status-data';
 
 @Component({
   selector: 'statistics-template',
@@ -41,9 +43,8 @@ export class StatisticsTemplateComponent implements OnInit, OnDestroy{
   ngOnInit(): void {
 
     let lastAppStatusData = null
-    this.interval = interval(1000).pipe(
-      switchMap(() => this.dataSource.getClusterAppStatusData())
-    ).subscribe(s => {
+    this.interval = new WebSocketSubject(`${wsServer}/monitor/full-status-data`).pipe(
+    ).subscribe((s: AppStatusData) => {
       this.rateChartComponent.refreshRateChartOption(s, lastAppStatusData)
       this.receiveMsgTotalChart.refreshChart(s)
       this.flowStatisticChart.refreshChart(Object.assign(s))
