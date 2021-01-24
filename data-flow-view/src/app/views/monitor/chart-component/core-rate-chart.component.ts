@@ -82,7 +82,7 @@ export class CoreRateChartComponent implements OnInit, OnDestroy {
 
   refreshRateChartOption = (currentData?: AppStatusData, lastData?: AppStatusData) => {
 
-    const now = new Date();
+    const now = currentData ? new Date(currentData.timestamp) : new Date();
     const date = this.getTimeStr(now);
 
     if (!currentData) {

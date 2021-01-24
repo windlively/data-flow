@@ -39,6 +39,8 @@ public class AppStatusData {
      */
     private Map<String, Map<String, Long>> historyReceivedCount;
 
+    private long timestamp;
+
     public static AppStatusData fromMap(Map<String, Map<String, Long>> statisticData){
         AppStatusData statusData = new AppStatusData();
         statusData.setMsgProcessedCount(statisticData.get(STC_FIELD_MSG_PROCESSED));
@@ -46,6 +48,7 @@ public class AppStatusData {
         statusData.setInflowCount(statisticData.get(STC_FIELD_INFLOW));
         statusData.setSuccessfulCount(statisticData.get(STC_FIELD_SUCCESSFUL));
         statusData.setFailureCount(statisticData.get(STC_FIELD_FAILURE));
+        statusData.setTimestamp(System.currentTimeMillis());
         return statusData;
     }
 }

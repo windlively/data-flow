@@ -12,4 +12,5 @@ export interface AppStatusData {
 
   historyReceivedCount: object;
 
+  timestamp: number;
 }
