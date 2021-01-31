@@ -1,6 +1,6 @@
-import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {interval, Subscription} from 'rxjs';
-import {map, switchMap} from 'rxjs/operators';
+import {Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {interval, Subscription, throwError} from 'rxjs';
+import {catchError, map, switchMap} from 'rxjs/operators';
 import {HttpClient} from '@angular/common/http';
 import {AppService, wsServer} from '../../service/app.service';
 import {DataSourceService} from '../../service/data-source.service';
@@ -13,18 +13,24 @@ import {AppStatusData} from '../../model/app-status-data';
 @Component({
   selector: 'statistics-template',
   template: `
-    <div>
-      <core-chart-rate-chart #rateChart></core-chart-rate-chart>
+    <div *ngIf="emptyData">
+      暂无数据
     </div>
     <div>
-      <receive-msg-total-chart #receiveMsgTotalChart></receive-msg-total-chart>
+      <div>
+        <core-chart-rate-chart *ngIf="activeInstance" #rateChart></core-chart-rate-chart>
+      </div>
+      <div>
+        <receive-msg-total-chart #receiveMsgTotalChart></receive-msg-total-chart>
+      </div>
+      <div>
+        <flow-statistics-chart #flowStatisticsChart></flow-statistics-chart>
+      </div>
     </div>
-    <div>
-      <flow-statistics-chart #flowStatisticsChart></flow-statistics-chart>
-    </div>
+
   `
 })
-export class StatisticsTemplateComponent implements OnInit, OnDestroy{
+export class StatisticsTemplateComponent implements OnInit, OnDestroy {
 
   constructor(public http: HttpClient,
               public app: AppService,
@@ -33,24 +39,45 @@ export class StatisticsTemplateComponent implements OnInit, OnDestroy{
 
   @ViewChild('rateChart')
   public rateChartComponent: CoreRateChartComponent;
-  @ViewChild("receiveMsgTotalChart")
+  @ViewChild('receiveMsgTotalChart')
   public receiveMsgTotalChart: ReceiveMsgTotalChartComponent;
   @ViewChild('flowStatisticsChart')
   public flowStatisticChart: FlowStatisticsChartComponent;
 
   public interval: Subscription;
 
+  @Input('instance-name')
+  public instanceName: string = null;
+
+  @Input('active-instance')
+  public activeInstance: boolean = true;
+
+  public emptyData = false;
+
   ngOnInit(): void {
 
-    let lastAppStatusData = null
-    this.interval = new WebSocketSubject(`${wsServer}/monitor/full-status-data`).pipe(
+    const url = `${wsServer}/monitor/status-data/${this.instanceName || '__all'}`;
+
+    let lastAppStatusData = null;
+    this.interval = new WebSocketSubject(url).pipe(
+      catchError((err, caught) => {
+        this.app.showSnackBar('ws connection failed!');
+        return throwError(err);
+      })
     ).subscribe((s: AppStatusData) => {
-      this.rateChartComponent.refreshRateChartOption(s, lastAppStatusData)
-      this.receiveMsgTotalChart.refreshChart(s)
-      this.flowStatisticChart.refreshChart(Object.assign(s))
+
+      if (AppStatusData.isEmpty(s)) {
+        this.emptyData = true
+        return
+      }
+
+      if (this.activeInstance) {
+        this.rateChartComponent.refreshChart(s, lastAppStatusData);
+      }
+
+      this.receiveMsgTotalChart.refreshChart(s);
+      this.flowStatisticChart.refreshChart(Object.assign(s));
       lastAppStatusData = s;
-    }, e => {
-      this.app.showSnackBar(e['message']);
     });
 
   }
@@ -58,9 +85,5 @@ export class StatisticsTemplateComponent implements OnInit, OnDestroy{
   ngOnDestroy(): void {
     this.interval.unsubscribe();
   }
-
-
-
-
 
 }

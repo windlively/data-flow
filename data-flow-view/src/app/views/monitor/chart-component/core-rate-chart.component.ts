@@ -75,12 +75,12 @@ export class CoreRateChartComponent implements OnInit, OnDestroy {
   };
 
   ngOnInit(): void {
-    this.refreshRateChartOption();
+    this.refreshChart();
   }
 
   getTimeStr = (date: Date) => `${[date.getFullYear(), date.getMonth() + 1, date.getDate()].join('/')} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
 
-  refreshRateChartOption = (currentData?: AppStatusData, lastData?: AppStatusData) => {
+  refreshChart = (currentData?: AppStatusData, lastData?: AppStatusData) => {
 
     const now = currentData ? new Date(currentData.timestamp) : new Date();
     const date = this.getTimeStr(now);

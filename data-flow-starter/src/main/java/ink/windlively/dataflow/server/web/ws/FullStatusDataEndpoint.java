@@ -10,6 +10,7 @@ import javax.websocket.OnClose;
 import javax.websocket.OnError;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
+import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,18 +22,16 @@ import static ink.windlively.dataflow.util.GeneralTools.toJSONString;
 @Component
 @ServerEndpoint("/ws/monitor/full-status-data")
 @Slf4j
-public class MonitorWSEndpoint {
-
+public class FullStatusDataEndpoint {
 
     private Session session;
-
 
     private static final Map<String, Session> clients = new ConcurrentHashMap<>();
 
     @Resource
     private AppStatusProvider statusProvider;
 
-    public MonitorWSEndpoint() {
+    public FullStatusDataEndpoint() {
 
     }
 

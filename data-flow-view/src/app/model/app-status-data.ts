@@ -1,4 +1,4 @@
-export interface AppStatusData {
+export class AppStatusData {
 
   msgReceivedCount: object;
 
@@ -13,4 +13,11 @@ export interface AppStatusData {
   historyReceivedCount: object;
 
   timestamp: number;
+
+  static isEmpty = (statusData: AppStatusData): boolean => {
+    return Object.keys(statusData.msgReceivedCount).length === 0
+  }
+
 }
+
+

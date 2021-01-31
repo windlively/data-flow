@@ -1,6 +1,6 @@
 {
-  "/data-flow" :{
-    "target" : "http://127.0.0.1:10022/",
+  "/data-flow": {
+    "target": "http://127.0.0.1:10022",
     "changeOrigin": true
   }
 }

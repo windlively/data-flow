@@ -47,6 +47,7 @@ import {CoreRateChartComponent} from './views/monitor/chart-component/core-rate-
 import {ReceiveMsgTotalChartComponent} from './views/monitor/chart-component/receive-msg-total-chart.component';
 import {StatisticsTemplateComponent} from './views/monitor/statistics-template.component';
 import {FlowStatisticsChartComponent} from './views/monitor/chart-component/flow-statistics-chart.component';
+import {InstanceStatusComponent} from './views/monitor/instance-status.component';
 registerLocaleData(zh);
 
 
@@ -64,7 +65,8 @@ registerLocaleData(zh);
     CoreRateChartComponent,
     ReceiveMsgTotalChartComponent,
     StatisticsTemplateComponent,
-    FlowStatisticsChartComponent
+    FlowStatisticsChartComponent,
+    InstanceStatusComponent
   ],
   imports: [
     BrowserModule,
