@@ -63,8 +63,7 @@
                     <imageName>windlively/data-flow-server</imageName>
                     <baseImage>java</baseImage>
                     <workdir>/data</workdir>
-                    <cmd>["java", "-version"]</cmd>
-                    <entryPoint>java -jar $VM_OPTS ${project.build.finalName}.jar</entryPoint>
+                    <entryPoint>echo "$(ip route show | awk '/default/ {print $3}') host.docker" >> /etc/hosts &amp;&amp; java -jar $VM_OPTS ${project.build.finalName}.jar</entryPoint>
                     <!-- 这里是复制 jar 包到 docker 容器指定目录配置 -->
                     <resources>
                         <resource>
