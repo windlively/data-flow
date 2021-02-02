@@ -27,7 +27,7 @@ tr.table-detail-row {
 }
 
 tr.element-row:hover {
-  background: whitesmoke;
+  /*background: whitesmoke;*/
   cursor: pointer;
 }
 .element-row td{

@@ -13,7 +13,7 @@ export class ToolButtonGroupComponent implements OnInit {
   openToolButtonClass = '';
   toolButtonOpened: boolean;
 
-  toolButtonGroup: object[] = [
+  childViews: object[] = [
     {animationStyle: '', name: 'toggle-control', icon: 'plus', color: '', ngClass: this.openToolButtonClass, description: '菜单'},
     {animationStyle: '', name: 'flow-list', icon: 'partition', color: '', ngClass: '', description: 'Flow列表', routeLink: 'flow-list'},
     {animationStyle: '', name: 'config', icon: 'setting', color: '', ngClass: '', description: '配置管理'},
@@ -30,7 +30,7 @@ export class ToolButtonGroupComponent implements OnInit {
     const style = document.getElementsByTagName('style')[0];
     let keyframes = '';
     // 动态生成关键帧，用于右下角工具按钮的出现/消失动画
-    for (let i = 1; i < this.toolButtonGroup.length; i++) {
+    for (let i = 1; i < this.childViews.length; i++) {
       keyframes += `
           @keyframes hideToolButton-${i} {
               from {
@@ -69,16 +69,16 @@ export class ToolButtonGroupComponent implements OnInit {
     if(this.toolButtonOpened){
       // 关闭时的动画
       this.openToolButtonClass = 'tool-button-close';
-      for ( let i = 0; i < this.toolButtonGroup.length; i++) {
+      for (let i = 0; i < this.childViews.length; i++) {
         if (i === 0) { continue; }
-        this.toolButtonGroup[i]['animationStyle'] = `hideToolButton-${i} .6s ease-out forwards`;
+        this.childViews[i]['animationStyle'] = `hideToolButton-${i} .6s ease-out forwards`;
       }
     }else {
       //打开时的动画
       this.openToolButtonClass = 'tool-button-open';
-      for(let i = 0; i < this.toolButtonGroup.length;i++) {
+      for(let i = 0; i < this.childViews.length; i++) {
         if(i == 0) continue;
-        this.toolButtonGroup[i]['animationStyle'] = `showToolButton-${i} .6s ease-out forwards`;
+        this.childViews[i]['animationStyle'] = `showToolButton-${i} .6s ease-out forwards`;
       }
     }
     this.toolButtonOpened = !this.toolButtonOpened;

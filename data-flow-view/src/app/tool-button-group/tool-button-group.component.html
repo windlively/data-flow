@@ -5,9 +5,9 @@
             style="font-size: 30px;display: flex;justify-content: center;align-items: center" matTooltip="打开菜单" matTooltipPosition="left">
     </button>
     <!--            功能按钮-->
-    <button *ngFor="let item of toolButtonGroup.slice(1);let index = index" nz-icon [nzType]="item['icon']"
+    <button *ngFor="let item of childViews.slice(1);let index = index" nz-icon [nzType]="item['icon']"
             nzTheme="outline" mat-icon-button class="tool-button" (click)="toolGroupButtonClick(item['name'])"
-            [style.animation]="toolButtonGroup[index + 1]['animationStyle']"
+            [style.animation]="childViews[index + 1]['animationStyle']"
             [matTooltip]="item['description']"
             matTooltipPosition="left"
             style="font-size: 26px;display: flex;justify-content: center;align-items: center">

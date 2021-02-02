@@ -24,10 +24,9 @@
     position: relative;
     width: 100vw;
     height: 100%;
-    overflow: auto;
   }
 
-  .loading-bar{
+  .loading-bar {
     position: absolute;
     bottom: 0;
     left: 0;
@@ -37,12 +36,35 @@
     height: 3px;
   }
 
+  button.menu-link{
+    display: block;
+    width: 100%;
+    height: 50px;
+    font-size: 16px;
+  }
+  button.menu-link i{
+    font-size: 18px;
+  }
+  button.menu-link .button-wrapper{
+    display: inline-flex;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+  }
 
+  .side-bar{
+    width: 360px;
+    padding: 20px 0;
+  }
+
+  mat-drawer{
+    /*box-shadow: 0px 8px 10px -5px rgb(0 0 0 / 20%), 0px 16px 24px 2px rgb(0 0 0 / 14%), 0px 6px 30px 5px rgb(0 0 0 / 12%)*/
+  }
 </style>
 <nav class="nav">
-  <div style="margin: 10px">
-    <svg style="width: 50px" t="1610288265610" class="icon" viewBox="0 0 1024 1024" version="1.1"
-         xmlns="http://www.w3.org/2000/svg" p-id="5665" width="200" height="200">
+  <button mat-button><i nz-icon (click)="drawer.toggle()" style="font-size: 38px;">
+    <svg t="1610288265610" class="icon" viewBox="0 0 1024 1024" version="1.1"
+         xmlns="http://www.w3.org/2000/svg" p-id="5665">
       <path
         d="M404 628.6c8.4 28 35.2 48.3 66.2 48.3 38 0 69-30.8 69-68.6s-31-68.6-69-68.6c-31.7 0-58.4 21-66.9 49.7H199.2c-8.7-29.5-36-49.7-66.9-49.7-38.7 0-69 30.8-69 68.6s31 68.6 69 68.6c31 0 57-20.3 66.2-48.3H404z m354.8-367.3h56.3v39.9h-56.3v-39.9z m72.5 0h56.3v39.9h-56.3v-39.9z m-428 569.5h56.3v39.9h-56.3v-39.9z m72.5 0h56.3v39.9h-56.3v-39.9z m73.3 0h56.3v39.9h-56.3v-39.9z"
         p-id="5666" fill="#ea9518"></path>
@@ -59,12 +81,23 @@
         d="M708.5 727.3c-39.5 0-71.7 32.2-71.7 71.7s32.2 71.7 71.7 71.7 71.7-32.2 71.7-71.7c-0.1-39.6-32.2-71.7-71.7-71.7z"
         p-id="5670" fill="#ea9518"></path>
     </svg>
-  </div>
+  </i>
+  </button>
   <h1 class="title">Data Flow Manager</h1>
   <mat-progress-bar *ngIf="app.showLoadingBarSubject | async" class="loading-bar" mode="query"></mat-progress-bar>
 </nav>
 <div class="body">
   <div style="height: 60px"></div>
-  <router-outlet></router-outlet>
+  <mat-drawer-container class="example-container" hasBackdrop="false">
+    <mat-drawer class="side-bar" #drawer mode="push" [autoFocus]="false">
+      <button class="menu-link" *ngFor="let i of toolButtonGroup.childViews.slice(1)" mat-button [routerLink]="i.name">
+        <div class="button-wrapper"><i nz-icon [nzType]="i.icon"></i>&nbsp;&nbsp;{{i.description}}</div>
+      </button>
+    </mat-drawer>
+    <mat-drawer-content style="height: calc(100vh - 60px); overflow: auto">
+      <router-outlet></router-outlet>
+    </mat-drawer-content>
+  </mat-drawer-container>
+
 </div>
-<app-tool-button-group></app-tool-button-group>
+<app-tool-button-group #toolButtonGroup></app-tool-button-group>

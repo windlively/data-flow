@@ -9,7 +9,7 @@ import {AppRoutingModule} from './app-routing.module';
 import {ToolButtonGroupComponent} from './tool-button-group/tool-button-group.component';
 import {NZ_I18N} from 'ng-zorro-antd/i18n';
 import {zh_CN} from 'ng-zorro-antd/i18n';
-import {registerLocaleData} from '@angular/common';
+import {CommonModule, registerLocaleData} from '@angular/common';
 import zh from '@angular/common/locales/zh';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {HTTP_INTERCEPTORS, HttpClientModule} from '@angular/common/http';
@@ -48,6 +48,8 @@ import {ReceiveMsgTotalChartComponent} from './views/monitor/chart-component/rec
 import {StatisticsTemplateComponent} from './views/monitor/statistics-template.component';
 import {FlowStatisticsChartComponent} from './views/monitor/chart-component/flow-statistics-chart.component';
 import {InstanceStatusComponent} from './views/monitor/instance-status.component';
+import {MatSelectModule} from '@angular/material/select';
+import {MatSidenavModule} from '@angular/material/sidenav';
 registerLocaleData(zh);
 
 
@@ -100,7 +102,9 @@ registerLocaleData(zh);
     MatProgressSpinnerModule,
     MatProgressBarModule,
     MatSnackBarModule,
-    NzGridModule
+    NzGridModule,
+    MatSelectModule,
+    MatSidenavModule
   ],
   providers: [
     AppService,
