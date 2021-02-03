@@ -98,7 +98,7 @@ import {HttpClient} from '@angular/common/http';
     </div>
     <ngx-monaco-editor #editor id="flow-config-monaco-editor" style="" (onInit)="editorInit($event)" [options]="monacoEditorOption"
                        [(ngModel)]="editorContent">
-      <mat-spinner></mat-spinner>
+      <circle-loading></circle-loading>
     </ngx-monaco-editor>
   `
 })

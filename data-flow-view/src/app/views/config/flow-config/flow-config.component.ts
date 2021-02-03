@@ -47,6 +47,7 @@ export class FlowConfigComponent implements OnInit, AfterViewInit {
     this.dataSource = new MatTableDataSource<FlowConfig>(flowList)
     this.dataSource.paginator = this.paginator
     this.dataSource.sort = this.sort
+    this.selection.clear();
   }
 
   ngAfterViewInit(): void {

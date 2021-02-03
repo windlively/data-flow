@@ -27,7 +27,7 @@ tr.table-detail-row {
 }
 
 tr.element-row:hover {
-  /*background: whitesmoke;*/
+  background: whitesmoke;
   cursor: pointer;
 }
 .element-row td{
@@ -60,7 +60,9 @@ table .flow-config-preview{
 }
 
 .operation-button-group{
-  display: flex; height: 80px; align-items: center;
+  display: flex;
+  height: 80px;
+  align-items: center;
 }
 
 button.operation-button{
@@ -72,4 +74,8 @@ button.operation-button{
 .mat-form-field {
   font-size: 14px;
   width: 100%;
+}
+
+.mat-button span.mat-button-focus-overlay{
+  background: rgba(0,0,0,0);
 }

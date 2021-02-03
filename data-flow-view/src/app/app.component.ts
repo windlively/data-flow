@@ -14,6 +14,7 @@ import {animate, animateChild, group, query, stagger, style, transition, trigger
 export class AppComponent implements OnInit {
 
   title = 'data-flow-view';
+  routeLoading: boolean = true;
 
 
   constructor(public app: AppService) {

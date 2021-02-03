@@ -50,6 +50,7 @@ import {FlowStatisticsChartComponent} from './views/monitor/chart-component/flow
 import {InstanceStatusComponent} from './views/monitor/instance-status.component';
 import {MatSelectModule} from '@angular/material/select';
 import {MatSidenavModule} from '@angular/material/sidenav';
+import {CircleLoadingComponent} from './loading-animation/circle-loading.component';
 registerLocaleData(zh);
 
 
@@ -68,7 +69,8 @@ registerLocaleData(zh);
     ReceiveMsgTotalChartComponent,
     StatisticsTemplateComponent,
     FlowStatisticsChartComponent,
-    InstanceStatusComponent
+    InstanceStatusComponent,
+    CircleLoadingComponent
   ],
   imports: [
     BrowserModule,
