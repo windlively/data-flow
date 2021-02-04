@@ -89,16 +89,16 @@ export class CoreRateChartComponent implements OnInit, OnDestroy {
 
       const timestamp = now.getTime()
 
-      const flowRateData = new Array(60);
+      const flowRateData = [];
       this.clusterRateChartOption.series[0].data = flowRateData;
-      const msgRateData = new Array(60);
+      const msgRateData = [];
       this.clusterRateChartOption.series[1].data = msgRateData;
 
       for (let i = 0; i < 59; i++) {
         flowRateData.push([this.getTimeStr(new Date(timestamp - i * 1000)), 0]);
         msgRateData.push([this.getTimeStr(new Date(timestamp - i * 1000)), 0]);
       }
-
+      console.log(flowRateData.length)
       return;
 
     }
@@ -114,17 +114,14 @@ export class CoreRateChartComponent implements OnInit, OnDestroy {
       value: [date, Object.values(currentData.successfulCount).reduce((s1, s2) => s1 + s2) - Object.values(lastData.successfulCount).reduce((s1, s2) => s1 + s2)]
     });
 
-    flowRateData.shift();
-
     msgRateData.push({
       name: date,
       value: [date, Object.values(currentData.msgProcessedCount).reduce((s1, s2) => s1 + s2) - Object.values(lastData.msgProcessedCount).reduce((s1, s2) => s1 + s2)]
     });
-    msgRateData.shift();
-
-    // this.clusterRateChartOption.xAxis['data'].shift();
-    // this.clusterRateChartOption.xAxis['data'].push(date)
-
+    if(flowRateData.length > 60) {
+      flowRateData.shift();
+      msgRateData.shift();
+    }
 
     if (this.echartsInstance) {
       this.echartsInstance.setOption({

@@ -4,7 +4,7 @@ import {Component} from '@angular/core';
   {
     selector: 'circle-loading',
     template: `
-    <div style="width: 100%; height: 100%; min-width: 100px; display: flex; justify-content: center; align-items: center">
+    <div style="width: 100%; height: 100%; min-height: 200px; display: flex; justify-content: center; align-items: center">
       <mat-spinner style="width: 60px"></mat-spinner>
     </div>
     `

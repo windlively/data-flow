@@ -1,6 +1,6 @@
 {
   "/data-flow": {
-    "target": "http://127.0.0.1:10022",
+    "target": "http://cygnus.ink",
     "changeOrigin": true
   }
 }

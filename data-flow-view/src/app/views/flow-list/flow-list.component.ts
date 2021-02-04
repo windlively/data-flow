@@ -3,6 +3,7 @@ import {HttpClient} from '@angular/common/http';
 import {Tools} from '../../tools';
 import {EChartsOption} from 'echarts';
 import {AppService} from '../../service/app.service';
+import {delay} from 'rxjs/operators';
 
 
 const svgIcons = {
@@ -34,7 +35,7 @@ export class FlowListComponent implements OnInit {
   chartOptionList = [];
 
   ngOnInit(): void {
-    this.appService.allFlowConfigList.subscribe( (data: []) => this.drawFlowChart(data));
+    this.appService.allFlowConfigList.pipe().subscribe( (data: []) => this.drawFlowChart(data));
   }
 
   drawFlowChart = (flowConfigList: Object[]) => {

@@ -2,6 +2,7 @@ import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {AppStatusData} from '../model/app-status-data';
+import {delay} from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
