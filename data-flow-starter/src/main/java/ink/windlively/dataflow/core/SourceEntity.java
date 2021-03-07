@@ -24,6 +24,7 @@ public class SourceEntity implements Cloneable, Serializable {
     @Nullable
     private String key;
 
+    @Builder.Default
     private String source = DEFAULT_FIELD_STR_VALUE;
 
     private String schema = DEFAULT_FIELD_STR_VALUE;
