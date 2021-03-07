@@ -470,9 +470,9 @@ server:
     return transferEntities;
   }
   ```
-### 附录
-#### 测试数据
-此部分测试针对data-flow-server模块，需要提供kafka、redis、mysql、mongo等中间件服务(data-flow-demo模块仅为项目演示，使用H2数据库，无需其他中间件)。
+## 附录
+### 功能性测试
+此部分测试针对data-flow-server模块的功能性测试，需要提供kafka、redis、mysql、mongo等中间件服务(data-flow-demo模块仅为项目演示，使用H2数据库，无需其他中间件)。
 - 数据源  
   本项目开发时所用的测试数据源来自开源项目: [weiboSpider](https://github.com/dataabc/weiboSpider), 可在当前项目[doc/test/test-data-provider](doc/test/test-data-provider)下找到，使用此python程序爬取微博数据并向kafka推送，以此提供测试数据。也可通过其他方式。
 - mysql测试库表结构  
@@ -481,4 +481,274 @@ server:
   [doc/test/mongo-test-backup-data](doc/test/mongo-test-backup-data)，使用`mongorestore`命令恢复即可
 - application.yml配置，包含所需各中间件的配置，根据自己的配置修改  
   [doc/test/application.yml](doc/test/application.yml)
-#### Docker下的Canal搭建
+### 本地性能测试
+- 测试方案：
+
+  使用代码生成大量随机数据插入MySQL表中，再使用canal监听此表，经过kafka发送到应用程序中进行消费。模拟场景为：有两张业务表，客户信息和客户交易流水，现在需要对这两张表需要做一个镜像同步，额外需要一张实时更新的用户详细信息表和一张用户交易统计表，每当有用户发生交易时进行更新，方便运营人员查看。
+
+  源表结构：
+  ```sql
+  -- 用户表
+  create table if not exists customer
+  (
+      id          bigint auto_increment
+          primary key,
+      name        varchar(20)                        not null,
+      id_card     varchar(18)                        not null,
+      address     varchar(100)                       not null,
+      create_time datetime default CURRENT_TIMESTAMP not null
+  );
+  -- 用户流水
+  create table if not exists customer_transaction_log
+  (
+      id               bigint auto_increment
+          primary key,
+      customer_id      bigint                             not null,
+      amount           decimal(18, 2)                     not null,
+      transaction_time datetime default CURRENT_TIMESTAMP null
+  );
+  ```
+  目标表结构：
+  ```sql
+  -- 用户信息统计
+  create table if not exists customer_consume_info
+  (
+      id                           bigint auto_increment comment '用户id'
+          primary key,
+      last_consume_amount          decimal(18, 2) default 0.00 null comment '最近一次消费金额',
+      last_consume_time            datetime                    null comment '最近一次消费时间',
+      total_consume_amount         decimal(18, 2) default 0.00 null comment '总消费金额',
+      current_month_consume_amount decimal(18, 2) default 0.00 not null comment '当月消费金额',
+      current_year_consume_amount  decimal(18, 2) default 0.00 not null comment '当年消费金额'
+  );
+  -- 用户详情
+  create table if not exists customer_detail
+  (
+      id           bigint auto_increment
+          primary key,
+      real_name    varchar(20)             not null,
+      birthday     date                    not null,
+      gender       smallint                not null,
+      area         varchar(6)              not null,
+      home_address varchar(100) default '' not null,
+      id_card      char(18)                not null
+  );
+  -- 用户表镜像
+  create table if not exists origin_customer
+  (
+      id          bigint auto_increment
+          primary key,
+      name        varchar(20)                        not null,
+      id_card     varchar(18)                        not null,
+      address     varchar(100)                       not null,
+      create_time datetime default CURRENT_TIMESTAMP not null
+  );
+  -- 用户交易表镜像
+  create table if not exists origin_customer_transaction_log
+  (
+      id               bigint auto_increment
+          primary key,
+      customer_id      bigint                             not null,
+      customer_name    varchar(20)                        not null,
+      amount           decimal(18, 2)                     not null,
+      transaction_time datetime default CURRENT_TIMESTAMP null
+  );
+  ```
+
+  flow配置：
+
+  同步用户和用户详情，此配置将输出两个结果到数据库
+  ```json
+  {
+    "_id": "data_flow_mock_customer",
+    "source": "__default",
+    "schema": "data_flow_mock_src",
+    "name": "customer",
+    "node_list": [
+      {
+        "node_name": "to_origin",
+        "eval_context": [],
+        "simple_copy_fields": true,
+        "skip_if_exception": false,
+        "export_to_rdb": {
+          "method": "upsert",
+          "target_schema": "data_flow_mock_sink",
+          "target_table": "origin_customer",
+          "find_original": {
+            "match_fields": [
+              "id"
+            ]
+          },
+          "update": {
+            "match_fields": [
+              "id"
+            ]
+          },
+          "insert": {}
+        }
+      },
+      {
+        "node_name": "to_customer_detail",
+        "simple_convert": {
+          "id": "[id]",
+          "real_name": "[name]",
+          "id_card": "[id_card]",
+          "birthday": "[id_card].substring(6,14)",
+          "gender": "T(Integer).parseInt([id_card].charAt(16)) % 2",
+          "area": "[id_card].substring(0, 6)",
+          "home_address": "[address]"
+        },
+        "export_to_rdb": {
+          "method": "upsert",
+          "target_schema": "data_flow_mock_sink",
+          "target_table": "customer_detail",
+          "find_original": {
+            "match_fields": [
+              "id"
+            ]
+          },
+          "update": {
+            "match_fields": [
+              "id"
+            ]
+          },
+          "insert": {}
+        }
+      }
+    ]
+  }
+  ```
+  同步流水
+  ```json
+  {
+    "_id": "data_flow_mock_customer_trans_mirror",
+    "source": "__default",
+    "schema": "data_flow_mock_src",
+    "name": "customer_transaction_log",
+    "node_list": [
+      {
+        "node_name": "to_origin",
+        "eval_context": [
+          {
+            "name": "customer",
+            "sql": "SELECT * FROM data_flow_mock_src.customer WHERE id=${[customer_id]}",
+            "type": "map"
+          }
+        ],
+        "resolve_order": [
+          "filter",
+          "simple_copy_fields",
+          "eval_context",
+          "simple_convert",
+          "additional_expression",
+          "conditional_expression"
+        ],
+        "simple_copy_fields": true,
+        "skip_if_exception": false,
+        "simple_convert": {
+          "customer_name": "[customer][name]"
+        },
+        "export_to_rdb": {
+          "method": "upsert",
+          "target_schema": "data_flow_mock_sink",
+          "target_table": "origin_customer_transaction_log",
+          "find_original": {
+            "match_fields": [
+              "id"
+            ]
+          },
+          "update": {
+            "match_fields": [
+              "id"
+            ]
+          },
+          "insert": {}
+        }
+      }
+    ]
+  }
+  ```
+  实时更新统计信息
+  ```json
+  {
+    "_id": "data_flow_mock_customer_consume_info",
+    "source": "__default",
+    "schema": "data_flow_mock_src",
+    "name": "customer_transaction_log",
+    "node_list": [
+      {
+        "node_name": "node",
+        "eval_context": [
+          {
+            "name": "total_consume_amount",
+            "sql": "SELECT SUM(amount) as sum FROM data_flow_mock_src.customer_transaction_log WHERE customer_id=${[customer_id]}",
+            "type": "map"
+          },
+          {
+            "name": "current_month_consume_amount",
+            "sql": "SELECT SUM(amount) as sum FROM data_flow_mock_src.customer_transaction_log WHERE customer_id=${[customer_id]} AND transaction_time > STR_TO_DATE(CONCAT(DATE_FORMAT(NOW(),'%Y-%m'), '-01'),'%Y-%m-%d');",
+            "type": "map"
+          },
+          {
+            "name": "current_year_consume_amount",
+            "sql": "SELECT SUM(amount) as sum FROM data_flow_mock_src.customer_transaction_log WHERE customer_id=${[customer_id]} AND transaction_time > STR_TO_DATE(CONCAT(DATE_FORMAT(NOW(),'%Y'), '-01-01'),'%Y-%m-%d')",
+            "type": "map"
+          }
+        ],
+        "resolve_order": [
+          "filter",
+          "eval_context",
+          "simple_copy_fields",
+          "simple_convert",
+          "additional_expression",
+          "conditional_expression"
+        ],
+        "simple_copy_fields": false,
+        "skip_if_exception": false,
+        "simple_convert": {
+          "id": "[customer_id]",
+          "last_consume_amount": "[amount]",
+          "last_consume_time": "[transaction_time]",
+          "total_consume_amount": "[total_consume_amount][sum]",
+          "current_month_consume_amount": "[current_month_consume_amount][sum]",
+          "current_year_consume_amount": "[current_year_consume_amount][sum]"
+        },
+        "export_to_rdb": {
+          "method": "upsert",
+          "target_schema": "data_flow_mock_sink",
+          "target_table": "customer_consume_info",
+          "find_original": {
+            "match_fields": [
+              "id"
+            ]
+          },
+          "update": {
+            "match_fields": [
+              "id"
+            ]
+          },
+          "insert": {}
+        }
+      }
+    ]
+  }
+  ```
+- 硬件参数
+
+  CPU：Intel i5-1038NG7  
+  内存：32GB
+- 软件版本  
+
+  操作系统：macOS Big Sur 11.2.2  
+  MySQL：8.0.21  
+  Kafka：2.12-2.2.2  
+  Java：11  
+  docker-engine：20.10.2（redis、mongo为docker环境）
+- 测试结果
+  ![img](https://oscimg.oschina.net/oscnet/up-7748aacea486a65cfe87d31099ec80495e1.png)
+  
+  单实例下运行这三个配置，平均速度为250条flow/s左右，受制于MySQL性能，刚开始数据库数据较小时速度很快，随着数据量急剧增大，速度也慢慢降低，性能瓶颈主要在于flow配置的复杂度和数据库的查询性能，此测试作为参考。
+
+
+### Docker下的Canal搭建
+参考此文章：[canal在docker下的搭建(配合canal-admin)](https://windlively.github.io/2021/03/07/canal%E5%9C%A8docker%E4%B8%8B%E7%9A%84%E6%90%AD%E5%BB%BA-%E9%85%8D%E5%90%88canal-admin/)
