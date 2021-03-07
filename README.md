@@ -743,11 +743,13 @@ server:
   MySQL：8.0.21  
   Kafka：2.12-2.2.2  
   Java：11  
-  docker-engine：20.10.2（redis、mongo为docker环境）
+  docker-engine：20.10.2（canal、redis、mongo为docker环境）
 - 测试结果
   ![img](https://oscimg.oschina.net/oscnet/up-7748aacea486a65cfe87d31099ec80495e1.png)
-  
-  单实例下运行这三个配置，平均速度为250条flow/s左右，受制于MySQL性能，刚开始数据库数据较小时速度很快，随着数据量急剧增大，速度也慢慢降低，性能瓶颈主要在于flow配置的复杂度和数据库的查询性能，此测试作为参考。
+
+  ![img](https://oscimg.oschina.net/oscnet/up-07c4a610604ca2ee0f68729bd23aced6a67.png)
+
+  单实例下运行这三个配置，平均速度约为250+条flow/s左右，受制于MySQL性能，刚开始数据库数据较小时速度很快，随着数据量急剧增大，速度也慢慢降低，处理速率主要在于flow配置的复杂度和数据库的性能，此测试作为参考。
 
 
 ### Docker下的Canal搭建
