@@ -1,0 +1,87 @@
+multi-data-source:
+  enable: true
+  data-source:
+    hikari:
+      - pool-name: master
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://host.docker.internal:3306/
+        password: 58603924715
+        username: root
+        connection-test-query: SELECT 1
+        validation-timeout: 18800
+      - pool-name: common
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://host.docker.internal:3306/common
+        password: 58603924715
+        username: root
+        connection-test-query: SELECT 1
+        validation-timeout: 18800
+spring:
+  data:
+    mongodb:
+      uri: mongodb://data-flow:data-flow@host.docker.internal:27017/data-flow
+  redis:
+    port: 6380
+    password: 58603924715
+    lettuce:
+      pool:
+        max-idle: 8
+        min-idle: 1
+        max-active: 10
+    host: host.docker.internal
+server:
+  servlet:
+    context-path: /data-flow
+  port: 10022
+data-flow:
+  server:
+    enable-kafka: true
+    listen-table-config:
+#      允许全部库表
+      - schema: .+
+        tables:
+          - .+
+    kafka:
+      consumer:
+        properties:
+          bootstrap-servers: host.docker.internal:9092
+          group-id: local
+          enable-auto-commit: false
+          auto-commit-interval-ms: 1000
+          session-timeout-ms: 15000
+          auto-offset-reset: earliest
+          max-poll-records: 60
+          key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+          value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
+      container:
+        topics:
+          - example
+          - spider_weibo
+          - canal_default
+        ack-mode: MANUAL
+    enable-http-invoke: true
+    kafka-msg:
+      # json-msg-convert-config:
+      #   data: "#root"
+      #   schema: "'weibo_spider'"
+      #   name: "'weibo_spider'"
+      type: CANAL
+    modify-config-with-http: true
+  http-options:
+    enable-flow-config: true
+    enable-monitor: true
+  mq-instances:
+    - name: example_sink
+      type: kafka
+      properties:
+        bootstrap-servers: host.docker.internal:9092
+        group-id: data-flow
+        key-serializer: org.apache.kafka.common.serialization.StringSerializer
+        value-serializer: org.apache.kafka.common.serialization.StringSerializer
+#    - name: to_rocket
+#      type: rocket
+#      properties:
+#        name-serv: localhost:8088
+#        group-id: test
+logging:
+  config: /config/logback.xml

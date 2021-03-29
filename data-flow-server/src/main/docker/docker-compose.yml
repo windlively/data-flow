@@ -1,0 +1,48 @@
+version: '3.7'
+networks:
+  data_flow_cluster:
+    name: data_flow_cluster
+    driver: bridge
+services:
+  #实例1
+  data_flow_1:
+    image: windlively/data-flow-server
+    restart: always
+    container_name: data_flow_1
+    ports:
+      - 10022:10022
+    environment:
+      VM_OPTS: -Dspring.config.location=/config/application.yml
+    volumes:
+      - ./config:/config
+      - ./logs/data_flow_1:/logs
+    networks:
+      - data_flow_cluster
+  #实例2
+  data_flow_2:
+    image: windlively/data-flow-server
+    restart: always
+    container_name: data_flow_2
+    ports:
+      - 10023:10022
+    environment:
+      VM_OPTS: -Dspring.config.location=/config/application.yml
+    volumes:
+      - ./config:/config
+      - ./logs/data_flow_2:/logs
+    networks:
+      - data_flow_cluster
+  #实例3
+  data_flow_3:
+    image: windlively/data-flow-server
+    restart: always
+    container_name: data_flow_3
+    ports:
+      - 10024:10022
+    environment:
+      VM_OPTS: -Dspring.config.location=/config/application.yml
+    volumes:
+      - ./config:/config
+      - ./logs/data_flow_3:/logs
+    networks:
+      - data_flow_cluster
