@@ -94,12 +94,4 @@ public class DataFlowDemoApplication implements DisposableBean, InitializingBean
     public void afterPropertiesSet() throws Exception {
         initEmbeddedRedisServer();
     }
-
-    @Bean
-    public TaskScheduler taskScheduler(){
-        ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
-        taskScheduler.setPoolSize(10);
-        taskScheduler.initialize();
-        return taskScheduler;
-    }
 }
