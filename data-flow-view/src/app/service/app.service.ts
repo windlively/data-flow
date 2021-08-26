@@ -85,4 +85,4 @@ export class AppErrorStateMatcher implements ErrorStateMatcher {
   }
 }
 
-export const wsServer = "ws://localhost:10022/data-flow/ws"
+export const wsServer = "ws://localhost:8081/data-flow/ws"

@@ -29,7 +29,7 @@ public class MockService {
     }
 
     @SwitchSource(name = "master")
-    @Scheduled(fixedRate = 2000)
+    @Scheduled(fixedRate = 100)
     public SourceEntity produce(){
         int customerId = random.nextInt(12) + 1;
         int bookId = random.nextInt(20) + 1;

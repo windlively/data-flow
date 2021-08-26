@@ -14,7 +14,9 @@ import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.kafka.listener.KafkaListenerErrorHandler;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.yaml.snakeyaml.Yaml;
 import redis.embedded.RedisServer;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
@@ -33,7 +35,7 @@ import java.io.IOException;
 @EnableSwagger2
 public class DataFlowDemoApplication implements DisposableBean, InitializingBean {
 
-    static RedisServer redisServer;
+    private static RedisServer redisServer;
 
     private static void initEmbeddedRedisServer() throws IOException {
         Yaml yaml = new Yaml();
@@ -52,7 +54,7 @@ public class DataFlowDemoApplication implements DisposableBean, InitializingBean
                 //.redisExecProvider(customRedisExec) //com.github.kstyrc (not com.orange.redis-embedded)
                 .setting("maxmemory 128M") //maxheap 128M
                 .build();
-//        redisServer.start();
+        redisServer.start();
     }
 
     public static void main(String[] args) {
@@ -77,6 +79,15 @@ public class DataFlowDemoApplication implements DisposableBean, InitializingBean
     @Override
     public void destroy() throws Exception {
         redisServer.stop();
+    }
+
+    @Bean
+    public ThreadPoolTaskScheduler taskScheduler() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(2);
+        scheduler.setThreadNamePrefix("scheduled-task-");
+        scheduler.setDaemon(true);
+        return scheduler;
     }
 
     @Override
