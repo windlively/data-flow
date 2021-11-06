@@ -1,4 +1,5 @@
 import hashlib
+import json
 import logging
 import sys
 
@@ -25,11 +26,10 @@ def handle_html(cookie, url):
 
         if GENERATE_TEST_DATA:
             import io
-            import json
             import os
 
             resp_file = os.path.join(TEST_DATA_DIR, '%s.html' % hash_url(url))
-            with io.open(resp_file, 'w') as f:
+            with io.open(resp_file, 'w', encoding='utf-8') as f:
                 f.write(resp.text)
 
             with io.open(os.path.join(TEST_DATA_DIR, URL_MAP_FILE), 'r+') as f:
@@ -53,6 +53,7 @@ def handle_garbled(info):
         return info
     except Exception as e:
         logger.exception(e)
+        return u'无'
 
 
 def bid2mid(bid):
@@ -80,3 +81,37 @@ def bid2mid(bid):
                 strnum = '0' + strnum
         mid += strnum
     return mid
+
+
+def to_video_download_url(cookie, video_page_url):
+    if video_page_url == '':
+        return ''
+
+    video_object_url = video_page_url.replace('m.weibo.cn/s/video/show',
+                                              'm.weibo.cn/s/video/object')
+    try:
+        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36'
+        headers = {'User_Agent': user_agent, 'Cookie': cookie}
+        wb_info = requests.get(video_object_url, headers=headers).json()
+        video_url = wb_info['data']['object']['stream'].get('hd_url')
+        if not video_url:
+            video_url = wb_info['data']['object']['stream']['url']
+            if not video_url:  # 说明该视频为直播
+                video_url = ''
+    except json.decoder.JSONDecodeError:
+        logger.warning(u'当前账号没有浏览该视频的权限')
+
+    return video_url
+
+
+def string_to_int(string):
+    """字符串转换为整数"""
+    if isinstance(string, int):
+        return string
+    elif string.endswith(u'万+'):
+        string = string[:-2] + '0000'
+    elif string.endswith(u'万'):
+        string = float(string[:-1]) * 10000
+    elif string.endswith(u'亿'):
+        string = float(string[:-1]) * 100000000
+    return int(string)

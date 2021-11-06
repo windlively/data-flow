@@ -4,31 +4,31 @@ multi-data-source:
     hikari:
       - pool-name: master
         driver-class-name: com.mysql.cj.jdbc.Driver
-        jdbc-url: jdbc:mysql://localhost:3306/
-        password: 123456789
+        jdbc-url: jdbc:mysql://host.docker.internal:3306/
+        password: 58603924715
         username: root
         connection-test-query: SELECT 1
         validation-timeout: 18800
       - pool-name: common
         driver-class-name: com.mysql.cj.jdbc.Driver
-        jdbc-url: jdbc:mysql://localhost:3306/common
-        password: 123456789
+        jdbc-url: jdbc:mysql://host.docker.internal:3306/common
+        password: 58603924715
         username: root
         connection-test-query: SELECT 1
         validation-timeout: 18800
 spring:
   data:
     mongodb:
-      uri: mongodb://data-flow:123456@127.0.0.1:27017/data-flow
+      uri: mongodb://data-flow:data-flow@host.docker.internal:27017/data-flow
   redis:
     port: 6380
-    password: 123456
+    password: 58603924715
     lettuce:
       pool:
         max-idle: 8
         min-idle: 1
         max-active: 10
-    host: 127.0.0.1
+    host: host.docker.internal
 server:
   servlet:
     context-path: /data-flow
@@ -37,47 +37,14 @@ data-flow:
   server:
     enable-kafka: true
     listen-table-config:
-#      允许全部库表
-#      - schema: .*
-#        tables:
-#          - .*
-      - schema: weibo_spider
+      #      允许全部库表
+      - schema: .+
         tables:
-          - weibo_spider
-      - schema: capital
-        tables:
-          - zfpt_capital_order
-          - zfpt_capital_repayment_plan
-      - schema: auto_core_sys
-        tables:
-          - auto_core_order
-      - schema: zion
-        tables:
-          - credit_repay_serial
-          - loan_invoice_info
-          - repay_plan
-          - repay_reduce_record
-      - schema: mobile_card
-        tables:
-          - mcc_business_pay
-          - mcc_consume_repayment
-          - mcc_consume_supply
-          - mcc_customer_consume
-          - mcc_virtual_order_transaction
-      - schema: o2o
-        tables:
-          - appreciation_service
-          - orderdetail
-          - order
-          - pl_order
-          - loan_result
-          - order_type_rule
-          - pl_repayment_plan_capital
-          - pl_repayment_plan_user
+          - .+
     kafka:
       consumer:
         properties:
-          bootstrap-servers: localhost:9092
+          bootstrap-servers: host.docker.internal:9092
           group-id: local
           enable-auto-commit: false
           auto-commit-interval-ms: 1000
@@ -90,14 +57,16 @@ data-flow:
         topics:
           - example
           - spider_weibo
+          - canal_default
         ack-mode: MANUAL
     enable-http-invoke: true
     kafka-msg:
-      json-msg-convert-config:
-        data: "#root"
-        schema: "'weibo_spider'"
-        name: "'weibo_spider'"
-      type: JSON
+      # json-msg-convert-config:
+      #   data: "#root"
+      #   schema: "'weibo_spider'"
+      #   name: "'weibo_spider'"
+      type: CANAL
+    modify-config-with-http: true
   http-options:
     enable-flow-config: true
     enable-monitor: true
@@ -105,7 +74,7 @@ data-flow:
     - name: example_sink
       type: kafka
       properties:
-        bootstrap-servers: localhost:9092
+        bootstrap-servers: host.docker.internal:9092
         group-id: data-flow
         key-serializer: org.apache.kafka.common.serialization.StringSerializer
         value-serializer: org.apache.kafka.common.serialization.StringSerializer
@@ -114,4 +83,5 @@ data-flow:
 #      properties:
 #        name-serv: localhost:8088
 #        group-id: test
-
+#logging:
+#  config: /config/logback.xml

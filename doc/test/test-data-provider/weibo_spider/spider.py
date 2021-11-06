@@ -15,7 +15,8 @@ from absl import app, flags
 from tqdm import tqdm
 
 from . import config_util, datetime_util
-from .parser import IndexParser, PageParser
+from .downloader import AvatarPictureDownloader
+from .parser import AlbumParser, IndexParser, PageParser, PhotoParser
 from .user import User
 
 FLAGS = flags.FLAGS
@@ -61,6 +62,10 @@ class Spider:
             'pic_download']  # 取值范围为0、1,程序默认值为0,代表不下载微博原始图片,1代表下载
         self.video_download = config[
             'video_download']  # 取值范围为0、1,程序默认为0,代表不下载微博视频,1代表下载
+        self.file_download_timeout = config.get(
+            'file_download_timeout',
+            [5, 5, 10
+             ])  # 控制文件下载“超时”时的操作，值是list形式，包含三个数字，依次分别是最大超时重试次数、最大连接时间和最大读取时间
         self.result_dir_name = config.get(
             'result_dir_name', 0)  # 结果目录名，取值为0或1，决定结果文件存储在用户昵称文件夹里还是用户id文件夹里
         self.cookie = config['cookie']
@@ -82,12 +87,28 @@ class Spider:
         if FLAGS.u:
             user_id_list = FLAGS.u.split(',')
         if isinstance(user_id_list, list):
-            user_id_list = list(set(user_id_list))
-            user_config_list = [{
-                'user_uri': user_id,
-                'since_date': self.since_date,
-                'end_date': self.end_date
-            } for user_id in user_id_list]
+            # 第一部分是处理dict类型的
+            # 第二部分是其他类型,其他类型提供去重功能
+            user_config_list = list(
+                map(
+                    lambda x: {
+                        'user_uri': x['id'],
+                        'since_date': x.get('since_date', self.since_date),
+                        'end_date': x.get('end_date', self.end_date),
+                    }, [
+                        user_id for user_id in user_id_list
+                        if isinstance(user_id, dict)
+                    ])) + list(
+                        map(
+                            lambda x: {
+                                'user_uri': x,
+                                'since_date': self.since_date,
+                                'end_date': self.end_date
+                            },
+                            set([
+                                user_id for user_id in user_id_list
+                                if not isinstance(user_id, dict)
+                            ])))
             if FLAGS.u:
                 config_util.add_user_uri_list(self.user_config_file_path,
                                               user_id_list)
@@ -119,6 +140,16 @@ class Spider:
         """获取用户信息"""
         self.user = IndexParser(self.cookie, user_uri).get_user()
         self.page_count += 1
+
+    def download_user_avatar(self, user_uri):
+        """下载用户头像"""
+        avatar_album_url = PhotoParser(self.cookie,
+                                       user_uri).extract_avatar_album_url()
+        pic_urls = AlbumParser(self.cookie,
+                               avatar_album_url).extract_pic_urls()
+        AvatarPictureDownloader(
+            self._get_filepath('img'),
+            self.file_download_timeout).handle_download(pic_urls)
 
     def get_weibo_info(self):
         """获取微博信息"""
@@ -177,6 +208,15 @@ class Spider:
                             sleep(1)
                         self.page_count = 0
                         self.global_wait.append(self.global_wait.pop(0))
+
+                # 更新用户user_id_list.txt中的since_date
+                if self.user_config_file_path or FLAGS.u:
+                    config_util.update_user_config_file(
+                        self.user_config_file_path,
+                        self.user_config['user_uri'],
+                        self.user.nickname,
+                        self.new_since_date,
+                    )
         except Exception as e:
             logger.exception(e)
 
@@ -245,14 +285,49 @@ class Spider:
 
         self.downloaders = []
         if self.pic_download == 1:
-            from .downloader import ImgDownloader
+            from .downloader import (OriginPictureDownloader,
+                                     RetweetPictureDownloader)
 
-            self.downloaders.append(ImgDownloader(self._get_filepath('img')))
+            self.downloaders.append(
+                OriginPictureDownloader(self._get_filepath('img'),
+                                        self.file_download_timeout))
+        if self.pic_download and not self.filter:
+            self.downloaders.append(
+                RetweetPictureDownloader(self._get_filepath('img'),
+                                         self.file_download_timeout))
         if self.video_download == 1:
             from .downloader import VideoDownloader
 
             self.downloaders.append(
-                VideoDownloader(self._get_filepath('video')))
+                VideoDownloader(self._get_filepath('video'),
+                                self.file_download_timeout))
+
+    def get_one_user(self, user_config):
+        """获取一个用户的微博"""
+        try:
+            self.get_user_info(user_config['user_uri'])
+            logger.info(self.user)
+            logger.info('*' * 100)
+
+            self.initialize_info(user_config)
+            self.write_user(self.user)
+            logger.info('*' * 100)
+
+            # 下载用户头像相册中的图片。
+            if self.pic_download:
+                self.download_user_avatar(user_config['user_uri'])
+
+            for weibos in self.get_weibo_info():
+                self.write_weibo(weibos)
+                self.got_num += len(weibos)
+            if not self.filter:
+                logger.info(u'共爬取' + str(self.got_num) + u'条微博')
+            else:
+                logger.info(u'共爬取' + str(self.got_num) + u'条原创微博')
+            logger.info(u'信息抓取完毕')
+            logger.info('*' * 100)
+        except Exception as e:
+            logger.exception(e)
 
     def start(self):
         """运行爬虫"""
@@ -270,31 +345,7 @@ class Spider:
                     user_count1 = user_count
                     random_users = random.randint(*self.random_wait_pages)
                 user_count += 1
-                self.get_user_info(user_config['user_uri'])
-                logger.info(self.user)
-                logger.info('*' * 100)
-
-                self.initialize_info(user_config)
-                self.write_user(self.user)
-                logger.info('*' * 100)
-
-                for weibos in self.get_weibo_info():
-                    self.write_weibo(weibos)
-                    self.got_num += len(weibos)
-                if not self.filter:
-                    logger.info(u'共爬取' + str(self.got_num) + u'条微博')
-                else:
-                    logger.info(u'共爬取' + str(self.got_num) + u'条原创微博')
-                logger.info(u'信息抓取完毕')
-                logger.info('*' * 100)
-
-                if self.user_config_file_path or FLAGS.u:
-                    config_util.update_user_config_file(
-                        self.user_config_file_path,
-                        self.user_config['user_uri'],
-                        self.user.nickname,
-                        self.new_since_date,
-                    )
+                self.get_one_user(user_config)
         except Exception as e:
             logger.exception(e)
 

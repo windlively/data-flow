@@ -1,24 +1,26 @@
-import json
 import logging
 import re
 import sys
 from datetime import datetime, timedelta
-
-import requests
 
 from .. import datetime_util
 from ..weibo import Weibo
 from .comment_parser import CommentParser
 from .mblog_picAll_parser import MblogPicAllParser
 from .parser import Parser
-from .util import handle_garbled, handle_html
+from .util import handle_garbled, handle_html, to_video_download_url
 
 logger = logging.getLogger('spider.page_parser')
 
 
 class PageParser(Parser):
+    empty_count = 0
+
     def __init__(self, cookie, user_config, page, filter):
         self.cookie = cookie
+        if hasattr(PageParser,
+                   'user_uri') and self.user_uri != user_config['user_uri']:
+            PageParser.empty_count = 0
         self.user_uri = user_config['user_uri']
         self.since_date = user_config['since_date']
         self.end_date = user_config['end_date']
@@ -35,7 +37,21 @@ class PageParser(Parser):
             endtime = ''.join(end_date)
             self.url = 'https://weibo.cn/%s/profile?starttime=%s&endtime=%s&advancedfilter=1&page=%d' % (
                 self.user_uri, starttime, endtime, page)
-        self.selector = handle_html(self.cookie, self.url)
+        self.selector = ''
+        self.to_continue = True
+        is_exist = ''
+        for i in range(3):
+            self.selector = handle_html(self.cookie, self.url)
+            info = self.selector.xpath("//div[@class='c']")
+            is_exist = info[0].xpath("div/span[@class='ctt']")
+            if is_exist:
+                PageParser.empty_count = 0
+                break
+        if not is_exist:
+            PageParser.empty_count += 1
+        if PageParser.empty_count > 2:
+            self.to_continue = False
+            PageParser.empty_count = 0
         self.filter = filter
 
     def get_one_page(self, weibo_id_list):
@@ -46,7 +62,7 @@ class PageParser(Parser):
             weibos = []
             if is_exist:
                 since_date = datetime_util.str_to_time(self.since_date)
-                for i in range(0, len(info) - 2):
+                for i in range(0, len(info) - 1):
                     weibo = self.get_one_weibo(info[i])
                     if weibo:
                         if weibo.id in weibo_id_list:
@@ -63,7 +79,7 @@ class PageParser(Parser):
                         logger.info('-' * 100)
                         weibos.append(weibo)
                         weibo_id_list.append(weibo.id)
-            return weibos, weibo_id_list, True
+            return weibos, weibo_id_list, self.to_continue
         except Exception as e:
             logger.exception(e)
 
@@ -256,43 +272,32 @@ class PageParser(Parser):
         except Exception as e:
             logger.exception(e)
 
-    def get_video_url(self, info, is_original):
+    def get_video_url(self, info):
         """获取微博视频url"""
+        video_url = u'无'
+
+        weibo_id = info.xpath('@id')[0][2:]
         try:
-            video_url = u'无'
-            if is_original:
-                div_first = info.xpath('div')[0]
-                a_list = div_first.xpath('.//a')
-                video_link = u'无'
+            video_page_url = ''
+            a_text = info.xpath('./div[1]//a/text()')
+            if u'全文' in a_text:
+                video_page_url = CommentParser(self.cookie,
+                                               weibo_id).get_video_page_url()
+            else:
+                # 来自微博视频号的格式与普通格式不一致，不加 span 层级
+                a_list = info.xpath('./div[1]//a')
                 for a in a_list:
                     if 'm.weibo.cn/s/video/show?object_id=' in a.xpath(
                             '@href')[0]:
-                        video_link = a.xpath('@href')[0]
+                        video_page_url = a.xpath('@href')[0]
                         break
-                if video_link != u'无':
-                    video_link = video_link.replace(
-                        'm.weibo.cn/s/video/show', 'm.weibo.cn/s/video/object')
-                    try:
-                        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36'
-                        headers = {
-                            'User_Agent': user_agent,
-                            'Cookie': self.cookie
-                        }
-                        wb_info = requests.get(video_link,
-                                               headers=headers).json()
-                        video_url = wb_info['data']['object']['stream'].get(
-                            'hd_url')
-                        if not video_url:
-                            video_url = wb_info['data']['object']['stream'][
-                                'url']
-                            if not video_url:  # 说明该视频为直播
-                                video_url = u'无'
-                    except json.decoder.JSONDecodeError:
-                        logger.warning(u'当前账号没有浏览该视频的权限')
-            return video_url
+
+            if video_page_url != '':
+                video_url = to_video_download_url(self.cookie, video_page_url)
         except Exception as e:
             logger.exception(e)
-            return u'无'
+
+        return video_url
 
     def is_pinned_weibo(self, info):
         """判断微博是否为置顶微博"""
@@ -307,6 +312,7 @@ class PageParser(Parser):
         try:
             weibo = Weibo()
             is_original = self.is_original(info)
+            weibo.original = is_original  # 是否原创微博
             if (not self.filter) or is_original:
                 weibo.id = info.xpath('@id')[0][2:]
                 weibo.content = self.get_weibo_content(info,
@@ -318,9 +324,7 @@ class PageParser(Parser):
                 if not self.filter:
                     weibo.retweet_pictures = picture_urls[
                         'retweet_pictures']  # 转发图片url
-                    weibo.original = is_original  # 是否原创微博
-                weibo.video_url = self.get_video_url(info,
-                                                     is_original)  # 微博视频url
+                weibo.video_url = self.get_video_url(info)  # 微博视频url
                 weibo.publish_place = self.get_publish_place(info)  # 微博发布位置
                 weibo.publish_time = self.get_publish_time(info)  # 微博发布时间
                 weibo.publish_tool = self.get_publish_tool(info)  # 微博发布工具
