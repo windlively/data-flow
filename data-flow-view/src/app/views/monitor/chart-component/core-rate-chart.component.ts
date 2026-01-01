@@ -5,10 +5,12 @@ import {AppService} from '../../../service/app.service';
 import {AppStatusData} from '../../../model/app-status-data';
 
 @Component({
-  selector: 'core-chart-rate-chart',
-  template: `
-    <div echarts style="height: 400px" [options]="clusterRateChartOption" (chartInit)="echartsInstance = $event; echartsInstanceInit.emit($event)"></div>
-  `
+    selector: 'core-chart-rate-chart',
+    standalone: false,
+    template: `
+        <div echarts style="height: 400px" [options]="clusterRateChartOption"
+             (chartInit)="echartsInstance = $event; echartsInstanceInit.emit($event)"></div>
+    `
 })
 export class CoreRateChartComponent implements OnInit, OnDestroy {
 
@@ -53,7 +55,7 @@ export class CoreRateChartComponent implements OnInit, OnDestroy {
     },
     xAxis: {
       type: 'time',
-      boundaryGap: false,
+      // boundaryGap: false,
     },
     yAxis: {
       type: 'value'

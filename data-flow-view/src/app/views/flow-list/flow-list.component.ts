@@ -1,9 +1,8 @@
-import {Component, OnInit} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
+import {Component, Inject, OnInit} from '@angular/core';
 import {Tools} from '../../tools';
 import {EChartsOption} from 'echarts';
 import {AppService} from '../../service/app.service';
-import {delay} from 'rxjs/operators';
+import {HttpClient} from "@angular/common/http";
 
 
 const svgIcons = {
@@ -24,11 +23,12 @@ const svgIcons = {
 @Component({
   selector: 'app-flow-list',
   templateUrl: './flow-list.component.html',
+  standalone: false,
   styleUrls: ['./flow-list.component.css']
 })
 export class FlowListComponent implements OnInit {
 
-  constructor(public http: HttpClient,
+  constructor(@Inject(HttpClient) public http: HttpClient,
               public appService: AppService) {
   }
 

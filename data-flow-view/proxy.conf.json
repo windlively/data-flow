@@ -1,6 +1,6 @@
 {
   "/data-flow": {
-    "target": "http://localhost:10022",
+    "target": "http://localhost:8081",
     "changeOrigin": true
   }
 }

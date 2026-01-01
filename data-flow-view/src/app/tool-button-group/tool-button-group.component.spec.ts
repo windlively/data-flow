@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import {waitForAsync, ComponentFixture, TestBed} from '@angular/core/testing';
 
 import { ToolButtonGroupComponent } from './tool-button-group.component';
 
@@ -6,7 +6,7 @@ describe('ToolButtonGroupComponent', () => {
   let component: ToolButtonGroupComponent;
   let fixture: ComponentFixture<ToolButtonGroupComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ ToolButtonGroupComponent ]
     })

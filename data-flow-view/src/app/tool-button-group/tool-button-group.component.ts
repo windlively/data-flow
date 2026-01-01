@@ -6,6 +6,7 @@ import {MatDialog} from "@angular/material/dialog";
 @Component({
   selector: 'app-tool-button-group',
   templateUrl: './tool-button-group.component.html',
+  standalone: false,
   styleUrls: ['./tool-button-group.component.css']
 })
 export class ToolButtonGroupComponent implements OnInit {

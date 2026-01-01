@@ -1,7 +1,8 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
-  name: 'prettyJSON'
+    standalone: false,
+    name: 'prettyJSON'
 })
 export class PrettyJSONPipe implements PipeTransform {
 

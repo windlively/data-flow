@@ -1,8 +1,8 @@
 import {Injectable, OnInit} from '@angular/core';
 import {BehaviorSubject, Subject} from 'rxjs';
 import {FlowConfig} from '../model/flow-config';
-import {delay, distinct, map} from 'rxjs/operators';
-import {fromArray} from 'rxjs/internal/observable/fromArray';
+import {distinct, map} from 'rxjs/operators';
+import {from} from 'rxjs/internal/observable/from';
 import {FormControl, FormGroupDirective, NgForm} from '@angular/forms';
 import {ErrorStateMatcher} from '@angular/material/core';
 import {MatSnackBar} from '@angular/material/snack-bar';
@@ -42,17 +42,17 @@ export class AppService implements OnInit{
       this.cache.schemaList = []
       this.cache.nameList = []
 
-      fromArray(data).pipe(
+      from(data).pipe(
         map((o) => o.source),
         distinct()
       ).subscribe(o => this.cache.sourceList.push(o))
 
-      fromArray(data).pipe(
+      from(data).pipe(
         map((o) => o.schema),
         distinct()
       ).subscribe(o => this.cache.schemaList.push(o))
 
-      fromArray(data).pipe(
+      from(data).pipe(
         map((o) => o.name),
         distinct()
       ).subscribe(o => this.cache.nameList.push(o))

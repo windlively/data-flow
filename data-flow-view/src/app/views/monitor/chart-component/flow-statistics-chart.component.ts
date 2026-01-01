@@ -3,10 +3,11 @@ import {EChartsOption} from 'echarts';
 import {AppStatusData} from '../../../model/app-status-data';
 
 @Component({
-  selector: 'flow-statistics-chart',
-  template: `
-    <div echarts [options]="chartOption" (chartInit)="chartInstance = $event"></div>
-  `
+    selector: 'flow-statistics-chart',
+    standalone: false,
+    template: `
+        <div echarts [options]="chartOption" (chartInit)="chartInstance = $event"></div>
+    `
 })
 export class FlowStatisticsChartComponent {
 

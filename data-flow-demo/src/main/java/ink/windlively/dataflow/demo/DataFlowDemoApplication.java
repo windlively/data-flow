@@ -49,8 +49,8 @@ public class DataFlowDemoApplication implements DisposableBean, InitializingBean
             log.info("not found spring.redis.port config, embedded redis port is set to 6379");
         }
 
-        redisServer = RedisServer.builder()
-                .port(port)
+        redisServer = RedisServer.newRedisServer()
+                .port( port)
                 //.redisExecProvider(customRedisExec) //com.github.kstyrc (not com.orange.redis-embedded)
                 .setting("maxmemory 128M") //maxheap 128M
                 .build();

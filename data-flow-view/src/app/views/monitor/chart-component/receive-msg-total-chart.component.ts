@@ -3,10 +3,11 @@ import {EChartsOption} from 'echarts';
 import {AppStatusData} from '../../../model/app-status-data';
 
 @Component({
-  selector: 'receive-msg-total-chart',
-  template: `
-    <div style="width: 100%" echarts (chartInit)="echartsInstance = $event" [options]="chartOption"></div>
-  `
+    selector: 'receive-msg-total-chart',
+    standalone: false,
+    template: `
+        <div style="width: 100%" echarts (chartInit)="echartsInstance = $event" [options]="chartOption"></div>
+    `
 })
 export class ReceiveMsgTotalChartComponent {
 
