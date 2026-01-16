@@ -15,100 +15,117 @@ import {HttpClient} from '@angular/common/http';
     selector: 'app-flow-config-edit-dialog',
     standalone: false,
     template: `
-        <style>
-            .mat-dialog-title {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 10px;
-                margin-bottom: 0;
-            }
+      <style>
+        .mat-dialog-title {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 10px;
+          margin-bottom: 0;
+        }
 
-            ngx-monaco-editor {
-                height: calc(90vh - 240px);
-                /*background-color: #ffffff00;*/
-            }
+        ngx-monaco-editor {
+          height: calc(90vh - 240px);
+          /*background-color: #ffffff00;*/
+        }
 
-            .monaco-editor {
-                background-color: #9933ff;
-            }
+        .monaco-editor {
+          background-color: #9933ff;
+        }
 
-            .flow-namespace {
-                margin-left: 10px;
-                font-size: 16px;
-            }
+        .flow-namespace {
+          margin-left: 10px;
+          font-size: 16px;
+        }
 
-            .flow-config-meta-input-group {
-                font-size: 16px;
-            }
+        .flow-config-meta-input-group {
+          font-size: 16px;
+        }
 
-            .flow-config-meta-input {
-                margin-right: 20px;
-                width: 160px;
-            }
+        .flow-config-meta-input {
+          margin-right: 20px;
+          width: 160px;
+        }
 
-            .flow-id-content h2 {
-                margin: 0;
-            }
+        .flow-id-content h2 {
+          margin: 0;
+        }
 
-        </style>
-        <div mat-dialog-title>
-            <div [ngSwitch]="data.type" class="flow-id-content">
-                <h2 *ngSwitchCase="'update'">{{ currentFlowConfig._id }}</h2>
-                <mat-form-field *ngSwitchCase="'new'" style="width: 300px;">
-                    <mat-label>_id</mat-label>
-                    <input matInput [formControl]="flowIdInputFormControl"
-                           (ngModelChange)="currentFlowConfig._id=$event">
-                    <mat-error *ngIf="flowIdInputFormControl.hasError('required')">
-                        必填
-                    </mat-error>
-                    <mat-error *ngIf="flowIdInputFormControl.hasError('pattern')">
-                        请输入字母、数字、下划线的组合(regex: \w+)
-                    </mat-error>
-                </mat-form-field>
-            </div>
-            <div>
-                <button mat-button style="margin-right: 20px" color="primary" (click)="save()"><i nz-icon nzType="save"
-                                                                                                  nzTheme="outline"></i>
-                </button>
-                <button mat-button color="primary" (click)="close()"><i nz-icon nzType="close" nzTheme="outline"></i>
-                </button>
-            </div>
-        </div>
-        <div class="flow-config-meta-input-group">
-
-
-            <mat-slide-toggle class="flow-config-meta-input"
-                              (change)="editorInstance.updateOptions({readOnly: $event.checked})">
-                只读
-            </mat-slide-toggle>
-
-            <mat-form-field *ngFor="let input of inputList " class="flow-config-meta-input">
-                <mat-label>{{ input.name }}</mat-label>
-                <input matInput
-                       [formControl]="input.formControl"
-                       (ngModelChange)="currentFlowConfig[input.name] = $event"
-                       [errorStateMatcher]="input.matcher"
-                       [matAutocomplete]="autocomplete">
-                <mat-autocomplete autoActiveFirstOption #autocomplete="matAutocomplete">
-                    <mat-option *ngFor="let option of input.inputFilteredOptions | async" [value]="option">
-                        {{ option }}
-                    </mat-option>
-                </mat-autocomplete>
-                <mat-error *ngIf="input.formControl.hasError('required')">
-                    必填
+      </style>
+      <div mat-dialog-title>
+        @switch (data.type) {
+          @case ('update') {
+            <h2>{{ currentFlowConfig._id }}</h2>
+          }
+          @case ('new') {
+            <mat-form-field style="width: 300px;">
+              <mat-label>_id</mat-label>
+              <input matInput [formControl]="flowIdInputFormControl"
+                     (ngModelChange)="currentFlowConfig._id=$event">
+              @if (flowIdInputFormControl.hasError('required')) {
+                <mat-error>
+                  必填
                 </mat-error>
-                <mat-error *ngIf="input.formControl.hasError('pattern')">
-                    请输入字母、数字、下划线的组合(regex: \w+)
+              }
+              @if (flowIdInputFormControl.hasError('pattern')) {
+                <mat-error>
+                  请输入字母、数字、下划线的组合(regex: \w+)
                 </mat-error>
+              }
+
             </mat-form-field>
-
+          }
+        }
+        <div>
+          <button mat-button style="margin-right: 20px" color="primary" (click)="save()"><i nz-icon nzType="save"
+                                                                                            nzTheme="outline"></i>
+          </button>
+          <button mat-button color="primary" (click)="close()"><i nz-icon nzType="close" nzTheme="outline"></i>
+          </button>
         </div>
-        <ngx-monaco-editor #editor id="flow-config-monaco-editor" style="" (onInit)="editorInit($event)"
-                           [options]="monacoEditorOption"
-                           [(ngModel)]="editorContent">
-            <circle-loading></circle-loading>
-        </ngx-monaco-editor>
+      </div>
+      <div class="flow-config-meta-input-group">
+
+
+        <mat-slide-toggle class="flow-config-meta-input"
+                          (change)="editorInstance.updateOptions({readOnly: $event.checked})">
+          只读
+        </mat-slide-toggle>
+
+        @for (input of inputList; track input) {
+          <mat-form-field class="flow-config-meta-input">
+            <mat-label>{{ input.name }}</mat-label>
+            <input matInput
+                   [formControl]="input.formControl"
+                   (ngModelChange)="currentFlowConfig[input.name] = $event"
+                   [errorStateMatcher]="input.matcher"
+                   [matAutocomplete]="autocomplete">
+            <mat-autocomplete autoActiveFirstOption #autocomplete="matAutocomplete">
+              @for ( option of input.inputFilteredOptions | async; track option) {
+                <mat-option [value]="option">
+                  {{ option }}
+                </mat-option>
+              }
+            </mat-autocomplete>
+            @if (input.formControl.hasError('required')) {
+              <mat-error>
+                必填
+              </mat-error>
+            }
+            @if (input.formControl.hasError('pattern')) {
+              <mat-error>
+                请输入字母、数字、下划线的组合(regex: \w+)
+              </mat-error>
+            }
+          </mat-form-field>
+        }
+
+      </div>
+      <ngx-monaco-editor #editor id="flow-config-monaco-editor" style="" (onInit)="editorInit($event)"
+                         [options]="monacoEditorOption"
+                         [(ngModel)]="editorContent">
+        <circle-loading></circle-loading>
+      </ngx-monaco-editor>
     `
 })
 export class FlowConfigEditDialogComponent implements OnInit {

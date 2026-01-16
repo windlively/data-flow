@@ -1,7 +1,10 @@
 <div>
-  <div *ngFor="let chartOption of this.chartOptionList" style="position: relative; height: fit-content; overflow-x: auto; margin: 0">
-    <div echarts [options]="chartOption" style="height: fit-content; min-width: 800px"
-         [initOpts]="chartOption['initOpts']">
+  @for (chartOption of this.chartOptionList; track chartOption) {
+    <div style="position: relative; height: fit-content; overflow-x: auto; margin: 0">
+      <div echarts [options]="chartOption" style="height: fit-content; min-width: 800px"
+           [initOpts]="chartOption['initOpts']">
+      </div>
     </div>
-  </div>
+
+  }
 </div>
